@@ -1,0 +1,6 @@
+module main;
+
+void main()
+{
+	
+}

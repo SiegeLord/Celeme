@@ -151,6 +151,42 @@ class CNeuronType
 		return 0;
 	}
 	
+	int AllNonLocals(int delegate(ref CValue value) dg)
+	{
+		foreach(mech; Mechanisms)
+		{
+			foreach(val; mech.States)
+			{
+				if(int ret = dg(val))
+					return ret;
+			}
+			foreach(val; mech.Globals)
+			{
+				if(int ret = dg(val))
+					return ret;
+			}
+			foreach(val; mech.Parameters)
+			{
+				if(int ret = dg(val))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
+	int AllLocals(int delegate(ref CValue value) dg)
+	{
+		foreach(mech; Mechanisms)
+		{
+			foreach(val; mech.Locals)
+			{
+				if(int ret = dg(val))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	char[] Name;

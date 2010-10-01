@@ -8,7 +8,7 @@ import tango.core.Array;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
-$state_args$
+$val_args$
 		__global $num_type$* dt_buf,
 		const $num_type$ t,
 		const int count
@@ -18,11 +18,31 @@ $state_args$
 	if(i < count)
 	{
 		$num_type$ dt = dt_buf[i];
-$load_states$
+$load_vals$
 
 		while(cur_time < timestep)
 		{
 			$num_type$ error = 0;
+			
+$declare_locals$
+
+$declare_temp_states$
+
+$declare_derivs_1$
+
+$declare_derivs_2$
+
+$compute_derivs_1$
+
+$apply_derivs_1$
+
+$compute_derivs_2$
+
+$apply_derivs_2$
+
+$compute_error$
+
+$reset_state$
 			
 			cur_time += dt;
 			
@@ -135,66 +155,124 @@ class CModel
 		SNeuronGroup group;
 		group.Type = type;
 		group.Count = number;
-		group.InitCompiledNames();
 		
 		NeuronGroups ~= group;
 	}
 	
 	struct SNeuronGroup
 	{
-		char[][char[]] CompiledNames;
 		CNeuronType Type;
 		int Count;
-		
-		void InitCompiledNames()
-		{
-			foreach(name, _; Type.Values)
-			{
-				CompiledNames[name] = name.dup;
-			}
-		}
 	}
 	
 	void Generate()
 	{
 		/* Generate the step function */
 		auto source = new CSource;
+		
 		foreach(group; NeuronGroups)
 		{
 			auto kernel_source = StepKernelTemplate.dup;
 			
 			auto type = group.Type;
 			
+			void apply(char[] dest)
+			{
+				source.Retreat(1); /* Chomp the newline */
+				kernel_source.replace(dest, source.toString);
+				source.Clear();
+			}
+			
 			kernel_source.replace("$type_name$", type.Name);
 			
+			/* Arguments */
 			source.Tab(2);
-			foreach(state; &type.AllStates)
+			foreach(state; &type.AllNonLocals)
 			{
-				source ~= "__global $num_type$* " ~ group.CompiledNames[state.Name] ~ "_buf,";
+				source ~= "__global $num_type$* " ~ state.Name ~ "_buf,";
 			}
-			source.Retreat(1); /* Chomp the newline */
-			kernel_source.replace("$state_args$", source.toString);
-			source.Clear();
+			apply("$val_args$");
 			
+			/* Load vals */
 			source.Tab(2);
-			foreach(state; &type.AllStates)
+			foreach(state; &type.AllNonLocals)
 			{
-				auto name = group.CompiledNames[state.Name];
-				source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
+				source ~= "$num_type$ " ~ state.Name ~ " = " ~ state.Name ~ "_buf[i];";
 			}
-			source.Retreat(1); /* Chomp the newline */
-			kernel_source.replace("$load_states$", source.toString);
-			source.Clear();
+			apply("$load_vals$");
 			
+			/* Declare locals */
+			source.Tab(3);
+			foreach(state; &type.AllLocals)
+			{
+				source ~= "$num_type$ " ~ state.Name ~ ";";
+			}
+			apply("$declare_locals$");
+			
+			/* Declare temp states */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= "$num_type$ " ~ state.Name ~ "_0 = " ~ state.Name ~ ";";
+			}
+			apply("$declare_temp_states$");
+			
+			/* Declare derivs 1 */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= "$num_type$ d" ~ state.Name ~ "_dt_1;";
+			}
+			apply("$declare_derivs_1$");
+			
+			/* Declare derivs 2 */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= "$num_type$ d" ~ state.Name ~ "_dt_2;";
+			}
+			apply("$declare_derivs_2$");
+			
+			/* Apply derivs 1 */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= state.Name ~ " += dt * d" ~ state.Name ~ "_dt_1;";
+			}
+			apply("$apply_derivs_1$");
+			
+			/* Apply derivs 2 */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= state.Name ~ "_0 += dt / 2 * (d" ~ state.Name ~ "_dt_1 + d" ~ state.Name ~ "_dt_2);";
+			}
+			apply("$apply_derivs_2$");
+			
+			/* Compute error */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= state.Name ~ " -= " ~ state.Name ~ "_0;";
+				source ~= "error += " ~ state.Name ~ " * " ~ state.Name ~ ";";
+			}
+			apply("$compute_error$");
+			
+			/* Reset state */
+			source.Tab(3);
+			foreach(state; &type.AllStates)
+			{
+				source ~= state.Name ~ " = " ~ state.Name ~ "_0;";
+			}
+			apply("$reset_state$");
+			
+			/* Save states */
 			source.Tab(2);
 			foreach(state; &type.AllStates)
 			{
-				auto name = group.CompiledNames[state.Name];
-				source ~= name ~ "_buf[i] = " ~ name ~ ";";
+				source ~= state.Name ~ "_buf[i] = " ~ state.Name ~ ";";
 			}
-			source.Retreat(1); /* Chomp the newline */
-			kernel_source.replace("$save_states$", source.toString);
-			source.Clear();
+			apply("$save_states$");
 			
 			kernel_source.replace("$num_type$", NumType);
 			Source ~= kernel_source;

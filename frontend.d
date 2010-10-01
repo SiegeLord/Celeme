@@ -6,6 +6,7 @@ class CValue
 {
 	this(char[] name, CMechanism mech)
 	{
+		assert(mech);
 		Name = name;
 		Mechanism = mech;
 	}
@@ -25,6 +26,16 @@ class CValue
 	double Value = 0;
 }
 
+bool IsValidName(char[] name)
+{
+	return name != "t"
+	    && name != "dt"
+	    && name != "count"
+	    && name != "cur_time"
+	    && name != "i"
+	    && name != "error";
+}
+
 class CMechanism
 {
 	this(char[] name)
@@ -37,6 +48,8 @@ class CMechanism
 		return 
 		`CValue Add` ~ name ~ `(char[] name)
 			{
+				if(!IsValidName(name))
+					throw new Exception("The name '" ~ name ~ "' is reserved.");
 				auto val = new CValue(name, this);
 				if(` ~ name ~ `s.find(val, &CValue.EqualsPred) != ` ~ name ~ `s.length)
 					throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
@@ -92,6 +105,7 @@ class CNeuronType
 	}
 	void AddMechanism(CMechanism mech)
 	{
+		assert(mech);
 		foreach(val; &mech.AllExportedValues)
 		{
 			auto old_val = val.Name in Values;

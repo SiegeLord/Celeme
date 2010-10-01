@@ -54,6 +54,26 @@ void replace(ref char[] text, char[] pattern, char[] what)
 	text = ret;
 }
 
+unittest
+{
+	char[] a = "People like eating cows and pigs".dup;
+	
+	replace(a, "cows", "sheep");
+	assert(a == "People like eating sheep and pigs");
+	
+	replace(a, "eat", "pett");
+	assert(a == "People like petting sheep and pigs");
+	
+	replace(a, "pigs", "cats");
+	assert(a == "People like petting sheep and cats");
+	
+	replace(a, "People", "Skeletons");
+	assert(a == "Skeletons like petting sheep and cats");
+	
+	replace(a, "nothing", "anything");
+	assert(a == "Skeletons like petting sheep and cats");
+}
+
 class CSource
 {
 	void Add(char[] text)

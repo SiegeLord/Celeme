@@ -16,11 +16,6 @@ class CValue
 		return Value = val;
 	}
 	
-	static bool EqualsPred(CValue a, CValue b)
-	{
-		return a.Name == b.Name;
-	}
-	
 	CMechanism Mechanism;
 	char[] Name;
 	double Value = 0;
@@ -50,9 +45,9 @@ class CMechanism
 			{
 				if(!IsValidName(name))
 					throw new Exception("The name '" ~ name ~ "' is reserved.");
-				auto val = new CValue(name, this);
-				if(` ~ name ~ `s.find(val, &CValue.EqualsPred) != ` ~ name ~ `s.length)
+				if(IsDuplicate(name))
 					throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
+				auto val = new CValue(name, this);				
 				` ~ name ~ `s ~= val;
 				return val;
 			}
@@ -62,14 +57,28 @@ class CMechanism
 	mixin(AddFunc!("State"));
 	mixin(AddFunc!("Local"));
 	mixin(AddFunc!("Global"));
-	mixin(AddFunc!("Parameter"));
+	mixin(AddFunc!("Constant"));
 	
 	void AddExternal(char[] name)
 	{
+		if(!IsValidName(name))
+			throw new Exception("The name '" ~ name ~ "' is reserved.");
+		if(IsDuplicate(name))
+			throw new Exception("'" ~ name ~ "' exists in mechanism '" ~ Name ~ "'.");
 		Externals ~= name;
 	}
 	
-	int AllExportedValues(int delegate(ref CValue value) dg)
+	bool IsDuplicate(char[] name)
+	{
+		foreach(val; &AllValues)
+		{
+			if(val.Name == name)
+				return true;
+		}
+		return false;
+	}
+	
+	int AllValues(int delegate(ref CValue value) dg)
 	{
 		foreach(val; States)
 		{
@@ -86,6 +95,11 @@ class CMechanism
 			if(int ret = dg(val))
 				return ret;
 		}
+		foreach(val; Constants)
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
 		return 0;
 	}
 	
@@ -94,7 +108,7 @@ class CMechanism
 	CValue[] States;
 	CValue[] Globals;
 	CValue[] Locals;
-	CValue[] Parameters;
+	CValue[] Constants;
 }
 
 class CNeuronType
@@ -106,7 +120,7 @@ class CNeuronType
 	void AddMechanism(CMechanism mech)
 	{
 		assert(mech);
-		foreach(val; &mech.AllExportedValues)
+		foreach(val; &mech.AllValues)
 		{
 			auto old_val = val.Name in Values;
 			if(old_val !is null)
@@ -165,7 +179,15 @@ class CNeuronType
 				if(int ret = dg(val))
 					return ret;
 			}
-			foreach(val; mech.Parameters)
+		}
+		return 0;
+	}
+	
+	int AllConstants(int delegate(ref CValue value) dg)
+	{
+		foreach(mech; Mechanisms)
+		{
+			foreach(val; mech.Constants)
 			{
 				if(int ret = dg(val))
 					return ret;

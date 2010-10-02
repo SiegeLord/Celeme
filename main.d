@@ -11,6 +11,7 @@ void main()
 	iz_mech.AddState("V") = 0;
 	iz_mech.AddState("u") = 5;
 	iz_mech.AddLocal("I");
+	iz_mech.AddConstant("a");
 	
 	i_clamp.AddExternal("I");
 	

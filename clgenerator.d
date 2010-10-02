@@ -9,6 +9,7 @@ char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
 $val_args$
+$constant_args$
 		__global $num_type$* dt_buf,
 		const $num_type$ t,
 		const int count
@@ -185,13 +186,21 @@ class CModel
 			
 			kernel_source.replace("$type_name$", type.Name);
 			
-			/* Arguments */
+			/* Value arguments */
 			source.Tab(2);
 			foreach(state; &type.AllNonLocals)
 			{
 				source ~= "__global $num_type$* " ~ state.Name ~ "_buf,";
 			}
 			apply("$val_args$");
+			
+			/* Constant arguments */
+			source.Tab(2);
+			foreach(state; &type.AllConstants)
+			{
+				source ~= "const $num_type$* " ~ state.Name ~ ",";
+			}
+			apply("$constant_args$");
 			
 			/* Load vals */
 			source.Tab(2);

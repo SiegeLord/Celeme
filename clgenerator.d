@@ -4,6 +4,7 @@ import frontend;
 
 import tango.io.Stdout;
 import tango.core.Array;
+import tango.text.Util;
 
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
@@ -24,27 +25,38 @@ $load_vals$
 		while(cur_time < timestep)
 		{
 			$num_type$ error = 0;
-			
+
+			/* Declare local variables */
 $declare_locals$
 
+			/* Declare temporary storage for state*/
 $declare_temp_states$
 
+			/* First derivative stage */
 $declare_derivs_1$
 
+			/* Second derivative stage */
 $declare_derivs_2$
 
+			/* Compute the first derivatives */
 $compute_derivs_1$
 
+			/* Compute the first state estimate */
 $apply_derivs_1$
 
+			/* Compute the derivatives again */
 $compute_derivs_2$
 
+			/* Compute the final state estimate */
 $apply_derivs_2$
 
+			/* Compute the error in this step */
 $compute_error$
 
+			/* Transfer the state from the temporary storage to the real storage */
 $reset_state$
-			
+
+			/* Advance and compute the new step size*/
 			cur_time += dt;
 			
 			dt *= 0.8f * .46415888f * rootn(error + 0.00001f, -6);
@@ -101,10 +113,19 @@ class CSource
 	{
 		Source ~= text;
 	}
+	
 	void AddLine(char[] line)
 	{
 		auto tabs = "\t\t\t\t\t\t\t\t\t\t";
 		Source ~= tabs[0..TabLevel] ~ line ~ "\n";
+	}
+	
+	void AddBlock(char[] block)
+	{
+		foreach(line; lines(block))
+		{
+			AddLine(line);
+		}
 	}
 	
 	alias AddLine opCatAssign;
@@ -177,6 +198,8 @@ class CModel
 			
 			auto type = group.Type;
 			
+			auto eval_source = type.GetEvalSource();
+			
 			void apply(char[] dest)
 			{
 				source.Retreat(1); /* Chomp the newline */
@@ -242,6 +265,16 @@ class CModel
 			}
 			apply("$declare_derivs_2$");
 			
+			/* Compute derivs 1 */
+			auto first_source = eval_source.dup;
+			foreach(state; &type.AllStates)
+			{
+				first_source.replace(state.Name ~ "'", "d" ~ state.Name ~ "_dt_1");
+			}
+			source.Tab(3);
+			source.AddBlock(first_source);
+			apply("$compute_derivs_1$");
+			
 			/* Apply derivs 1 */
 			source.Tab(3);
 			foreach(state; &type.AllStates)
@@ -249,6 +282,16 @@ class CModel
 				source ~= state.Name ~ " += dt * d" ~ state.Name ~ "_dt_1;";
 			}
 			apply("$apply_derivs_1$");
+			
+			/* Compute derivs 2 */
+			auto second_source = eval_source.dup;
+			foreach(state; &type.AllStates)
+			{
+				second_source.replace(state.Name ~ "'", "d" ~ state.Name ~ "_dt_2");
+			}
+			source.Tab(3);
+			source.AddBlock(second_source);
+			apply("$compute_derivs_2$");
 			
 			/* Apply derivs 2 */
 			source.Tab(3);

@@ -12,7 +12,16 @@ void main()
 	iz_mech.AddState("u") = 5;
 	iz_mech.AddLocal("I");
 	iz_mech.AddConstant("a");
-	
+	iz_mech.SetStage(0,
+`I = 0;
+`
+);
+	iz_mech.SetStage(2, 
+`V' = (0.04f * V + 5) * V + 140 - u + I;
+u' = 0.02f * (0.2f * V - u);
+`
+);
+		
 	i_clamp.AddExternal("I");
 	
 	type.AddMechanism(iz_mech);

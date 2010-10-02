@@ -45,7 +45,7 @@ class CMechanism
 			{
 				if(!IsValidName(name))
 					throw new Exception("The name '" ~ name ~ "' is reserved.");
-				if(IsDuplicate(name))
+				if(IsDuplicateName(name))
 					throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
 				auto val = new CValue(name, this);				
 				` ~ name ~ `s ~= val;
@@ -63,12 +63,12 @@ class CMechanism
 	{
 		if(!IsValidName(name))
 			throw new Exception("The name '" ~ name ~ "' is reserved.");
-		if(IsDuplicate(name))
+		if(IsDuplicateName(name))
 			throw new Exception("'" ~ name ~ "' exists in mechanism '" ~ Name ~ "'.");
 		Externals ~= name;
 	}
 	
-	bool IsDuplicate(char[] name)
+	bool IsDuplicateName(char[] name)
 	{
 		foreach(val; &AllValues)
 		{
@@ -103,6 +103,15 @@ class CMechanism
 		return 0;
 	}
 	
+	void SetStage(int stage, char[] source)
+	{
+		assert(stage >= 0, "stage must be between positive");
+		assert(stage < 3, "stage must be less than 3");
+		
+		Stages[stage] = source;
+	}	
+	
+	char[][3] Stages;
 	char[] Name;
 	char[][] Externals;
 	CValue[] States;
@@ -207,6 +216,20 @@ class CNeuronType
 			}
 		}
 		return 0;
+	}
+	
+	char[] GetEvalSource()
+	{
+		char[] ret;
+		for(int ii = 0; ii < 3; ii++)
+		{
+			foreach(mech; Mechanisms)
+			{
+				if(mech.Stages[ii].length)
+					ret ~= "{\n" ~ mech.Stages[ii] ~ "}\n";
+			}
+		}
+		return ret;
 	}
 	
 	CMechanism[char[]] Values;

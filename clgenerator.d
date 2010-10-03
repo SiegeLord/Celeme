@@ -516,7 +516,7 @@ class CModel
 			Source ~= group.InitKernelSource;
 		}
 		Source.replace("$num_type$", NumType);
-		Stdout(Source).nl;
+		//Stdout(Source).nl;
 	}
 	
 	CNeuronGroup opIndex(char[] name)

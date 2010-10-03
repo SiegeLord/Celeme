@@ -2,6 +2,7 @@ module main;
 
 import frontend;
 import clgenerator;
+import clcore;
 
 import tango.io.Stdout;
 
@@ -39,10 +40,13 @@ u = 0;`
 	type.AddMechanism(iz_mech);
 	type.AddMechanism(i_clamp);
 	
+	auto core = new CCLCore(false, false);
+	
 	auto model = new CModel();
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
 	
-	model["TestNeuron"]["u"] = 7;
-	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
+	core.Shutdown();
+	//model["TestNeuron"]["u"] = 7;
+	//Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 }

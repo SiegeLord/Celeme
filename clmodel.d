@@ -1,6 +1,7 @@
 module clgenerator;
 
 import frontend;
+import clcore;
 
 import tango.io.Stdout;
 import tango.core.Array;
@@ -493,6 +494,11 @@ class CNeuronGroup
 
 class CModel
 {
+	this(CCLCore core)
+	{
+		Core = core;
+	}
+	
 	void AddNeuronGroup(CNeuronType type, int number, char[] name = null)
 	{
 		type.VerifyExternals();
@@ -527,6 +533,7 @@ class CModel
 		return *ret_ptr;
 	}
 	
+	CCLCore Core;
 	char[] NumType = "float";
 	CNeuronGroup[char[]] NeuronGroups;
 	char[] Source;

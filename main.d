@@ -42,7 +42,7 @@ u = 0;`
 	
 	auto core = new CCLCore(false, false);
 	
-	auto model = new CModel();
+	auto model = new CModel(core);
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
 	

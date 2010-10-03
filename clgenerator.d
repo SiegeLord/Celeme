@@ -194,33 +194,51 @@ class CSource
 	char[] Source;
 }
 
-class CModel
-{	
-	void AddNeuronGroup(CNeuronType type, int number)
+class CNeuronGroup
+{
+	struct SValueBuffer
 	{
-		type.VerifyExternals();
-		
-		SNeuronGroup group;
-		group.Type = type;
-		group.Count = number;
-		
-		NeuronGroups ~= group;
+		double Value;
 	}
 	
-	struct SNeuronGroup
+	this(CNeuronType type, int count)
 	{
-		CNeuronType Type;
-		int Count = 0;
-		bool HaveInit = false;
+		Count = count;
+		Initialize(type);
 	}
 	
-	char[] CreateStepKernel(ref SNeuronGroup group)
+	void Initialize(CNeuronType type)
+	{
+		Name = type.Name;
+		
+		/* Copy the non-locals and constants */
+		foreach(state; &type.AllNonLocals)
+		{
+			ValueBufferRegistry[state.Name] = ValueBuffers.length;
+			
+			SValueBuffer buff;
+			buff.Value = state.Value;
+			
+			ValueBuffers ~= buff;
+		}
+
+		foreach(state; &type.AllConstants)
+		{
+			ConstantRegistry[state.Name] = Constants.length;
+			
+			Constants ~= state.Value;
+		}
+		
+		/* Create kernel sources */
+		CreateStepKernel(type);
+		CreateInitKernel(type);
+	}
+	
+	void CreateStepKernel(CNeuronType type)
 	{
 		scope source = new CSource;
 		
 		auto kernel_source = StepKernelTemplate.dup;
-			
-		auto type = group.Type;
 		
 		auto eval_source = type.GetEvalSource();
 		
@@ -364,23 +382,17 @@ class CModel
 		}
 		apply("$save_vals$");
 		
-		return kernel_source;
+		StepKernelSource = kernel_source;
 	}
 	
-	char[] CreateInitKernel(ref SNeuronGroup group)
+	void CreateInitKernel(CNeuronType type)
 	{
 		scope source = new CSource;
-			
-		auto type = group.Type;
 		
 		auto init_source = type.GetInitSource();
 		
 		if(init_source.length == 0)
-		{
-			group.HaveInit = false;
-			return null;
-		}
-		group.HaveInit = true;
+			return;
 		
 		auto kernel_source = InitKernelTemplate.dup;
 		
@@ -430,21 +442,48 @@ class CModel
 		}
 		apply("$save_vals$");
 		
-		return kernel_source;
+		InitKernelSource = kernel_source;
+	}
+	
+	double[] Constants;
+	int[char[]] ConstantRegistry;
+	
+	SValueBuffer[] ValueBuffers;
+	int[char[]] ValueBufferRegistry;
+	
+	char[] Name;
+	int Count = 0;
+	
+	char[] StepKernelSource;
+	char[] InitKernelSource;
+}
+
+class CModel
+{
+	void AddNeuronGroup(CNeuronType type, int number)
+	{
+		type.VerifyExternals();
+		
+		auto group = new CNeuronGroup(type, number);
+		
+		NeuronGroupRegistry[type.Name] = NeuronGroups.length;
+		NeuronGroups ~= group;
 	}
 	
 	void Generate()
 	{
 		foreach(group; NeuronGroups)
 		{
-			Source ~= CreateStepKernel(group);
-			Source ~= CreateInitKernel(group);
+			//group.Initialize();
+			Source ~= group.StepKernelSource;
+			Source ~= group.InitKernelSource;
 		}
 		Source.replace("$num_type$", NumType);
 		Stdout(Source).nl;
 	}
 	
 	char[] NumType = "float";
-	SNeuronGroup[] NeuronGroups;
+	CNeuronGroup[] NeuronGroups;
+	int[char[]] NeuronGroupRegistry;
 	char[] Source;
 }

@@ -31,6 +31,13 @@ bool IsValidName(char[] name)
 	    && name != "error";
 }
 
+struct SThreshold
+{
+	char[] State;
+	char[] Condition;
+	char[] Source;
+}
+
 class CMechanism
 {
 	this(char[] name)
@@ -109,15 +116,36 @@ class CMechanism
 		assert(stage < 3, "stage must be less than 3");
 		
 		Stages[stage] = source;
-	}	
+	}
+	
+	/* TODO: link it to the event source */
+	/* TODO: think about non-resetting thresholds too */
+	void AddThreshold(char[] state, char[] condition, char[] source)
+	{
+		if(!IsDuplicateName(state))
+			throw new Exception("'" ~ state ~ "' does not exist in '" ~ Name ~ "'.");
+		SThreshold thresh;
+		thresh.State = state;
+		thresh.Condition = condition;
+		thresh.Source = source;
+		
+		Thresholds ~= thresh;
+	}
+	
+	void SetInitFunction(char[] source)
+	{
+		Init = source;
+	}
 	
 	char[][3] Stages;
 	char[] Name;
 	char[][] Externals;
+	char[] Init;
 	CValue[] States;
 	CValue[] Globals;
 	CValue[] Locals;
 	CValue[] Constants;
+	SThreshold[] Thresholds;
 }
 
 class CNeuronType
@@ -218,6 +246,19 @@ class CNeuronType
 		return 0;
 	}
 	
+	int AllThresholds(int delegate(ref SThreshold thresh) dg)
+	{
+		foreach(mech; Mechanisms)
+		{
+			foreach(thresh; mech.Thresholds)
+			{
+				if(int ret = dg(thresh))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
 	char[] GetEvalSource()
 	{
 		char[] ret;
@@ -226,8 +267,19 @@ class CNeuronType
 			foreach(mech; Mechanisms)
 			{
 				if(mech.Stages[ii].length)
-					ret ~= "{\n" ~ mech.Stages[ii] ~ "}\n";
+					ret ~= "{\n" ~ mech.Stages[ii] ~ "\n}\n";
 			}
+		}
+		return ret;
+	}
+	
+	char[] GetInitSource()
+	{
+		char[] ret;
+		foreach(mech; Mechanisms)
+		{
+			if(mech.Init.length)
+				ret ~= "{\n" ~ mech.Init ~ "\n}\n";
 		}
 		return ret;
 	}

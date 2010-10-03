@@ -2,13 +2,12 @@ module frontend;
 
 import tango.core.Array;
 
+/* A front end value, primarily stores the name and default value */
 class CValue
 {
-	this(char[] name, CMechanism mech)
+	this(char[] name)
 	{
-		assert(mech);
 		Name = name;
-		Mechanism = mech;
 	}
 	
 	double opAssign(double val)
@@ -16,7 +15,6 @@ class CValue
 		return Value = val;
 	}
 	
-	CMechanism Mechanism;
 	char[] Name;
 	double Value = 0;
 }
@@ -54,7 +52,7 @@ class CMechanism
 					throw new Exception("The name '" ~ name ~ "' is reserved.");
 				if(IsDuplicateName(name))
 					throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
-				auto val = new CValue(name, this);				
+				auto val = new CValue(name);				
 				` ~ name ~ `s ~= val;
 				return val;
 			}
@@ -137,14 +135,45 @@ class CMechanism
 		Init = source;
 	}
 	
+	/* Mechanism evaluation proceeds in stages. Each mechanism's stage N is run at the same time,
+	 * and before stage N + 1. The suggested nature of operations that go in each stage is as follows:
+	 * 0 - Initialize local variables
+	 * 1 - Modify local variables
+	 * 2 - Compute state derivatives
+	 */
 	char[][3] Stages;
 	char[] Name;
+	
+	/* Externals are value names that come from other mechanisms. */
 	char[][] Externals;
+	
+	/* The init function gets called after each value gets the default value set to it. Thus, most init
+	 * functions should be empty OR set the state initial values given the globals
+	 */
 	char[] Init;
+	
+	/* States are the dynamical states. They have a first derivative (referred to as state_name' inside the
+	 * stage sources. You should never modify a state's value directly outside of a threshold. Or the init
+	 * function. These values are unique for each neuron.
+	 */
 	CValue[] States;
+	
+	/* Globals are the non-dynamical states. You can use these as per-neuron parameters. 
+	 * These values are unique for each neuron.
+	 */
 	CValue[] Globals;
+	
+	/* Locals are computed during every evaluation. Use these to communicate between mechanisms.
+	 * These values are unique for each neuron.
+	 */
 	CValue[] Locals;
+	
+	/* Constants are neuron-type parameters. They are the same for each neuron.
+	 */
 	CValue[] Constants;
+	
+	/* Thresholds are used to provide instantaneous changes in state, with the associated resetting of the dt.
+	 */
 	SThreshold[] Thresholds;
 }
 
@@ -154,6 +183,7 @@ class CNeuronType
 	{
 		Name = name;
 	}
+	
 	void AddMechanism(CMechanism mech)
 	{
 		assert(mech);
@@ -170,6 +200,7 @@ class CNeuronType
 		Mechanisms ~= mech;
 	}
 	
+	/* Double checks that each mechanism has its externals satisfied*/
 	void VerifyExternals()
 	{
 		char[] error;
@@ -202,6 +233,7 @@ class CNeuronType
 		return 0;
 	}
 	
+	/* I.e. all globals */
 	int AllNonLocals(int delegate(ref CValue value) dg)
 	{
 		foreach(mech; Mechanisms)

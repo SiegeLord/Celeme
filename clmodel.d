@@ -445,6 +445,8 @@ class CNeuronGroup
 		InitKernelSource = kernel_source;
 	}
 	
+	/* These two functions can be used to modify values after the model has been created.
+	 */
 	double opIndex(char[] name)
 	{
 		auto idx_ptr = name in ConstantRegistry;

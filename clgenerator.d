@@ -201,16 +201,15 @@ class CNeuronGroup
 		double Value;
 	}
 	
-	this(CNeuronType type, int count)
+	this(CNeuronType type, int count, char[] name)
 	{
 		Count = count;
+		Name = name;
 		Initialize(type);
 	}
 	
 	void Initialize(CNeuronType type)
 	{
-		Name = type.Name;
-		
 		/* Copy the non-locals and constants */
 		foreach(state; &type.AllNonLocals)
 		{
@@ -249,7 +248,7 @@ class CNeuronGroup
 			source.Clear();
 		}
 		
-		kernel_source.replace("$type_name$", type.Name);
+		kernel_source.replace("$type_name$", Name);
 		
 		/* Value arguments */
 		source.Tab(2);
@@ -403,7 +402,7 @@ class CNeuronGroup
 			source.Clear();
 		}
 		
-		kernel_source.replace("$type_name$", type.Name);
+		kernel_source.replace("$type_name$", Name);
 		
 		/* Value arguments */
 		source.Tab(2);
@@ -445,6 +444,40 @@ class CNeuronGroup
 		InitKernelSource = kernel_source;
 	}
 	
+	double opIndex(char[] name)
+	{
+		auto idx_ptr = name in ConstantRegistry;
+		if(idx_ptr !is null)
+		{
+			return Constants[*idx_ptr];
+		}
+		
+		idx_ptr = name in ValueBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			return ValueBuffers[*idx_ptr].Value;
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
+	double opIndexAssign(double val, char[] name)
+	{
+		auto idx_ptr = name in ConstantRegistry;
+		if(idx_ptr !is null)
+		{
+			return Constants[*idx_ptr] = val;
+		}
+		
+		idx_ptr = name in ValueBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			return ValueBuffers[*idx_ptr].Value = val;
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
@@ -460,21 +493,25 @@ class CNeuronGroup
 
 class CModel
 {
-	void AddNeuronGroup(CNeuronType type, int number)
+	void AddNeuronGroup(CNeuronType type, int number, char[] name = null)
 	{
 		type.VerifyExternals();
 		
-		auto group = new CNeuronGroup(type, number);
+		if(name is null)
+			name = type.Name;
+			
+		if((name in NeuronGroups) !is null)
+			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 		
-		NeuronGroupRegistry[type.Name] = NeuronGroups.length;
-		NeuronGroups ~= group;
+		auto group = new CNeuronGroup(type, number, name);
+		
+		NeuronGroups[type.Name] = group;
 	}
 	
 	void Generate()
 	{
 		foreach(group; NeuronGroups)
 		{
-			//group.Initialize();
 			Source ~= group.StepKernelSource;
 			Source ~= group.InitKernelSource;
 		}
@@ -482,8 +519,15 @@ class CModel
 		Stdout(Source).nl;
 	}
 	
+	CNeuronGroup opIndex(char[] name)
+	{
+		auto ret_ptr = name in NeuronGroups;
+		if(ret_ptr is null)
+			throw new Exception("No group named '" ~ name ~ "' exists in this model");
+		return *ret_ptr;
+	}
+	
 	char[] NumType = "float";
-	CNeuronGroup[] NeuronGroups;
-	int[char[]] NeuronGroupRegistry;
+	CNeuronGroup[char[]] NeuronGroups;
 	char[] Source;
 }

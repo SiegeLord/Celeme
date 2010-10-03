@@ -3,6 +3,8 @@ module main;
 import frontend;
 import clgenerator;
 
+import tango.io.Stdout;
+
 void main()
 {
 	auto type = new CNeuronType("TestNeuron");
@@ -40,4 +42,7 @@ u = 0;`
 	auto model = new CModel();
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
+	
+	model["TestNeuron"]["u"] = 7;
+	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 }

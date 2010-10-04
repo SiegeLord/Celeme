@@ -324,6 +324,8 @@ class CNeuronGroup
 		{
 			SetConstant(ii);
 		}
+		
+		/* Initialize the buffers */
 		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
 		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
 		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
@@ -743,7 +745,7 @@ class CModel
 		int err;
 		FloatMemsetKernel = clCreateKernel(Program, "float_memset", &err);
 		assert(err == CL_SUCCESS);
-		FloatMemsetKernel = clCreateKernel(Program, "int_memset", &err);
+		IntMemsetKernel = clCreateKernel(Program, "int_memset", &err);
 		assert(err == CL_SUCCESS);
 		
 		foreach(group; NeuronGroups)
@@ -813,6 +815,25 @@ class CModel
 		size_t total_size = count;
 		auto err = clEnqueueNDRangeKernel(Core.Commands, FloatMemsetKernel, 1, null, &total_size, null, 0, null, null);
 		assert(err == CL_SUCCESS);
+	}
+	
+	void SetFloat(ref cl_mem buffer, int idx, double value)
+	{
+		if(SinglePrecision)
+		{
+			float val = value;
+			clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
+		}
+		else
+		{
+			double val = value;
+			clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
+		}
+	}
+	
+	void SetInt(ref cl_mem buffer, int idx, int value)
+	{
+		clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
 	}
 	
 	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)

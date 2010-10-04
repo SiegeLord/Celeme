@@ -49,6 +49,8 @@ u = 0;`
 	model["TestNeuron"]["u"] = 7;
 	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
+	model["TestNeuron"]["amp"] = 2;
+	
 	model.Shutdown();
 	core.Shutdown();
 }

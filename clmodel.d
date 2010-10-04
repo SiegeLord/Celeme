@@ -24,13 +24,14 @@ __kernel void float_memset(
 }
 ";
 
+const ArgOffsetStep = 2;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
+		const $num_type$ t,
+		__global $num_type$* dt_buf,
 $val_args$
 $constant_args$
-		__global $num_type$* dt_buf,
-		const $num_type$ t,
 		const int count
 	)
 {
@@ -97,6 +98,7 @@ $save_vals$
 }
 ";
 
+const ArgOffsetInit = 0;
 char[] InitKernelTemplate = "
 __kernel void $type_name$_init
 	(
@@ -228,12 +230,8 @@ class CNeuronGroup
 		Model = model;
 		Count = count;
 		Name = name;
-		Initialize(type);
-	}
-	
-	void Initialize(CNeuronType type)
-	{
-		/* Copy the non-locals and constants */
+		
+		/* Copy the non-locals and constants from the type */
 		foreach(state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[state.Name] = ValueBuffers.length;
@@ -244,6 +242,8 @@ class CNeuronGroup
 			
 			ValueBuffers ~= buff;
 		}
+		
+		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 
 		foreach(state; &type.AllConstants)
 		{
@@ -257,14 +257,74 @@ class CNeuronGroup
 		CreateInitKernel(type);
 	}
 	
-	/* Call this after the kernel has been compiled, as we need the memset kernel */
-	void InitializeBuffers()
+	/* Call this after the program has been created, as we need the memset kernel
+	 * and to create the local kernels*/
+	void Initialize()
 	{
+		auto step_kernel_name = Name ~ "_step\0";
+		int err;
+		
+		StepKernel = clCreateKernel(Model.Program, step_kernel_name.ptr, &err);
+		assert(err == CL_SUCCESS);
+		
+		/* Set the arguments. Start at 1 to skip the t argument*/
+		int arg_id = 1;
+		SetGlobalArg(StepKernel, arg_id++, &DtBuffer);
+		foreach(buffer; ValueBuffers)
+		{
+			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
+		}
+		arg_id += Constants.length;
+		SetGlobalArg(StepKernel, arg_id++, &Count);
+		
+		if(InitKernelSource.length)
+		{
+			auto init_kernel_name = Name ~ "_init\0";
+			InitKernel = clCreateKernel(Model.Program, init_kernel_name.ptr, &err);
+			assert(err == CL_SUCCESS);
+			
+			/* Nothing to skip, so set it at 0 */
+			arg_id = 0;
+			foreach(buffer; ValueBuffers)
+			{
+				SetGlobalArg(InitKernel, arg_id++, &buffer.Buffer);
+			}
+			arg_id += Constants.length;
+			SetGlobalArg(InitKernel, arg_id++, &Count);
+		}
+		
+		/* Set the constants. Here because SetConstant sets it to both kernels, so both need
+		 * to be created
+		 */
+		foreach(ii, _; Constants)
+		{
+			SetConstant(ii);
+		}
+		
+		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
 		{
 			WriteToBuffer(buffer);
 		}
 		Model.Core.Finish();
+	}
+	
+	void SetConstant(int idx)
+	{
+		if(Model.SinglePrecision)
+		{
+			float val = Constants[idx];
+			if(InitKernelSource.length)
+				SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
+			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
+		}
+		else
+		{
+			double val = Constants[idx];
+			if(InitKernelSource.length)
+				SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
+			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
+		}
 	}
 	
 	void WriteToBuffer(SValueBuffer buffer)
@@ -551,7 +611,10 @@ class CNeuronGroup
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
-			return Constants[*idx_ptr] = val;
+			Constants[*idx_ptr] = val;
+			if(Model.Generated)
+				SetConstant(*idx_ptr);
+			return val;
 		}
 		
 		idx_ptr = name in ValueBufferRegistry;
@@ -573,6 +636,8 @@ class CNeuronGroup
 	{
 		foreach(buffer; ValueBuffers)
 			clReleaseMemObject(buffer.Buffer);
+
+		clReleaseMemObject(DtBuffer);
 	}
 	
 	double[] Constants;
@@ -587,6 +652,11 @@ class CNeuronGroup
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;
+	
+	cl_kernel InitKernel;
+	cl_kernel StepKernel;
+	
+	cl_mem DtBuffer;
 }
 
 class CModel
@@ -629,7 +699,7 @@ class CModel
 		assert(err == CL_SUCCESS);
 		
 		foreach(group; NeuronGroups)
-			group.InitializeBuffers();
+			group.Initialize();
 		
 		Generated = true;
 	}
@@ -656,6 +726,11 @@ class CModel
 			return float.sizeof;
 		else
 			return double.sizeof;
+	}
+	
+	void Run(int tstop)
+	{
+		
 	}
 	
 	void Shutdown()

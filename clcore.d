@@ -7,7 +7,7 @@ import tango.io.Stdout;
 void SetGlobalArg(T)(cl_kernel kernel, uint argnum, T* arg)
 {
 	auto err = clSetKernelArg(kernel, argnum, T.sizeof, arg);
-	if (err != CL_SUCCESS)
+	if(err != CL_SUCCESS)
 	{
 		throw new Exception("Failed to set a global kernel argument");
 	}
@@ -16,7 +16,7 @@ void SetGlobalArg(T)(cl_kernel kernel, uint argnum, T* arg)
 void SetLocalArg(cl_kernel kernel, uint argnum, size_t size)
 {
 	auto err = clSetKernelArg(kernel, argnum, size, null);
-	if (err != CL_SUCCESS)
+	if(err != CL_SUCCESS)
 	{
 		throw new Exception("Failed to set a local kernel argument");
 	}

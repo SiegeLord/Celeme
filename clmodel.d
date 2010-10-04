@@ -24,12 +24,30 @@ __kernel void float_memset(
 }
 ";
 
-const ArgOffsetStep = 2;
+char[] IntMemsetKernelTemplate = "
+__kernel void int_memset(
+		__global int* buffer,
+		const int value,
+		const int count
+	)
+{
+	int i = get_global_id(0);
+	if(i < count)
+	{
+		buffer[i] = value;
+	}
+}
+";
+
+const ArgOffsetStep = 5;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
 		const $num_type$ t,
 		__global $num_type$* dt_buf,
+		__global int* record_flags,
+		__global int* record_idx,
+		__global $num_type$4* record_buffer,
 $val_args$
 $constant_args$
 		const int count
@@ -244,6 +262,9 @@ class CNeuronGroup
 		}
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
+		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
+		RecordBuffer = Model.Core.CreateBuffer(Count * Model.NumSize * 4);
+		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
 
 		foreach(state; &type.AllConstants)
 		{
@@ -270,6 +291,9 @@ class CNeuronGroup
 		/* Set the arguments. Start at 1 to skip the t argument*/
 		int arg_id = 1;
 		SetGlobalArg(StepKernel, arg_id++, &DtBuffer);
+		SetGlobalArg(StepKernel, arg_id++, &RecordFlagsBuffer);
+		SetGlobalArg(StepKernel, arg_id++, &RecordIdxBuffer);
+		SetGlobalArg(StepKernel, arg_id++, &RecordBuffer);
 		foreach(buffer; ValueBuffers)
 		{
 			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
@@ -300,9 +324,9 @@ class CNeuronGroup
 		{
 			SetConstant(ii);
 		}
-		
 		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
-		
+		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
+		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
 		{
@@ -675,6 +699,9 @@ class CNeuronGroup
 	cl_kernel StepKernel;
 	
 	cl_mem DtBuffer;
+	cl_mem RecordFlagsBuffer;
+	cl_mem RecordBuffer;
+	cl_mem RecordIdxBuffer;
 }
 
 class CModel
@@ -703,6 +730,7 @@ class CModel
 	{
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
 		Source ~= FloatMemsetKernelTemplate;
+		Source ~= IntMemsetKernelTemplate;
 		foreach(group; NeuronGroups)
 		{
 			Source ~= group.StepKernelSource;
@@ -714,6 +742,8 @@ class CModel
 		
 		int err;
 		FloatMemsetKernel = clCreateKernel(Program, "float_memset", &err);
+		assert(err == CL_SUCCESS);
+		FloatMemsetKernel = clCreateKernel(Program, "int_memset", &err);
 		assert(err == CL_SUCCESS);
 		
 		foreach(group; NeuronGroups)
@@ -785,8 +815,19 @@ class CModel
 		assert(err == CL_SUCCESS);
 	}
 	
+	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
+	{
+		SetGlobalArg(IntMemsetKernel, 0, &buffer);
+		SetGlobalArg(IntMemsetKernel, 1, &value);
+		SetGlobalArg(IntMemsetKernel, 2, &count);
+		size_t total_size = count;
+		auto err = clEnqueueNDRangeKernel(Core.Commands, IntMemsetKernel, 1, null, &total_size, null, 0, null, null);
+		assert(err == CL_SUCCESS);
+	}
+	
 	cl_program Program;
 	cl_kernel FloatMemsetKernel;
+	cl_kernel IntMemsetKernel;
 	
 	CCLCore Core;
 	bool SinglePrecision = true;

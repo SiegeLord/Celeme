@@ -1,7 +1,7 @@
 module main;
 
 import frontend;
-import clgenerator;
+import clmodel;
 import clcore;
 
 import tango.io.Stdout;
@@ -46,7 +46,9 @@ u = 0;`
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
 	
+	model["TestNeuron"]["u"] = 7;
+	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
+	
+	model.Shutdown();
 	core.Shutdown();
-	//model["TestNeuron"]["u"] = 7;
-	//Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 }

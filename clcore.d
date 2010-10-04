@@ -1,7 +1,26 @@
 module clcore;
 
 import opencl.cl;
+
 import tango.io.Stdout;
+
+void SetGlobalArg(T)(cl_kernel kernel, uint argnum, T* arg)
+{
+	auto err = clSetKernelArg(kernel, argnum, T.sizeof, arg);
+	if (err != CL_SUCCESS)
+	{
+		throw new Exception("Failed to set a global kernel argument");
+	}
+}
+
+void SetLocalArg(cl_kernel kernel, uint argnum, size_t size)
+{
+	auto err = clSetKernelArg(kernel, argnum, size, null);
+	if (err != CL_SUCCESS)
+	{
+		throw new Exception("Failed to set a local kernel argument");
+	}
+}
 
 class CCLCore
 {
@@ -110,6 +129,44 @@ class CCLCore
 	{
 		clReleaseCommandQueue(Commands);
 		clReleaseContext(Context);
+	}
+	
+	cl_mem CreateBuffer(size_t size)
+	{
+		int err;
+		auto ret = clCreateBuffer(Context, CL_MEM_READ_WRITE, size, null, &err);
+		assert(err == CL_SUCCESS);
+		return ret;
+	}
+	
+	cl_program BuildProgram(char[] source)
+	{
+		int err;
+		auto program = clCreateProgramWithSource(Context, 1, cast(char**)[source.ptr], cast(size_t*)[source.length], &err);
+		if (!program)
+			throw new Exception("Failed to create program.");
+
+		err = clBuildProgram(program, 0, null, null, null, null);
+		
+		if(err != CL_SUCCESS)
+		{
+			size_t ret_len;
+			char[] buffer;
+			clGetProgramBuildInfo(program, Devices[0], CL_PROGRAM_BUILD_LOG, 0, null, &ret_len);
+			buffer.length = ret_len;
+			clGetProgramBuildInfo(program, Devices[0], CL_PROGRAM_BUILD_LOG, buffer.length, buffer.ptr, null);
+			if(buffer.length > 1)
+				Stdout(buffer[0..$-1]).nl;
+			
+			throw new Exception("Failed to build program.");
+		}
+		
+		return program;
+	}
+	
+	void Finish()
+	{
+		clFinish(Commands);
 	}
 	
 	cl_context Context;

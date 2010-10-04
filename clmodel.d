@@ -1,11 +1,28 @@
-module clgenerator;
+module clmodel;
 
 import frontend;
 import clcore;
 
+import opencl.cl;
+
 import tango.io.Stdout;
 import tango.core.Array;
 import tango.text.Util;
+
+char[] FloatMemsetKernelTemplate = "
+__kernel void float_memset(
+		__global $num_type$* buffer,
+		const $num_type$ value,
+		const int count
+	)
+{
+	int i = get_global_id(0);
+	if(i < count)
+	{
+		buffer[i] = value;
+	}
+}
+";
 
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
@@ -20,6 +37,9 @@ $constant_args$
 	int i = get_global_id(0);
 	if(i < count)
 	{
+		$num_type$ cur_time = 0;
+		const $num_type$ timestep = 1;
+		
 		$num_type$ dt = dt_buf[i];
 $load_vals$
 
@@ -200,10 +220,12 @@ class CNeuronGroup
 	struct SValueBuffer
 	{
 		double Value;
+		cl_mem Buffer;
 	}
 	
-	this(CNeuronType type, int count, char[] name)
+	this(CModel model, CNeuronType type, int count, char[] name)
 	{
+		Model = model;
 		Count = count;
 		Name = name;
 		Initialize(type);
@@ -218,6 +240,7 @@ class CNeuronGroup
 			
 			SValueBuffer buff;
 			buff.Value = state.Value;
+			buff.Buffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 			
 			ValueBuffers ~= buff;
 		}
@@ -232,6 +255,54 @@ class CNeuronGroup
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
+	}
+	
+	/* Call this after the kernel has been compiled, as we need the memset kernel */
+	void InitializeBuffers()
+	{
+		foreach(buffer; ValueBuffers)
+		{
+			WriteToBuffer(buffer);
+		}
+		Model.Core.Finish();
+	}
+	
+	void WriteToBuffer(SValueBuffer buffer)
+	{
+		auto kernel = Model.FloatMemsetKernel;
+		
+		SetGlobalArg(kernel, 0, &buffer.Buffer);
+		if(Model.SinglePrecision)
+		{
+			float val = buffer.Value;
+			SetGlobalArg(kernel, 1, &val);
+		}
+		else
+		{
+			double val = buffer.Value;
+			SetGlobalArg(kernel, 1, &val);
+		}
+		SetGlobalArg(kernel, 2, &Count);
+		
+		size_t count = Count;
+		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, kernel, 1, null, &count, null, 0, null, null);
+		assert(err == CL_SUCCESS);
+	}
+	
+	double ReadFromBuffer(SValueBuffer buffer, int idx)
+	{
+		if(Model.SinglePrecision)
+		{
+			float val;
+			clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
+			return val;
+		}
+		else
+		{
+			double val;
+			clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
+			return val;
+		}
 	}
 	
 	void CreateStepKernel(CNeuronType type)
@@ -447,8 +518,10 @@ class CNeuronGroup
 	
 	/* These two functions can be used to modify values after the model has been created.
 	 */
-	double opIndex(char[] name)
+	double opIndex(char[] name, int idx = -1)
 	{
+		assert(idx < Count, "idx needs to be less than Count.");
+		
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
@@ -458,7 +531,16 @@ class CNeuronGroup
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return ValueBuffers[*idx_ptr].Value;
+			if(Model.Generated && idx > 0)
+			{
+				auto val = ReadFromBuffer(ValueBuffers[*idx_ptr], idx);
+				Model.Core.Finish();
+				return val;
+			}
+			else
+			{
+				return ValueBuffers[*idx_ptr].Value;
+			}
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -475,10 +557,22 @@ class CNeuronGroup
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return ValueBuffers[*idx_ptr].Value = val;
+			ValueBuffers[*idx_ptr].Value = val;
+			if(Model.Generated)
+			{
+				WriteToBuffer(ValueBuffers[*idx_ptr]);
+				Model.Core.Finish();
+			}
+			return val;
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
+	void Shutdown()
+	{
+		foreach(buffer; ValueBuffers)
+			clReleaseMemObject(buffer.Buffer);
 	}
 	
 	double[] Constants;
@@ -489,6 +583,7 @@ class CNeuronGroup
 	
 	char[] Name;
 	int Count = 0;
+	CModel Model;
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;
@@ -511,13 +606,15 @@ class CModel
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 		
-		auto group = new CNeuronGroup(type, number, name);
+		auto group = new CNeuronGroup(this, type, number, name);
 		
 		NeuronGroups[type.Name] = group;
 	}
 	
 	void Generate()
 	{
+		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
+		Source ~= FloatMemsetKernelTemplate;
 		foreach(group; NeuronGroups)
 		{
 			Source ~= group.StepKernelSource;
@@ -525,6 +622,16 @@ class CModel
 		}
 		Source.replace("$num_type$", NumType);
 		//Stdout(Source).nl;
+		Program = Core.BuildProgram(Source);
+		
+		int err;
+		FloatMemsetKernel = clCreateKernel(Program, "float_memset", &err);
+		assert(err == CL_SUCCESS);
+		
+		foreach(group; NeuronGroups)
+			group.InitializeBuffers();
+		
+		Generated = true;
 	}
 	
 	CNeuronGroup opIndex(char[] name)
@@ -535,8 +642,35 @@ class CModel
 		return *ret_ptr;
 	}
 	
+	char[] NumType()
+	{
+		if(SinglePrecision)
+			return "float";
+		else
+			return "double";
+	}
+	
+	size_t NumSize()
+	{
+		if(SinglePrecision)
+			return float.sizeof;
+		else
+			return double.sizeof;
+	}
+	
+	void Shutdown()
+	{
+		foreach(group; NeuronGroups)
+			group.Shutdown();
+		Generated = false;
+	}
+	
+	cl_program Program;
+	cl_kernel FloatMemsetKernel;
+	
 	CCLCore Core;
-	char[] NumType = "float";
+	bool SinglePrecision = true;
 	CNeuronGroup[char[]] NeuronGroups;
 	char[] Source;
+	bool Generated = false;
 }

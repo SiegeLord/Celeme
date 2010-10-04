@@ -819,21 +819,32 @@ class CModel
 	
 	void SetFloat(ref cl_mem buffer, int idx, double value)
 	{
+		int err;
 		if(SinglePrecision)
 		{
 			float val = value;
-			clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
+			err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
 		}
 		else
 		{
 			double val = value;
-			clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
+			err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
 		}
+		assert(err == CL_SUCCESS);
 	}
 	
 	void SetInt(ref cl_mem buffer, int idx, int value)
 	{
-		clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
+		auto err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
+		assert(err == CL_SUCCESS);
+	}
+	
+	int ReadInt(ref cl_mem buffer, int idx)
+	{
+		int value;
+		auto err = clEnqueueReadBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
+		assert(err == CL_SUCCESS);
+		return value;
 	}
 	
 	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
@@ -846,6 +857,11 @@ class CModel
 		assert(err == CL_SUCCESS);
 	}
 	
+	CRecorder Record(char[] neuron_type, int neuron_id, char[] state)
+	{
+		//Probably will need a map of neuron_id > recorder
+	}
+	
 	cl_program Program;
 	cl_kernel FloatMemsetKernel;
 	cl_kernel IntMemsetKernel;
@@ -855,4 +871,9 @@ class CModel
 	CNeuronGroup[char[]] NeuronGroups;
 	char[] Source;
 	bool Generated = false;
+}
+
+class CRecorder
+{
+	
 }

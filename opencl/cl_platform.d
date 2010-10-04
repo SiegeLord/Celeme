@@ -141,7 +141,7 @@ typedef uint	cl_GLenum;
  *          Maintaining proper alignment is the user's responsibility.
  */
 
-align(16) struct cl_float4
+struct cl_float4
 {
 	float[4] vals;
 	

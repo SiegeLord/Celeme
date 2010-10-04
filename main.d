@@ -51,6 +51,8 @@ u = 0;`
 	
 	model["TestNeuron"]["amp"] = 2;
 	
+	model.Run(1);
+	
 	model.Shutdown();
 	core.Shutdown();
 }

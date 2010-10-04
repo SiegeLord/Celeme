@@ -301,6 +301,8 @@ class CNeuronGroup
 			SetConstant(ii);
 		}
 		
+		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
+		
 		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
 		{
@@ -329,24 +331,7 @@ class CNeuronGroup
 	
 	void WriteToBuffer(SValueBuffer buffer)
 	{
-		auto kernel = Model.FloatMemsetKernel;
-		
-		SetGlobalArg(kernel, 0, &buffer.Buffer);
-		if(Model.SinglePrecision)
-		{
-			float val = buffer.Value;
-			SetGlobalArg(kernel, 1, &val);
-		}
-		else
-		{
-			double val = buffer.Value;
-			SetGlobalArg(kernel, 1, &val);
-		}
-		SetGlobalArg(kernel, 2, &Count);
-		
-		size_t count = Count;
-		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, kernel, 1, null, &count, null, 0, null, null);
-		assert(err == CL_SUCCESS);
+		Model.MemsetFloatBuffer(buffer.Buffer, Count, buffer.Value);
 	}
 	
 	double ReadFromBuffer(SValueBuffer buffer, int idx)
@@ -363,6 +348,39 @@ class CNeuronGroup
 			clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
 			return val;
 		}
+	}
+	
+	void CallInitKernel(size_t workgroup_size)
+	{
+		if(InitKernelSource.length)
+		{
+			size_t total_num = (Count / workgroup_size) * workgroup_size;
+			if(total_num < Count)
+				total_num += workgroup_size;
+			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			assert(err == CL_SUCCESS);
+		}
+	}
+	
+	void CallStepKernel(double t, size_t workgroup_size)
+	{
+		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		if(total_num < Count)
+			total_num += workgroup_size;
+		
+		if(Model.SinglePrecision)
+		{
+			float t_val = t;
+			SetGlobalArg(StepKernel, 0, &t_val);
+		}
+		else
+		{
+			double t_val = t;
+			SetGlobalArg(StepKernel, 0, &t_val);
+		}
+
+		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, StepKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		assert(err == CL_SUCCESS);
 	}
 	
 	void CreateStepKernel(CNeuronType type)
@@ -730,7 +748,15 @@ class CModel
 	
 	void Run(int tstop)
 	{
+		/* Transfer to an array for faster iteration */
+		auto groups = NeuronGroups.values;
 		
+		foreach(group; groups)
+			group.CallInitKernel(16);
+		foreach(group; groups)
+			group.CallStepKernel(0, 16);
+			
+		Core.Finish();
 	}
 	
 	void Shutdown()
@@ -738,6 +764,25 @@ class CModel
 		foreach(group; NeuronGroups)
 			group.Shutdown();
 		Generated = false;
+	}
+	
+	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
+	{
+		SetGlobalArg(FloatMemsetKernel, 0, &buffer);
+		if(SinglePrecision)
+		{
+			float val = value;
+			SetGlobalArg(FloatMemsetKernel, 1, &val);
+		}
+		else
+		{
+			double val = value;
+			SetGlobalArg(FloatMemsetKernel, 1, &val);
+		}
+		SetGlobalArg(FloatMemsetKernel, 2, &count);
+		size_t total_size = count;
+		auto err = clEnqueueNDRangeKernel(Core.Commands, FloatMemsetKernel, 1, null, &total_size, null, 0, null, null);
+		assert(err == CL_SUCCESS);
 	}
 	
 	cl_program Program;

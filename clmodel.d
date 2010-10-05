@@ -684,6 +684,19 @@ class CNeuronGroup
 		clReleaseMemObject(DtBuffer);
 	}
 	
+	CRecorder Record(int neuron_id, char[] name)
+	{
+		assert(neuron_id >= 0);
+		assert(neuron_id < Count);
+		auto idx_ptr = name in ValueBufferRegistry;
+		if(idx_ptr is null)
+			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		
+		Recorders[neuron_id] = new CRecorder();
+	}
+	
+	CRecorder[int] Recorders;
+	
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
@@ -855,11 +868,6 @@ class CModel
 		size_t total_size = count;
 		auto err = clEnqueueNDRangeKernel(Core.Commands, IntMemsetKernel, 1, null, &total_size, null, 0, null, null);
 		assert(err == CL_SUCCESS);
-	}
-	
-	CRecorder Record(char[] neuron_type, int neuron_id, char[] state)
-	{
-		//Probably will need a map of neuron_id > recorder
 	}
 	
 	cl_program Program;

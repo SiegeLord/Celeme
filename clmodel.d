@@ -876,13 +876,17 @@ class CModel
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
+		int t = 0;
 		foreach(group; groups)
 			group.CallInitKernel(16);
-		foreach(group; groups)
-			group.CallStepKernel(0, 16);
-		foreach(group; groups)
-			group.UpdateRecorders();
-			
+		while(t <= tstop)
+		{
+			foreach(group; groups)
+				group.CallStepKernel(t, 16);
+			foreach(group; groups)
+				group.UpdateRecorders();
+			t++;
+		}	
 		Core.Finish();
 	}
 	

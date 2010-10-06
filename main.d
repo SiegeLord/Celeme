@@ -33,7 +33,9 @@ u += 8;`
 	i_clamp.AddExternal("I");
 	i_clamp.AddConstant("amp");
 	i_clamp.SetStage(0,
-`I = amp;`
+`I = amp;
+if(i == 1)
+	I = amp + 1;`
 );
 	
 	type.AddMechanism(iz_mech);
@@ -45,18 +47,26 @@ u += 8;`
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
 	
-	model["TestNeuron"]["u"] = 7;
-	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
+//	model["TestNeuron"]["u"] = 7;
+//	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
-	model["TestNeuron"]["amp"] = 2;
+	model["TestNeuron"]["amp"] = 4;
 	
-	auto v_rec = model["TestNeuron"].Record(0, "V");
+	auto v_rec1 = model["TestNeuron"].Record(0, "V");
+	auto v_rec2 = model["TestNeuron"].Record(1, "V");
 	
-	model.Run(1);
+	model.Run(100);
 	
-	foreach(ii, t; v_rec.T)
+	foreach(ii, t; v_rec1.T)
 	{
-		Stdout.formatln("{:5}, {:5}", t, v_rec.Data[ii]);
+		Stdout.formatln("{:5}\t{:5}", t, v_rec1.Data[ii]);
+	}
+	
+	Stdout.nl;
+	
+	foreach(ii, t; v_rec2.T)
+	{
+		Stdout.formatln("{:5}\t{:5}", t, v_rec2.Data[ii]);
 	}
 	
 	model.Shutdown();

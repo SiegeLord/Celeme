@@ -33,6 +33,16 @@ struct SAlignedArray(T, int N)
 		return Length;
 	}
 	
+	int opApply(int delegate(ref T value) dg)
+	{
+		foreach(val; ptr[0..Length])
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
+		return 0;
+	}
+	
 	void length(size_t new_length)
 	{
 		auto new_data_len = new_length * T.sizeof + N;

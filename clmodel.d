@@ -2,6 +2,7 @@ module clmodel;
 
 import frontend;
 import clcore;
+import alignedarray;
 
 import opencl.cl;
 
@@ -723,7 +724,20 @@ class CNeuronGroup
 		{
 			int num_written;
 			clEnqueueReadBuffer(Model.Core.Commands, RecordIdxBuffer, CL_TRUE, 0, int.sizeof, &num_written, 0, null, null);
-			
+			if(Model.SinglePrecision)
+			{
+				FloatOutput.length = num_written;
+				clEnqueueReadBuffer(Model.Core.Commands, RecordBuffer, CL_TRUE, 0, num_written * cl_float4.sizeof, FloatOutput.ptr, 0, null, null);
+				foreach(quad; FloatOutput)
+				{
+					int id = cast(int)quad[0];
+					Recorders[id].AddDatapoint(quad[1], quad[2]);
+				}
+			}
+			else
+			{
+				assert(0, "Unimplemented");
+			}
 		}
 	}
 	
@@ -753,6 +767,9 @@ class CNeuronGroup
 			Model.SetInt(RecordFlagsBuffer, neuron_id, 0);
 		}
 	}
+	
+	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;
+	//SAlignedArray!(cl_double4, cl_double4.sizeof) DoubleOutput;
 	
 	CRecorder[int] Recorders;
 	
@@ -954,6 +971,15 @@ class CRecorder
 	{
 		Valid = false;
 	}
+	
+	void AddDatapoint(double t, double data)
+	{
+		T ~= t;
+		Data ~= data;
+	}
+	
+	double[] T;
+	double[] Data;
 	
 	int NeuronId;
 	char[] Name;

@@ -281,7 +281,7 @@ class CNeuronGroup
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
-		RecordBuffer = Model.Core.CreateBuffer(Count * Model.NumSize * 4);
+		RecordBuffer = Model.Core.CreateBuffer(1000 * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
 
 		foreach(state; &type.AllConstants)
@@ -728,9 +728,11 @@ class CNeuronGroup
 			{
 				FloatOutput.length = num_written;
 				clEnqueueReadBuffer(Model.Core.Commands, RecordBuffer, CL_TRUE, 0, num_written * cl_float4.sizeof, FloatOutput.ptr, 0, null, null);
+				//Stdout.formatln("num_written: {}", num_written);
 				foreach(quad; FloatOutput)
 				{
 					int id = cast(int)quad[0];
+					//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
 					Recorders[id].AddDatapoint(quad[1], quad[2]);
 				}
 			}
@@ -738,6 +740,7 @@ class CNeuronGroup
 			{
 				assert(0, "Unimplemented");
 			}
+			Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		}
 	}
 	
@@ -752,7 +755,9 @@ class CNeuronGroup
 		/* Offset the index by 1 */
 		Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
 		
-		Recorders[neuron_id] = new CRecorder(neuron_id, name);
+		auto rec = new CRecorder(neuron_id, name);
+		Recorders[neuron_id] = rec;
+		return rec;
 	}
 	
 	void StopRecording(int neuron_id)
@@ -828,7 +833,6 @@ class CModel
 			Source ~= group.InitKernelSource;
 		}
 		Source.replace("$num_type$", NumType);
-		Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
 		int err;

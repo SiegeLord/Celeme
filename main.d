@@ -11,7 +11,7 @@ void main()
 	auto type = new CNeuronType("TestNeuron");
 	auto iz_mech = new CMechanism("IzMech");
 	auto i_clamp = new CMechanism("IClamp");
-	iz_mech.AddState("V") = 0;
+	iz_mech.AddState("V") = -65;
 	iz_mech.AddState("u") = 5;
 	iz_mech.AddLocal("I");
 	iz_mech.SetStage(0,
@@ -27,8 +27,7 @@ u += 8;`
 );
 
 	iz_mech.SetInitFunction(
-`V = 0;
-u = 0;`
+`u = 0;`
 );
 
 	i_clamp.AddExternal("I");
@@ -51,7 +50,14 @@ u = 0;`
 	
 	model["TestNeuron"]["amp"] = 2;
 	
+	auto v_rec = model["TestNeuron"].Record(0, "V");
+	
 	model.Run(1);
+	
+	foreach(ii, t; v_rec.T)
+	{
+		Stdout.formatln("{:5}, {:5}", t, v_rec.Data[ii]);
+	}
 	
 	model.Shutdown();
 	core.Shutdown();

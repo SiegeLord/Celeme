@@ -8,6 +8,7 @@ import opencl.cl;
 import tango.io.Stdout;
 import tango.core.Array;
 import tango.text.Util;
+import tango.util.Convert;
 
 char[] FloatMemsetKernelTemplate = "
 __kernel void float_memset(
@@ -45,7 +46,7 @@ __kernel void $type_name$_step
 	(
 		const $num_type$ t,
 		__global $num_type$* dt_buf,
-		__global int* record_flags,
+		__global int* record_flags_buffer,
 		__global int* record_idx,
 		__global $num_type$4* record_buffer,
 $val_args$
@@ -54,16 +55,32 @@ $constant_args$
 	)
 {
 	int i = get_global_id(0);
+	
 	if(i < count)
 	{
 		$num_type$ cur_time = 0;
 		const $num_type$ timestep = 1;
+		int record_flags = record_flags_buffer[i];
 		
 		$num_type$ dt = dt_buf[i];
 $load_vals$
 
 		while(cur_time < timestep)
 		{
+			/* Record if necessary */
+			if(record_flags)
+			{
+				int idx = atom_inc(&record_idx[0]);
+				$num_type$4 record;
+				record.s0 = i;
+				record.s1 = cur_time + t;
+				switch(record_flags)
+				{
+$record_vals$
+				}
+				record_buffer[idx] = record;
+			}
+			
 			$num_type$ error = 0;
 
 			/* Declare local variables */
@@ -450,6 +467,22 @@ class CNeuronGroup
 		}
 		apply("$load_vals$");
 		
+		/* Record vals */
+		source.Tab(5);
+		/* The indices are offset by 1, so that 0 can be used as a special
+		 * index indicating that nothing is to be recorded*/
+		int idx = 1; 
+		foreach(state; &type.AllNonLocals)
+		{
+			source ~= "case " ~ to!(char[])(idx) ~ ":";
+			source.Tab;
+			source ~= "record.s2 = " ~ state.Name ~ ";";
+			source.DeTab;
+			source ~= "break;";
+			idx++;
+		}
+		apply("$record_vals$");
+		
 		/* Declare locals */
 		source.Tab(3);
 		foreach(state; &type.AllLocals)
@@ -684,6 +717,16 @@ class CNeuronGroup
 		clReleaseMemObject(DtBuffer);
 	}
 	
+	void UpdateRecorders()
+	{
+		if(Recorders.length)
+		{
+			int num_written;
+			clEnqueueReadBuffer(Model.Core.Commands, RecordIdxBuffer, CL_TRUE, 0, int.sizeof, &num_written, 0, null, null);
+			
+		}
+	}
+	
 	CRecorder Record(int neuron_id, char[] name)
 	{
 		assert(neuron_id >= 0);
@@ -692,7 +735,23 @@ class CNeuronGroup
 		if(idx_ptr is null)
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 		
-		Recorders[neuron_id] = new CRecorder();
+		/* Offset the index by 1 */
+		Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
+		
+		Recorders[neuron_id] = new CRecorder(neuron_id, name);
+	}
+	
+	void StopRecording(int neuron_id)
+	{
+		assert(neuron_id >= 0);
+		assert(neuron_id < Count);
+		auto idx_ptr = neuron_id in Recorders;
+		if(idx_ptr !is null)
+		{
+			idx_ptr.Detach();
+			Recorders.remove(neuron_id);
+			Model.SetInt(RecordFlagsBuffer, neuron_id, 0);
+		}
 	}
 	
 	CRecorder[int] Recorders;
@@ -752,7 +811,7 @@ class CModel
 			Source ~= group.InitKernelSource;
 		}
 		Source.replace("$num_type$", NumType);
-		//Stdout(Source).nl;
+		Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
 		int err;
@@ -800,6 +859,8 @@ class CModel
 			group.CallInitKernel(16);
 		foreach(group; groups)
 			group.CallStepKernel(0, 16);
+		foreach(group; groups)
+			group.UpdateRecorders();
 			
 		Core.Finish();
 	}
@@ -883,5 +944,18 @@ class CModel
 
 class CRecorder
 {
+	this(int neuron_id, char[] name)
+	{
+		NeuronId = neuron_id;
+		Name = name;
+	}
 	
+	void Detach()
+	{
+		Valid = false;
+	}
+	
+	int NeuronId;
+	char[] Name;
+	bool Valid = true;
 }

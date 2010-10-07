@@ -173,6 +173,7 @@ class CNeuronGroup
 		Model = model;
 		Count = count;
 		Name = name;
+		RecordLength = type.RecordLength;
 		
 		/* Copy the non-locals and constants from the type */
 		foreach(state; &type.AllNonLocals)
@@ -188,8 +189,16 @@ class CNeuronGroup
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
-		RecordBuffer = Model.Core.CreateBuffer(1000 * Model.NumSize * 4);
+		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
+		if(Model.SinglePrecision)
+		{
+			FloatOutput.length = RecordLength;
+		}
+		else
+		{
+			assert(0, "Unimplemented");
+		}
 
 		foreach(state; &type.AllConstants)
 		{
@@ -680,6 +689,7 @@ class CNeuronGroup
 		}
 	}
 	
+	int RecordLength;
 	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;
 	//SAlignedArray!(cl_double4, cl_double4.sizeof) DoubleOutput;
 	

@@ -2,8 +2,8 @@ module clmodel;
 
 import clcore;
 import frontend;
-import utils;
 import clneurongroup;
+import tango.text.Util;
 
 import opencl.cl;
 
@@ -39,7 +39,7 @@ class CModel
 			Source ~= group.StepKernelSource;
 			Source ~= group.InitKernelSource;
 		}
-		Source.replace("$num_type$", NumType);
+		Source = Source.substitute("$num_type$", NumType);
 		Program = Core.BuildProgram(Source);
 		
 		int err;

@@ -319,4 +319,5 @@ class CNeuronType
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	char[] Name;
+	int RecordLength = 1000;
 }

@@ -43,12 +43,13 @@ __kernel void int_memset(
 }
 ";
 
-const ArgOffsetStep = 5;
+const ArgOffsetStep = 6;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
 		const $num_type$ t,
 		__global $num_type$* dt_buf,
+		__global int* error_buffer,
 		__global int* record_flags_buffer,
 		__global int* record_idx,
 		__global $num_type$4* record_buffer,
@@ -188,6 +189,7 @@ class CNeuronGroup
 		}
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
+		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
 		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
 		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
@@ -225,6 +227,7 @@ class CNeuronGroup
 		/* Set the arguments. Start at 1 to skip the t argument*/
 		int arg_id = 1;
 		SetGlobalArg(StepKernel, arg_id++, &DtBuffer);
+		SetGlobalArg(StepKernel, arg_id++, &ErrorBuffer);
 		SetGlobalArg(StepKernel, arg_id++, &RecordFlagsBuffer);
 		SetGlobalArg(StepKernel, arg_id++, &RecordIdxBuffer);
 		SetGlobalArg(StepKernel, arg_id++, &RecordBuffer);
@@ -251,6 +254,15 @@ class CNeuronGroup
 			SetGlobalArg(InitKernel, arg_id++, &Count);
 		}
 		
+		Model.Core.Finish();
+		
+		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
+		
+		ResetBuffers();
+	}
+	
+	void ResetBuffers()
+	{
 		/* Set the constants. Here because SetConstant sets it to both kernels, so both need
 		 * to be created
 		 */
@@ -261,7 +273,7 @@ class CNeuronGroup
 		
 		/* Initialize the buffers */
 		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
-		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
+		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
@@ -689,6 +701,23 @@ class CNeuronGroup
 		}
 	}
 	
+	void CheckErrors()
+	{
+		auto errors = new int[](Count + 1);
+		clEnqueueReadBuffer(Model.Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
+		if(errors[0])
+		{
+			Stdout.formatln("Error: {}", errors[0]);
+		}
+		foreach(ii, error; errors[1..$])
+		{
+			if(error)
+			{
+				Stdout.formatln("Error: {} : {}", ii, error);
+			}
+		}
+	}
+	
 	int RecordLength;
 	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;
 	//SAlignedArray!(cl_double4, cl_double4.sizeof) DoubleOutput;
@@ -712,6 +741,7 @@ class CNeuronGroup
 	cl_kernel StepKernel;
 	
 	cl_mem DtBuffer;
+	cl_mem ErrorBuffer;
 	cl_mem RecordFlagsBuffer;
 	cl_mem RecordBuffer;
 	cl_mem RecordIdxBuffer;

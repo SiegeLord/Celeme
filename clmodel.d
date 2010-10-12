@@ -84,8 +84,13 @@ class CModel
 		auto groups = NeuronGroups.values;
 		
 		int t = 0;
+		/* Initialize */
 		foreach(group; groups)
+		{
+			group.ResetBuffers();
 			group.CallInitKernel(16);
+		}
+		/* Run the model */
 		while(t <= tstop)
 		{
 			foreach(group; groups)
@@ -93,8 +98,13 @@ class CModel
 			foreach(group; groups)
 				group.UpdateRecorders();
 			t++;
-		}	
+		}
 		Core.Finish();
+		/* Check for errors */
+		foreach(group; groups)
+		{
+			group.CheckErrors();
+		}
 	}
 	
 	void Shutdown()

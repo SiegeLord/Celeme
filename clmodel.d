@@ -62,12 +62,14 @@ class CModel
 	void Generate()
 	{
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
+		Source ~= "#define PARALLEL_DELIVER 1\n";
 		Source ~= FloatMemsetKernelTemplate;
 		Source ~= IntMemsetKernelTemplate;
 		foreach(group; NeuronGroups)
 		{
 			Source ~= group.StepKernelSource;
 			Source ~= group.InitKernelSource;
+			Source ~= group.DeliverKernelSource;
 		}
 		Source = Source.substitute("$num_type$", NumType);
 		Program = Core.BuildProgram(Source);
@@ -123,6 +125,8 @@ class CModel
 		/* Run the model */
 		while(t <= tstop)
 		{
+			foreach(group; groups)
+				group.CallDeliverKernel(t, 16);
 			foreach(group; groups)
 				group.CallStepKernel(t, 16);
 			foreach(group; groups)

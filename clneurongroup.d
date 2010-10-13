@@ -132,6 +132,67 @@ $save_vals$
 }
 ";
 
+const char[] DeliverKernelTemplate = "
+__kernel void $type_name$_deliver
+	(
+		const float t,
+		__global int* error_buffer,
+$event_source_args$
+		//__global int2* dest_syn_buffer,
+		//__global int* fired_syn_idx_buffer,
+		//__global int* fired_syn_buffer,
+		//__local int* fire_table,
+		const uint count
+	)
+{
+	int i = get_global_id(0);
+#if PARALLEL_DELIVERY
+	int local_id = get_local_id(0);
+
+	//fire_table[local_id] = -1;
+
+	//__local bool need_to_deliver;
+	//need_to_deliver = false;
+	//barrier(CLK_LOCAL_MEM_FENCE);
+#endif
+	
+	/* Max number of source synapses */
+	const int num_synapses = $num_synapses$;
+	
+	if(i < count)
+	{
+$event_source_code$
+	}
+
+//#if PARALLEL_DELIVERY
+	//barrier(CLK_LOCAL_MEM_FENCE);
+	//if(need_to_deliver)
+	//{
+		//int local_size = get_local_size(0);
+
+		//for(int ii = 0; ii < local_size; ii++)
+		//{
+			//if(fire_table[ii] < 0)
+				//continue;
+
+			//int syn_start = num_synapses * fire_table[ii];
+			//for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
+			//{
+				//int2 dest = dest_syn_buffer[syn_id + syn_start];
+				//if(dest.s0 >= 0)
+				//{
+					///* Get the index into the global syn buffer */
+					//int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+					
+					//fired_syn_buffer[dest_syn] = dest.s1;
+				//}
+			//}
+		//}
+	//}
+//#endif
+}
+";
+
 class CNeuronGroup
 {
 	struct SValueBuffer
@@ -192,12 +253,14 @@ class CNeuronGroup
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
+		CreateDeliverKernel(type);
 	}
 	
 	/* Call this after the program has been created, as we need the memset kernel
 	 * and to create the local kernels*/
 	void Initialize()
 	{
+		/* Step kernel */
 		auto step_kernel_name = Name ~ "_step\0";
 		int err;
 		
@@ -226,6 +289,7 @@ class CNeuronGroup
 		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
 		
+		/* Init kernel */
 		if(InitKernelSource.length)
 		{
 			auto init_kernel_name = Name ~ "_init\0";
@@ -241,6 +305,24 @@ class CNeuronGroup
 			arg_id += Constants.length;
 			SetGlobalArg(InitKernel, arg_id++, &Count);
 		}
+		
+		/* Deliver kernel */
+		auto deliver_kernel_name = Name ~ "_deliver\0";
+		DeliverKernel = clCreateKernel(Model.Program, deliver_kernel_name.ptr, &err);
+		assert(err == CL_SUCCESS);
+		
+		/* Set the arguments. Start at 1 to skip the t argument*/
+		arg_id = 1;
+		SetGlobalArg(DeliverKernel, arg_id++, &ErrorBuffer);
+		if(NumEventSources)
+		{
+			/* Set the event source args */
+			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferStart);
+			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferEnd);
+			SetGlobalArg(DeliverKernel, arg_id++, &CircBuffer);
+			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferSize);
+		}
+		SetGlobalArg(DeliverKernel, arg_id++, &Count);
 		
 		Model.Core.Finish();
 		
@@ -347,6 +429,27 @@ class CNeuronGroup
 		}
 
 		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, StepKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		assert(err == CL_SUCCESS);
+	}
+	
+	void CallDeliverKernel(double t, size_t workgroup_size)
+	{
+		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		if(total_num < Count)
+			total_num += workgroup_size;
+		
+		if(Model.SinglePrecision)
+		{
+			float t_val = t;
+			SetGlobalArg(DeliverKernel, 0, &t_val);
+		}
+		else
+		{
+			double t_val = t;
+			SetGlobalArg(DeliverKernel, 0, &t_val);
+		}
+
+		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, DeliverKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -512,7 +615,8 @@ class CNeuronGroup
 			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
 			source ~= "{";
 			source.Tab;
-			source ~= "$num_type$ delay = 1;"
+			if(thresh.IsEventSource)
+				source ~= "$num_type$ delay = 1;";
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
@@ -542,16 +646,16 @@ if(buff_start != circ_buffer_end[idx_idx])
 }
 else //It is full, error
 {
-	error_buffer[i] = i + 1;
+	error_buffer[i + 1] = 6;
 }
 ");
+				thresh_idx++;
 /* TODO: Better error reporting */
 /* TODO: Check that the darn thing works */
 			}
 			
 			source.DeTab;
 			source ~= "}";
-			thresh_idx++;
 		}
 		apply("$thresholds$");
 		
@@ -564,6 +668,95 @@ else //It is full, error
 		apply("$save_vals$");
 		
 		StepKernelSource = kernel_source;
+	}
+	
+	void CreateDeliverKernel(CNeuronType type)
+	{
+		scope source = new CSourceConstructor;
+		
+		auto kernel_source = DeliverKernelTemplate.dup;
+		
+		void apply(char[] dest)
+		{
+			if(source.Source.length)
+				source.Retreat(1); /* Chomp the newline */
+			kernel_source = kernel_source.substitute(dest, source.toString);
+			source.Clear();
+		}
+		
+		kernel_source = kernel_source.substitute("$type_name$", Name);
+		
+		/* Event source args */
+		source.Tab(2);
+		if(NumEventSources)
+		{
+			source ~= "__global int* circ_buffer_start,";
+			source ~= "__global int* circ_buffer_end,";
+			source ~= "__global $num_type$* circ_buffer,";
+			source ~= "const int circ_buffer_size,";
+		}
+		apply("$event_source_args$");
+		
+		/* Thresholds */
+		source.Tab(2);
+		int thresh_idx = 0;
+		foreach(thresh; &type.AllThresholds)
+		{
+			if(thresh.IsEventSource)
+			{
+				source ~= "{";
+				source.Tab;
+			
+				char[] src = "
+int idx_idx = $num_event_sources$ * i + $event_source_idx$;
+int buff_start = circ_buffer_start[idx_idx];
+if(buff_start >= 0) /* See if we have any spikes that we can check */
+{
+	int buff_idx = (i * $num_event_sources$ + $event_source_idx$) * circ_buffer_size + buff_start;
+
+	if(t > circ_buffer[buff_idx])
+	{
+		int buff_end = circ_buffer_end[idx_idx];
+//#if PARALLEL_DELIVERY
+		//fire_table[$num_event_sources$ * local_id + $event_source_idx$] = i;
+		//need_to_deliver = true;
+//#else
+		//int syn_start = num_synapses * idx_idx;
+		//for(int syn_id = 0; syn_id < num_synapses; syn_id++)
+		//{
+			//int2 dest = dest_syn_buffer[syn_id + syn_start];
+			//if(dest.s0 >= 0)
+			//{
+				///* Get the index into the global syn buffer */
+				//int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+				
+				//fired_syn_buffer[dest_syn] = dest.s1;
+			//}
+		//}
+//#endif
+		buff_start = (buff_start + 1) % circ_buffer_size;
+		if(buff_start == buff_end)
+		{
+			buff_start = -1;
+		}
+		circ_buffer_start[idx_idx] = buff_start;
+	}
+}
+".dup;
+				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
+				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
+				
+				source.AddBlock(src);
+				source.DeTab;
+				source ~= "}";
+				thresh_idx++;
+			}
+		}
+		apply("$event_source_code$");
+		
+		kernel_source = kernel_source.substitute("$num_synapses$", to!(char[])(NumSrcSynapses));
+		
+		DeliverKernelSource = kernel_source;
 	}
 	
 	void CreateInitKernel(CNeuronType type)
@@ -781,9 +974,11 @@ else //It is full, error
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;
+	char[] DeliverKernelSource;
 	
 	cl_kernel InitKernel;
 	cl_kernel StepKernel;
+	cl_kernel DeliverKernel;
 	
 	cl_mem DtBuffer;
 	cl_mem CircBufferStart;
@@ -796,4 +991,5 @@ else //It is full, error
 	
 	int NumEventSources = 0;
 	int CircBufferSize = 20;
+	int NumSrcSynapses = 10;
 }

@@ -31,6 +31,7 @@ void main()
 	
 	auto model = new CModel(core);
 	
+	type.CircBufferSize = 5;
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
 	//Stdout(model.Source).nl;
@@ -38,7 +39,7 @@ void main()
 //	model["TestNeuron"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
-	model["TestNeuron"]["amp"] = 6;
+	model["TestNeuron"]["amp"] = 10;
 	
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");

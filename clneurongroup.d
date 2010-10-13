@@ -565,7 +565,7 @@ if(buff_start != circ_buffer_end[idx_idx])
 	{
 		end_idx = circ_buffer_end[idx_idx] = (circ_buffer_end[idx_idx] + 1) % circ_buffer_size;
 	}
-	int buff_idx = i * circ_buffer_size + end_idx - 1;
+	int buff_idx = (i * " ~ to!(char)(NumEventSources) ~ " + " ~ to!(char)(thresh_idx) ~ ") * circ_buffer_size + end_idx - 1;
 
 	$num_type$ delay = 3;
 	circ_buffer[buff_idx] = cur_time + delay;

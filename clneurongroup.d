@@ -13,36 +13,6 @@ import tango.io.Stdout;
 import tango.text.Util;
 import tango.util.Convert;
 
-char[] FloatMemsetKernelTemplate = "
-__kernel void float_memset(
-		__global $num_type$* buffer,
-		const $num_type$ value,
-		const int count
-	)
-{
-	int i = get_global_id(0);
-	if(i < count)
-	{
-		buffer[i] = value;
-	}
-}
-";
-
-char[] IntMemsetKernelTemplate = "
-__kernel void int_memset(
-		__global int* buffer,
-		const int value,
-		const int count
-	)
-{
-	int i = get_global_id(0);
-	if(i < count)
-	{
-		buffer[i] = value;
-	}
-}
-";
-
 const ArgOffsetStep = 6;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step

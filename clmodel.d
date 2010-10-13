@@ -7,6 +7,36 @@ import tango.text.Util;
 
 import opencl.cl;
 
+char[] FloatMemsetKernelTemplate = "
+__kernel void float_memset(
+		__global $num_type$* buffer,
+		const $num_type$ value,
+		const int count
+	)
+{
+	int i = get_global_id(0);
+	if(i < count)
+	{
+		buffer[i] = value;
+	}
+}
+";
+
+char[] IntMemsetKernelTemplate = "
+__kernel void int_memset(
+		__global int* buffer,
+		const int value,
+		const int count
+	)
+{
+	int i = get_global_id(0);
+	if(i < count)
+	{
+		buffer[i] = value;
+	}
+}
+";
+
 class CModel
 {
 	this(CCLCore core)

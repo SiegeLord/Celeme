@@ -46,11 +46,11 @@ void main()
 	
 	model.Run(100);
 	
-	/*foreach(ii, t; v_rec1.T)
+	foreach(ii, t; v_rec1.T)
 	{
 		Stdout.formatln("{:5}\t{:5}", t, v_rec1.Data[ii]);
 	}
-	
+	/*
 	Stdout.nl;
 	
 	foreach(ii, t; v_rec2.T)

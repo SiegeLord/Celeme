@@ -137,6 +137,7 @@ __kernel void $type_name$_deliver
 	(
 		const float t,
 		__global int* error_buffer,
+		__global int* record_idx,
 $event_source_args$
 		//__global int2* dest_syn_buffer,
 		//__global int* fired_syn_idx_buffer,
@@ -146,6 +147,10 @@ $event_source_args$
 	)
 {
 	int i = get_global_id(0);
+	
+	if(i == 0)
+		record_idx[0] = 0;
+	
 #if PARALLEL_DELIVERY
 	int local_id = get_local_id(0);
 
@@ -314,6 +319,7 @@ class CNeuronGroup
 		/* Set the arguments. Start at 1 to skip the t argument*/
 		arg_id = 1;
 		SetGlobalArg(DeliverKernel, arg_id++, &ErrorBuffer);
+		SetGlobalArg(DeliverKernel, arg_id++, &RecordIdxBuffer);
 		if(NumEventSources)
 		{
 			/* Set the event source args */
@@ -906,7 +912,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			{
 				assert(0, "Unimplemented");
 			}
-			Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		}
 	}
 	

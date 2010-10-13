@@ -55,6 +55,7 @@ __kernel void $type_name$_step
 		__global $num_type$4* record_buffer,
 $val_args$
 $constant_args$
+$event_source_args$
 		const int count
 	)
 {
@@ -174,7 +175,9 @@ class CNeuronGroup
 		Model = model;
 		Count = count;
 		Name = name;
+		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
+		CircBufferSize = type.CircBufferSize;
 		
 		/* Copy the non-locals and constants from the type */
 		foreach(state; &type.AllNonLocals)
@@ -186,6 +189,13 @@ class CNeuronGroup
 			buff.Buffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 			
 			ValueBuffers ~= buff;
+		}
+		
+		if(NumEventSources)
+		{
+			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
+			CircBufferEnd = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
+			CircBuffer = Model.Core.CreateBuffer(CircBufferSize * NumEventSources * Count * Model.NumSize);
 		}
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
@@ -236,6 +246,14 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
 		}
 		arg_id += Constants.length;
+		if(NumEventSources)
+		{
+			/* Set the event source args */
+			SetGlobalArg(StepKernel, arg_id++, &CircBufferStart);
+			SetGlobalArg(StepKernel, arg_id++, &CircBufferEnd);
+			SetGlobalArg(StepKernel, arg_id++, &CircBuffer);
+			SetGlobalArg(StepKernel, arg_id++, &CircBufferSize);
+		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
 		
 		if(InitKernelSource.length)
@@ -275,6 +293,13 @@ class CNeuronGroup
 		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
+		
+		if(NumEventSources)
+		{
+			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
+			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
+		}
+		
 		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
 		{
@@ -365,7 +390,8 @@ class CNeuronGroup
 		
 		void apply(char[] dest)
 		{
-			source.Retreat(1); /* Chomp the newline */
+			if(source.Source.length)
+				source.Retreat(1); /* Chomp the newline */
 			kernel_source = kernel_source.substitute(dest, source.toString);
 			source.Clear();
 		}
@@ -497,8 +523,20 @@ class CNeuronGroup
 		}
 		apply("$reset_state$");
 		
+		/* Event source args */
+		source.Tab(2);
+		if(NumEventSources)
+		{
+			source ~= "__global int* circ_buffer_start,";
+			source ~= "__global int* circ_buffer_end,";
+			source ~= "__global $num_type$* circ_buffer,";
+			source ~= "const int circ_buffer_size,";
+		}
+		apply("$event_source_args$");
+		
 		/* Thresholds */
 		source.Tab(3);
+		int thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
 			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
@@ -506,8 +544,45 @@ class CNeuronGroup
 			source.Tab;
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
+			
+			if(thresh.IsEventSource)
+			{
+				source.AddBlock(
+"
+int idx_idx = " ~ to!(char)(NumEventSources) ~ " * i + " ~ to!(char)(thresh_idx) ~ ";
+int buff_start = circ_buffer_start[idx_idx];
+
+if(buff_start != circ_buffer_end[idx_idx])
+{
+	int end_idx;
+	if(buff_start < 0) //It is empty
+	{
+		circ_buffer_start[idx_idx] = 0;
+		circ_buffer_end[idx_idx] = 1;
+		end_idx = 1;
+	}
+	else
+	{
+		end_idx = circ_buffer_end[idx_idx] = (circ_buffer_end[idx_idx] + 1) % circ_buffer_size;
+	}
+	int buff_idx = i * circ_buffer_size + end_idx - 1;
+
+	$num_type$ delay = 3;
+	circ_buffer[buff_idx] = cur_time + delay;
+}
+else //It is full, error
+{
+	error_buffer[i] = i + 1;
+}
+");
+/* TODO: Delays need to be tied to event sources (probably a delay calculation function) */
+/* TODO: Better error reporting */
+/* TODO: Check that the darn thing works */
+			}
+			
 			source.DeTab;
 			source ~= "}";
+			thresh_idx++;
 		}
 		apply("$thresholds$");
 		
@@ -535,7 +610,8 @@ class CNeuronGroup
 		
 		void apply(char[] dest)
 		{
-			source.Retreat(1); /* Chomp the newline */
+			if(source.Source.length)
+				source.Retreat(1); /* Chomp the newline */
 			kernel_source = kernel_source.substitute(dest, source.toString);
 			source.Clear();
 		}
@@ -741,8 +817,14 @@ class CNeuronGroup
 	cl_kernel StepKernel;
 	
 	cl_mem DtBuffer;
+	cl_mem CircBufferStart;
+	cl_mem CircBufferEnd;
+	cl_mem CircBuffer;
 	cl_mem ErrorBuffer;
 	cl_mem RecordFlagsBuffer;
 	cl_mem RecordBuffer;
 	cl_mem RecordIdxBuffer;
+	
+	int NumEventSources = 0;
+	int CircBufferSize = 20;
 }

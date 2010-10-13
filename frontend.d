@@ -34,6 +34,7 @@ struct SThreshold
 	char[] State;
 	char[] Condition;
 	char[] Source;
+	bool IsEventSource = false;
 }
 
 class CMechanism
@@ -116,9 +117,8 @@ class CMechanism
 		Stages[stage] = source;
 	}
 	
-	/* TODO: link it to the event source */
 	/* TODO: think about non-resetting thresholds too */
-	void AddThreshold(char[] state, char[] condition, char[] source)
+	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source = false)
 	{
 		if(!IsDuplicateName(state))
 			throw new Exception("'" ~ state ~ "' does not exist in '" ~ Name ~ "'.");
@@ -126,6 +126,10 @@ class CMechanism
 		thresh.State = state;
 		thresh.Condition = condition;
 		thresh.Source = source;
+		thresh.IsEventSource = event_source;
+		
+		if(event_source)
+			NumEventSources++;
 		
 		Thresholds ~= thresh;
 	}
@@ -175,6 +179,8 @@ class CMechanism
 	/* Thresholds are used to provide instantaneous changes in state, with the associated resetting of the dt.
 	 */
 	SThreshold[] Thresholds;
+	
+	int NumEventSources = 0;
 }
 
 class CNeuronType
@@ -197,6 +203,8 @@ class CNeuronType
 			Values[val.Name] = mech;
 		}
 		
+		NumEventSources += mech.NumEventSources;
+			
 		Mechanisms ~= mech;
 	}
 	
@@ -320,4 +328,6 @@ class CNeuronType
 	CMechanism[] Mechanisms;
 	char[] Name;
 	int RecordLength = 1000;
+	int CircBufferSize = 20;
+	int NumEventSources = 0;
 }

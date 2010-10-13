@@ -16,7 +16,7 @@ void main()
 	iz_mech.AddLocal("I");
 	iz_mech.SetStage(0, "I = 0;");
 	iz_mech.SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;");
+	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", true);
 
 	iz_mech.SetInitFunction(`u = 0;`);
 
@@ -33,18 +33,19 @@ void main()
 	
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
+	//Stdout(model.Source).nl;
 	
 //	model["TestNeuron"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
-	model["TestNeuron"]["amp"] = 4;
+	model["TestNeuron"]["amp"] = 6;
 	
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");
 	
 	model.Run(100);
 	
-	foreach(ii, t; v_rec1.T)
+	/*foreach(ii, t; v_rec1.T)
 	{
 		Stdout.formatln("{:5}\t{:5}", t, v_rec1.Data[ii]);
 	}
@@ -54,7 +55,7 @@ void main()
 	foreach(ii, t; v_rec2.T)
 	{
 		Stdout.formatln("{:5}\t{:5}", t, v_rec2.Data[ii]);
-	}
+	}*/
 	
 	model.Shutdown();
 	core.Shutdown();

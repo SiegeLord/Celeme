@@ -542,6 +542,7 @@ class CNeuronGroup
 			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
 			source ~= "{";
 			source.Tab;
+			source ~= "$num_type$ delay = 1;"
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
@@ -567,7 +568,6 @@ if(buff_start != circ_buffer_end[idx_idx])
 	}
 	int buff_idx = (i * " ~ to!(char)(NumEventSources) ~ " + " ~ to!(char)(thresh_idx) ~ ") * circ_buffer_size + end_idx - 1;
 
-	$num_type$ delay = 3;
 	circ_buffer[buff_idx] = cur_time + delay;
 }
 else //It is full, error
@@ -575,7 +575,6 @@ else //It is full, error
 	error_buffer[i] = i + 1;
 }
 ");
-/* TODO: Delays need to be tied to event sources (probably a delay calculation function) */
 /* TODO: Better error reporting */
 /* TODO: Check that the darn thing works */
 			}

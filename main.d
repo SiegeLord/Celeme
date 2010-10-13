@@ -3,6 +3,7 @@ module main;
 import frontend;
 import clmodel;
 import clcore;
+import pl = plplot;
 
 import tango.io.Stdout;
 
@@ -44,13 +45,15 @@ void main()
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");
 	
-	model.Run(100);
 	
-	foreach(ii, t; v_rec1.T)
+	int tstop = 100;
+	model.Run(tstop);
+	
+	/*foreach(ii, t; v_rec1.T)
 	{
 		Stdout.formatln("{:5}\t{:5}", t, v_rec1.Data[ii]);
 	}
-	/*
+	
 	Stdout.nl;
 	
 	foreach(ii, t; v_rec2.T)
@@ -58,6 +61,24 @@ void main()
 		Stdout.formatln("{:5}\t{:5}", t, v_rec2.Data[ii]);
 	}*/
 	
+	
+	
 	model.Shutdown();
 	core.Shutdown();
+	
+	pl.Init("wxwidgets", [0, 0, 0]);
+	pl.SetColor(1, [0, 255, 0]);
+	pl.ChooseColor(1);
+	pl.SetEnvironment(0, tstop, -80, 20, 0, 0);
+	pl.SetLabels("Time (ms)", "Voltage (mV)", "");
+	
+	pl.SetColor(2, [255, 128, 128]);
+	pl.ChooseColor(2);
+	pl.PlotLine(v_rec1.T, v_rec1.Data);
+	
+	pl.SetColor(3, [128, 128, 255]);
+	pl.ChooseColor(3);
+	pl.PlotLine(v_rec2.T, v_rec2.Data);
+	
+	pl.End();
 }

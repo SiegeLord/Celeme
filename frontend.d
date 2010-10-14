@@ -181,6 +181,7 @@ class CMechanism
 	SThreshold[] Thresholds;
 	
 	int NumEventSources = 0;
+	bool IsEventSink = false; /* TODO: Possibly WRONG! */
 }
 
 class CNeuronType
@@ -204,6 +205,10 @@ class CNeuronType
 		}
 		
 		NumEventSources += mech.NumEventSources;
+		
+		/* TODO: WRONG! */
+		if(mech.IsEventSink)
+			MaxNumSinks++;
 			
 		Mechanisms ~= mech;
 	}
@@ -330,4 +335,5 @@ class CNeuronType
 	int RecordLength = 1000;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
+	int MaxNumSinks = 1; /* TODO: Testing only! */
 }

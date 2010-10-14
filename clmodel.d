@@ -4,6 +4,7 @@ import clcore;
 import frontend;
 import clneurongroup;
 import tango.text.Util;
+import tango.io.Stdout;
 
 import opencl.cl;
 
@@ -54,13 +55,26 @@ class CModel
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 		
-		auto group = new CNeuronGroup(this, type, number, name);
+		NumNeurons += number;
+		auto sink_offset = MaxNumSinks;
+		MaxNumSinks += number * type.MaxNumSinks;
+		
+		auto group = new CNeuronGroup(this, type, number, name, sink_offset);
+		
 		
 		NeuronGroups[type.Name] = group;
 	}
 	
 	void Generate()
 	{
+		assert(NumNeurons);
+		if(MaxNumSinks)
+		{
+			/* TODO: Initialize */
+			FiredSynIdxBuffer = Core.CreateBuffer(int.sizeof * NumNeurons);
+			FiredSynBuffer = Core.CreateBuffer(int.sizeof * MaxNumSinks);
+		}
+		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
 		Source ~= "#define PARALLEL_DELIVER 1\n";
 		Source ~= FloatMemsetKernelTemplate;
@@ -72,6 +86,7 @@ class CModel
 			Source ~= group.DeliverKernelSource;
 		}
 		Source = Source.substitute("$num_type$", NumType);
+		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
 		int err;
@@ -210,6 +225,12 @@ class CModel
 	cl_program Program;
 	cl_kernel FloatMemsetKernel;
 	cl_kernel IntMemsetKernel;
+	
+	cl_mem FiredSynIdxBuffer;
+	cl_mem FiredSynBuffer;
+	
+	int MaxNumSinks = 0;
+	int NumNeurons = 0;
 	
 	CCLCore Core;
 	bool SinglePrecision = true;

@@ -132,6 +132,7 @@ $save_vals$
 }
 ";
 
+const ArgOffsetDeliver = 3;
 const char[] DeliverKernelTemplate = "
 __kernel void $type_name$_deliver
 	(
@@ -139,10 +140,6 @@ __kernel void $type_name$_deliver
 		__global int* error_buffer,
 		__global int* record_idx,
 $event_source_args$
-		//__global int2* dest_syn_buffer,
-		//__global int* fired_syn_idx_buffer,
-		//__global int* fired_syn_buffer,
-		//__local int* fire_table,
 		const uint count
 	)
 {
@@ -206,7 +203,7 @@ class CNeuronGroup
 		cl_mem Buffer;
 	}
 	
-	this(CModel model, CNeuronType type, int count, char[] name)
+	this(CModel model, CNeuronType type, int count, char[] name, int sink_offset)
 	{
 		Model = model;
 		Count = count;
@@ -214,6 +211,8 @@ class CNeuronGroup
 		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
 		CircBufferSize = type.CircBufferSize;
+		SinkOffset = sink_offset;
+		MaxNumSinks = type.MaxNumSinks;
 		
 		/* Copy the non-locals and constants from the type */
 		foreach(state; &type.AllNonLocals)
@@ -227,7 +226,7 @@ class CNeuronGroup
 			ValueBuffers ~= buff;
 		}
 		
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
 			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
 			CircBufferEnd = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
@@ -239,6 +238,8 @@ class CNeuronGroup
 		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
 		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
+		/* TODO: Initialize */
+		DestSynBuffer = Model.Core.CreateBuffer(NumSrcSynapses * 2 * int.sizeof);
 		if(Model.SinglePrecision)
 		{
 			FloatOutput.length = RecordLength;
@@ -284,7 +285,7 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
 		}
 		arg_id += Constants.length;
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
 			/* Set the event source args */
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferStart);
@@ -293,7 +294,6 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferSize);
 		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
-		
 		/* Init kernel */
 		if(InitKernelSource.length)
 		{
@@ -320,13 +320,18 @@ class CNeuronGroup
 		arg_id = 1;
 		SetGlobalArg(DeliverKernel, arg_id++, &ErrorBuffer);
 		SetGlobalArg(DeliverKernel, arg_id++, &RecordIdxBuffer);
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
+			/* Skip the fire table */
+			arg_id++;
 			/* Set the event source args */
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferStart);
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferEnd);
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBuffer);
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferSize);
+			SetGlobalArg(DeliverKernel, arg_id++, &DestSynBuffer);
+			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynIdxBuffer);
+			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynBuffer);
 		}
 		SetGlobalArg(DeliverKernel, arg_id++, &Count);
 		
@@ -352,7 +357,7 @@ class CNeuronGroup
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
 			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
@@ -453,6 +458,12 @@ class CNeuronGroup
 		{
 			double t_val = t;
 			SetGlobalArg(DeliverKernel, 0, &t_val);
+		}
+		
+		if(Model.MaxNumSinks && NumEventSources)
+		{
+			/* Local fire table */
+			SetLocalArg(DeliverKernel, ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
 		}
 
 		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, DeliverKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
@@ -604,7 +615,7 @@ class CNeuronGroup
 		
 		/* Event source args */
 		source.Tab(2);
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
 			source ~= "__global int* circ_buffer_start,";
 			source ~= "__global int* circ_buffer_end,";
@@ -621,12 +632,12 @@ class CNeuronGroup
 			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
 			source ~= "{";
 			source.Tab;
-			if(thresh.IsEventSource)
+			if(Model.MaxNumSinks && thresh.IsEventSource)
 				source ~= "$num_type$ delay = 1;";
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
-			if(thresh.IsEventSource)
+			if(Model.MaxNumSinks && thresh.IsEventSource)
 			{
 				source.AddBlock(
 "
@@ -694,12 +705,16 @@ else //It is full, error
 		
 		/* Event source args */
 		source.Tab(2);
-		if(NumEventSources)
+		if(Model.MaxNumSinks && NumEventSources)
 		{
+			source ~= "__local int* fire_table,";
 			source ~= "__global int* circ_buffer_start,";
 			source ~= "__global int* circ_buffer_end,";
 			source ~= "__global $num_type$* circ_buffer,";
 			source ~= "const int circ_buffer_size,";
+			source ~= "__global int2* dest_syn_buffer,";
+			source ~= "__global int* fired_syn_idx_buffer,";
+			source ~= "__global int* fired_syn_buffer,";
 		}
 		apply("$event_source_args$");
 		
@@ -708,7 +723,7 @@ else //It is full, error
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			if(thresh.IsEventSource)
+			if(Model.MaxNumSinks && thresh.IsEventSource)
 			{
 				source ~= "{";
 				source.Tab;
@@ -993,8 +1008,15 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem RecordFlagsBuffer;
 	cl_mem RecordBuffer;
 	cl_mem RecordIdxBuffer;
+	cl_mem DestSynBuffer;
 	
 	int NumEventSources = 0;
 	int CircBufferSize = 20;
 	int NumSrcSynapses = 10;
+	int NumDestSynapses = 10;
+	
+	/* The place we reset the fired syn idx to*/
+	int SinkOffset;
+	/* Number of sinks per neuron */
+	int MaxNumSinks;
 }

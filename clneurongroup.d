@@ -976,7 +976,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		}
 	}
 	
-	int RecordLength;
 	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;
 	//SAlignedArray!(cl_double4, cl_double4.sizeof) DoubleOutput;
 	
@@ -1010,9 +1009,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem RecordIdxBuffer;
 	cl_mem DestSynBuffer;
 	
-	int NumEventSources = 0;
+	int RecordLength;
 	int CircBufferSize = 20;
-	int NumSrcSynapses = 10;
+	int NumEventSources = 0;
+	
+	int NumSrcSynapses = 10; /* Same as MaxNumSinks? */
 	int NumDestSynapses = 10;
 	
 	/* The place we reset the fired syn idx to*/

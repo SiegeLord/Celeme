@@ -332,8 +332,10 @@ class CNeuronType
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	char[] Name;
+	
 	int RecordLength = 1000;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
+	
 	int MaxNumSinks = 1; /* TODO: Testing only! */
 }

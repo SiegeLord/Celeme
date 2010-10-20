@@ -211,8 +211,9 @@ class CNeuronGroup
 		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
 		CircBufferSize = type.CircBufferSize;
-		SinkOffset = sink_offset;
-		MaxNumSinks = type.MaxNumSinks;
+		SynOffset = sink_offset;
+		NumDestSynapses = type.NumDestSynapses;
+		NumSrcSynapses = type.NumSrcSynapses;
 		
 		/* Copy the non-locals and constants from the type */
 		foreach(state; &type.AllNonLocals)
@@ -226,7 +227,7 @@ class CNeuronGroup
 			ValueBuffers ~= buff;
 		}
 		
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
 			CircBufferEnd = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
@@ -239,7 +240,7 @@ class CNeuronGroup
 		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
 		/* TODO: Initialize */
-		DestSynBuffer = Model.Core.CreateBuffer(NumSrcSynapses * 2 * int.sizeof);
+		DestSynBuffer = Model.Core.CreateBuffer(NumEventSources * NumSrcSynapses * 2 * int.sizeof);
 		if(Model.SinglePrecision)
 		{
 			FloatOutput.length = RecordLength;
@@ -285,7 +286,7 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
 		}
 		arg_id += Constants.length;
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			/* Set the event source args */
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferStart);
@@ -320,7 +321,7 @@ class CNeuronGroup
 		arg_id = 1;
 		SetGlobalArg(DeliverKernel, arg_id++, &ErrorBuffer);
 		SetGlobalArg(DeliverKernel, arg_id++, &RecordIdxBuffer);
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			/* Skip the fire table */
 			arg_id++;
@@ -342,6 +343,13 @@ class CNeuronGroup
 		ResetBuffers();
 	}
 	
+	bool NeedSrcSynCode()
+	{
+		/* Don't need it if the model has no synapses to receive events, or the type
+		 * of this neuron group has no event sources. Obviously we need src slots too */
+		return Model.NumDestSynapses && NumEventSources && NumSrcSynapses;
+	}
+	
 	void ResetBuffers()
 	{
 		/* Set the constants. Here because SetConstant sets it to both kernels, so both need
@@ -357,7 +365,7 @@ class CNeuronGroup
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
 		
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
@@ -460,7 +468,7 @@ class CNeuronGroup
 			SetGlobalArg(DeliverKernel, 0, &t_val);
 		}
 		
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			/* Local fire table */
 			SetLocalArg(DeliverKernel, ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
@@ -615,7 +623,7 @@ class CNeuronGroup
 		
 		/* Event source args */
 		source.Tab(2);
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			source ~= "__global int* circ_buffer_start,";
 			source ~= "__global int* circ_buffer_end,";
@@ -632,12 +640,13 @@ class CNeuronGroup
 			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
 			source ~= "{";
 			source.Tab;
-			if(Model.MaxNumSinks && thresh.IsEventSource)
+			
+			if(NeedSrcSynCode && thresh.IsEventSource)
 				source ~= "$num_type$ delay = 1;";
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
-			if(Model.MaxNumSinks && thresh.IsEventSource)
+			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
 				source.AddBlock(
 "
@@ -705,7 +714,7 @@ else //It is full, error
 		
 		/* Event source args */
 		source.Tab(2);
-		if(Model.MaxNumSinks && NumEventSources)
+		if(NeedSrcSynCode)
 		{
 			source ~= "__local int* fire_table,";
 			source ~= "__global int* circ_buffer_start,";
@@ -723,7 +732,7 @@ else //It is full, error
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			if(Model.MaxNumSinks && thresh.IsEventSource)
+			if(Model.NumDestSynapses && thresh.IsEventSource)
 			{
 				source ~= "{";
 				source.Tab;
@@ -1013,11 +1022,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	
-	int NumSrcSynapses = 10; /* Same as MaxNumSinks? */
-	int NumDestSynapses = 10;
+	int NumSrcSynapses; /* Number of pre-synaptic slots per event source */
+	int NumDestSynapses; /* Number of post-synaptic slots (total) */
 	
 	/* The place we reset the fired syn idx to*/
-	int SinkOffset;
-	/* Number of sinks per neuron */
-	int MaxNumSinks;
+	int SynOffset;
 }

@@ -56,8 +56,8 @@ class CModel
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 		
 		NumNeurons += number;
-		auto sink_offset = MaxNumSinks;
-		MaxNumSinks += number * type.MaxNumSinks;
+		auto sink_offset = NumDestSynapses;
+		NumDestSynapses += number * type.NumDestSynapses;
 		
 		auto group = new CNeuronGroup(this, type, number, name, sink_offset);
 		
@@ -68,11 +68,11 @@ class CModel
 	void Generate()
 	{
 		assert(NumNeurons);
-		if(MaxNumSinks)
+		if(NumDestSynapses)
 		{
 			/* TODO: Initialize */
 			FiredSynIdxBuffer = Core.CreateBuffer(int.sizeof * NumNeurons);
-			FiredSynBuffer = Core.CreateBuffer(int.sizeof * MaxNumSinks);
+			FiredSynBuffer = Core.CreateBuffer(int.sizeof * NumDestSynapses);
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
@@ -229,7 +229,7 @@ class CModel
 	cl_mem FiredSynIdxBuffer;
 	cl_mem FiredSynBuffer;
 	
-	int MaxNumSinks = 0;
+	int NumDestSynapses = 0;
 	int NumNeurons = 0;
 	
 	CCLCore Core;

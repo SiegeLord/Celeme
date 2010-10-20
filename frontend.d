@@ -208,7 +208,7 @@ class CNeuronType
 		
 		/* TODO: WRONG! */
 		if(mech.IsEventSink)
-			MaxNumSinks++;
+			NumDestSynapses++;
 			
 		Mechanisms ~= mech;
 	}
@@ -337,5 +337,6 @@ class CNeuronType
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	
-	int MaxNumSinks = 1; /* TODO: Testing only! */
+	int NumDestSynapses = 10; /* TODO: Testing only! */
+	int NumSrcSynapses = 10;
 }

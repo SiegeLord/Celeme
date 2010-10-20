@@ -23,7 +23,7 @@ void main()
 
 	i_clamp.AddExternal("I");
 	i_clamp.AddConstant("amp");
-	i_clamp.SetStage(0, "I = amp; if(i == 1) { I = amp + 1; }");
+	i_clamp.SetStage(0, "I = amp; if(i == 1) { I = amp + 2; }");
 	
 	type.AddMechanism(iz_mech);
 	type.AddMechanism(i_clamp);
@@ -33,14 +33,16 @@ void main()
 	auto model = new CModel(core);
 	
 	type.CircBufferSize = 5;
+	type.NumSrcSynapses = 10;
+	
 	model.AddNeuronGroup(type, 5);
 	model.Generate();
-	//Stdout(model.Source).nl;
+	Stdout(model.Source).nl;
 	
 //	model["TestNeuron"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
-	model["TestNeuron"]["amp"] = 10;
+	model["TestNeuron"]["amp"] = 20;
 	
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");
@@ -66,7 +68,7 @@ void main()
 	model.Shutdown();
 	core.Shutdown();
 	
-	//if(false)
+	if(false)
 	{
 		pl.Init("wxwidgets", [0, 0, 0]);
 		pl.SetColor(1, [0, 255, 0]);

@@ -292,7 +292,6 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferStart);
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferEnd);
 			SetGlobalArg(StepKernel, arg_id++, &CircBuffer);
-			SetGlobalArg(StepKernel, arg_id++, &CircBufferSize);
 		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
 		/* Init kernel */
@@ -329,7 +328,6 @@ class CNeuronGroup
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferStart);
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferEnd);
 			SetGlobalArg(DeliverKernel, arg_id++, &CircBuffer);
-			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferSize);
 			SetGlobalArg(DeliverKernel, arg_id++, &DestSynBuffer);
 			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynIdxBuffer);
 			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynBuffer);
@@ -628,7 +626,6 @@ class CNeuronGroup
 			source ~= "__global int* circ_buffer_start,";
 			source ~= "__global int* circ_buffer_end,";
 			source ~= "__global $num_type$* circ_buffer,";
-			source ~= "const int circ_buffer_size,";
 		}
 		apply("$event_source_args$");
 		
@@ -648,13 +645,14 @@ class CNeuronGroup
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
-				source.AddBlock(
-"
-int idx_idx = " ~ to!(char)(NumEventSources) ~ " * i + " ~ to!(char)(thresh_idx) ~ ";
+				char[] src = 
+"int idx_idx = " ~ to!(char)(NumEventSources) ~ " * i + " ~ to!(char)(thresh_idx) ~ ";
 int buff_start = circ_buffer_start[idx_idx];
 
 if(buff_start != circ_buffer_end[idx_idx])
 {
+	const int circ_buffer_size = $circ_buffer_size$;
+	
 	int end_idx;
 	if(buff_start < 0) //It is empty
 	{
@@ -674,7 +672,11 @@ else //It is full, error
 {
 	error_buffer[i + 1] = 6;
 }
-");
+".dup;
+				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
+				
+				source.AddBlock(src);
+				
 				thresh_idx++;
 /* TODO: Better error reporting */
 /* TODO: Check that the darn thing works */
@@ -720,7 +722,6 @@ else //It is full, error
 			source ~= "__global int* circ_buffer_start,";
 			source ~= "__global int* circ_buffer_end,";
 			source ~= "__global $num_type$* circ_buffer,";
-			source ~= "const int circ_buffer_size,";
 			source ~= "__global int2* dest_syn_buffer,";
 			source ~= "__global int* fired_syn_idx_buffer,";
 			source ~= "__global int* fired_syn_buffer,";
@@ -742,6 +743,7 @@ int idx_idx = $num_event_sources$ * i + $event_source_idx$;
 int buff_start = circ_buffer_start[idx_idx];
 if(buff_start >= 0) /* See if we have any spikes that we can check */
 {
+	const int circ_buffer_size = $circ_buffer_size$;
 	int buff_idx = (i * $num_event_sources$ + $event_source_idx$) * circ_buffer_size + buff_start;
 
 	if(t > circ_buffer[buff_idx])
@@ -775,6 +777,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 ".dup;
 				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
+				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 				
 				source.AddBlock(src);
 				source.DeTab;

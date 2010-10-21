@@ -39,7 +39,7 @@ __kernel void int_memset(
 ";
 
 
-class CModel
+class CCLModel
 {
 	this(CCLCore core)
 	{

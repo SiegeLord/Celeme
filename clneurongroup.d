@@ -206,7 +206,7 @@ class CNeuronGroup
 		cl_mem Buffer;
 	}
 	
-	this(CModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
+	this(CCLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
 	{
 		Model = model;
 		Count = count;
@@ -1073,7 +1073,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	char[] Name;
 	int Count = 0;
-	CModel Model;
+	CCLModel Model;
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;

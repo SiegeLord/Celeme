@@ -56,7 +56,7 @@ void main()
 	
 	auto core = new CCLCore(false);
 	
-	auto model = new CModel(core);
+	auto model = new CCLModel(core);
 	
 	type.CircBufferSize = 5;
 	type.NumSrcSynapses = 10;

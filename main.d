@@ -15,16 +15,21 @@ void main()
 	iz_mech.AddLocal("I");
 	iz_mech.SetStage(0, "I = 0;");
 	iz_mech.SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", true);
-	iz_mech.SetInitFunction(`u = 0;`);
+	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", 5);
+	iz_mech.SetInitFunction(`u = 0;
+	if(i == 0)
+	{
+		dest_syn_buffer[0].s0 = 1;
+		dest_syn_buffer[0].s1 = 0;
+	}`);
 
 	auto i_clamp = new CMechanism("IClamp");
 	i_clamp.AddExternal("I");
 	i_clamp.AddConstant("amp");
-	i_clamp.SetStage(1, "I += amp; if(i == 1) { I += 2; }");
+	i_clamp.SetStage(1, "if(i == 1) { I += 0; } else { I += amp; }");
 	
 	auto glu_syn = new CSynapse("GluSyn");
-	glu_syn.AddConstant("gsyn") = 0.1;
+	glu_syn.AddConstant("gsyn") = 5;
 	glu_syn.AddConstant("tau") = 5;
 	glu_syn.AddState("s");
 	glu_syn.SetStage(1, "I += s;");
@@ -43,7 +48,7 @@ void main()
 	type.CircBufferSize = 5;
 	type.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(type, 5);
+	model.AddNeuronGroup(type, 2);
 	model.Generate();
 	Stdout(model.Source).nl;
 	

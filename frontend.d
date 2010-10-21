@@ -35,6 +35,7 @@ struct SThreshold
 	char[] Condition;
 	char[] Source;
 	bool IsEventSource = false;
+	int EventDelay;
 }
 
 class CMechanism
@@ -128,7 +129,7 @@ class CMechanism
 	}
 	
 	/* TODO: think about non-resetting thresholds too */
-	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source = false)
+	void AddThreshold(char[] state, char[] condition, char[] source, int event_delay = 0)
 	{
 		if(!IsDuplicateName(state))
 			throw new Exception("'" ~ state ~ "' does not exist in '" ~ Name ~ "'.");
@@ -136,9 +137,10 @@ class CMechanism
 		thresh.State = state;
 		thresh.Condition = condition;
 		thresh.Source = source;
-		thresh.IsEventSource = event_source;
+		thresh.IsEventSource = event_delay != 0;
+		thresh.EventDelay = event_delay;
 		
-		if(event_source)
+		if(thresh.IsEventSource)
 			NumEventSources++;
 		
 		Thresholds ~= thresh;

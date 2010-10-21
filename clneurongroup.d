@@ -117,6 +117,7 @@ __kernel void $type_name$_init
 	(
 $val_args$
 $constant_args$
+$event_source_args$
 		const int count
 	)
 {
@@ -245,7 +246,7 @@ class CNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Model.Core.CreateBuffer(NumEventSources * NumSrcSynapses * 2 * int.sizeof);
+			DestSynBuffer = Model.Core.CreateBuffer(Count * NumEventSources * NumSrcSynapses * 2 * int.sizeof);
 		}
 		
 		if(Model.SinglePrecision)
@@ -319,6 +320,10 @@ class CNeuronGroup
 			SetGlobalArg(InitKernel, arg_id++, &buffer.Buffer);
 		}
 		arg_id += Constants.length;
+		if(NeedSrcSynCode)
+		{
+			SetGlobalArg(InitKernel, arg_id++, &DestSynBuffer);
+		}
 		SetGlobalArg(InitKernel, arg_id++, &Count);
 		
 		/* Deliver kernel */
@@ -375,7 +380,7 @@ class CNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			Model.MemsetIntBuffer(DestSynBuffer, 2 * NumSrcSynapses * NumEventSources, -1);
+			Model.MemsetIntBuffer(DestSynBuffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
 		}
@@ -575,6 +580,7 @@ if(syn_table_end != $syn_offset$)
 			source.DeTab(2);
 			source.AddBlock(
 "	}
+	dt = 0.001;
 	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
 }");
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
@@ -694,7 +700,7 @@ if(syn_table_end != $syn_offset$)
 			source.Tab;
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
-				source ~= "$num_type$ delay = 1;";
+				source ~= "$num_type$ delay = " ~ to!(char[])(thresh.EventDelay) ~ ";";
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
@@ -721,7 +727,7 @@ if(buff_start != circ_buffer_end[idx_idx])
 	}
 	int buff_idx = (i * " ~ to!(char)(NumEventSources) ~ " + " ~ to!(char)(thresh_idx) ~ ") * circ_buffer_size + end_idx - 1;
 
-	circ_buffer[buff_idx] = cur_time + delay;
+	circ_buffer[buff_idx] = t + cur_time + delay;
 }
 else //It is full, error
 {
@@ -805,7 +811,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		int buff_end = circ_buffer_end[idx_idx];
 #if PARALLEL_DELIVERY
-		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = i;
+		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
 		need_to_deliver = true;
 #else
 		int syn_start = num_synapses * idx_idx;
@@ -880,6 +886,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			source ~= "const $num_type$ " ~ state.Name ~ ",";
 		}
 		apply("$constant_args$");
+		
+		source.Tab(2);
+		if(NeedSrcSynCode)
+		{
+			source ~= "__global int2* dest_syn_buffer,";
+		}
+		apply("$event_source_args$");
 		
 		/* Load vals */
 		source.Tab(2);

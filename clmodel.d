@@ -38,6 +38,7 @@ __kernel void int_memset(
 }
 ";
 
+
 class CModel
 {
 	this(CCLCore core)

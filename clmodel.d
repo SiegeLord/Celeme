@@ -66,7 +66,7 @@ class CModel
 		NeuronGroups[type.Name] = group;
 	}
 	
-	void Generate()
+	void Generate(bool parallel_delivery = true)
 	{
 		assert(NumNeurons);
 		if(NumDestSynapses)
@@ -76,7 +76,10 @@ class CModel
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
-		Source ~= "#define PARALLEL_DELIVERY 1\n";
+		if(parallel_delivery)
+			Source ~= "#define PARALLEL_DELIVERY 1\n";
+		else
+			Source ~= "#define PARALLEL_DELIVERY 0\n";
 		Source ~= FloatMemsetKernelTemplate;
 		Source ~= IntMemsetKernelTemplate;
 		foreach(group; NeuronGroups)

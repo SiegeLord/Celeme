@@ -146,7 +146,7 @@ class CMechanism
 		Thresholds ~= thresh;
 	}
 	
-	void SetInitFunction(char[] source)
+	void SetInitCode(char[] source)
 	{
 		Init = source;
 	}
@@ -374,6 +374,10 @@ class CNeuronType
 	char[] GetInitSource()
 	{
 		char[] ret;
+		if(InitCode.length)
+		{
+			ret ~= "{\n" ~ InitCode ~ "\n}\n";
+		}
 		foreach(mech; Mechanisms)
 		{
 			if(mech.Init.length)
@@ -382,10 +386,16 @@ class CNeuronType
 		return ret;
 	}
 	
+	void SetInitCode(char[] code)
+	{
+		InitCode = code;
+	}
+	
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	SSynType[] SynapseTypes;
 	char[] Name;
+	char[] InitCode;
 	
 	int RecordLength = 1000;
 	int CircBufferSize = 20;

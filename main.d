@@ -16,12 +16,6 @@ void main()
 	iz_mech.SetStage(0, "I = 0;");
 	iz_mech.SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
 	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", 5);
-	iz_mech.SetInitFunction(`u = 0;
-	if(i == 0)
-	{
-		dest_syn_buffer[0].s0 = 1;
-		dest_syn_buffer[0].s1 = 0;
-	}`);
 
 	auto i_clamp = new CMechanism("IClamp");
 	i_clamp.AddExternal("I");
@@ -40,6 +34,13 @@ void main()
 	type.AddMechanism(iz_mech);
 	type.AddMechanism(i_clamp);
 	type.AddSynapse(glu_syn, 10);
+	type.SetInitCode(
+	"
+	if(i == 0)
+	{
+		dest_syn_buffer[0].s0 = 1;
+		dest_syn_buffer[0].s1 = 0;
+	}");
 	
 	auto core = new CCLCore(false);
 	

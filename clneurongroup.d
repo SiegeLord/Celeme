@@ -154,11 +154,11 @@ $event_source_args$
 #if PARALLEL_DELIVERY
 	int local_id = get_local_id(0);
 
-	//fire_table[local_id] = -1;
+	fire_table[local_id] = -1;
 
-	//__local bool need_to_deliver;
-	//need_to_deliver = false;
-	//barrier(CLK_LOCAL_MEM_FENCE);
+	__local bool need_to_deliver;
+	need_to_deliver = false;
+	barrier(CLK_LOCAL_MEM_FENCE);
 #endif
 	
 	/* Max number of source synapses */
@@ -169,32 +169,31 @@ $event_source_args$
 $event_source_code$
 	}
 
-//#if PARALLEL_DELIVERY
-	//barrier(CLK_LOCAL_MEM_FENCE);
-	//if(need_to_deliver)
-	//{
-		//int local_size = get_local_size(0);
+#if PARALLEL_DELIVERY
+	barrier(CLK_LOCAL_MEM_FENCE);
+	if(need_to_deliver)
+	{
+		int local_size = get_local_size(0);
 
-		//for(int ii = 0; ii < local_size; ii++)
-		//{
-			//if(fire_table[ii] < 0)
-				//continue;
+		for(int ii = 0; ii < local_size; ii++)
+		{
+			if(fire_table[ii] < 0)
+				continue;
 
-			//int syn_start = num_synapses * fire_table[ii];
-			//for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
-			//{
-				//int2 dest = dest_syn_buffer[syn_id + syn_start];
-				//if(dest.s0 >= 0)
-				//{
-					///* Get the index into the global syn buffer */
-					//int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
-					
-					//fired_syn_buffer[dest_syn] = dest.s1;
-				//}
-			//}
-		//}
-	//}
-//#endif
+			int syn_start = num_synapses * fire_table[ii];
+			for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
+			{
+				int2 dest = dest_syn_buffer[syn_id + syn_start];
+				if(dest.s0 >= 0)
+				{
+					/* Get the index into the global syn buffer */
+					int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+					fired_syn_buffer[dest_syn] = dest.s1;
+				}
+			}
+		}
+	}
+#endif
 }
 ";
 
@@ -805,23 +804,23 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	if(t > circ_buffer[buff_idx])
 	{
 		int buff_end = circ_buffer_end[idx_idx];
-//#if PARALLEL_DELIVERY
-		//fire_table[$num_event_sources$ * local_id + $event_source_idx$] = i;
-		//need_to_deliver = true;
-//#else
-		//int syn_start = num_synapses * idx_idx;
-		//for(int syn_id = 0; syn_id < num_synapses; syn_id++)
-		//{
-			//int2 dest = dest_syn_buffer[syn_id + syn_start];
-			//if(dest.s0 >= 0)
-			//{
-				///* Get the index into the global syn buffer */
-				//int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+#if PARALLEL_DELIVERY
+		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = i;
+		need_to_deliver = true;
+#else
+		int syn_start = num_synapses * idx_idx;
+		for(int syn_id = 0; syn_id < num_synapses; syn_id++)
+		{
+			int2 dest = dest_syn_buffer[syn_id + syn_start];
+			if(dest.s0 >= 0)
+			{
+				/* Get the index into the global syn buffer */
+				int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
 				
-				//fired_syn_buffer[dest_syn] = dest.s1;
-			//}
-		//}
-//#endif
+				fired_syn_buffer[dest_syn] = dest.s1;
+			}
+		}
+#endif
 		buff_start = (buff_start + 1) % circ_buffer_size;
 		if(buff_start == buff_end)
 		{

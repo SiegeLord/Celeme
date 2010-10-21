@@ -75,7 +75,7 @@ class CModel
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
-		Source ~= "#define PARALLEL_DELIVER 1\n";
+		Source ~= "#define PARALLEL_DELIVERY 1\n";
 		Source ~= FloatMemsetKernelTemplate;
 		Source ~= IntMemsetKernelTemplate;
 		foreach(group; NeuronGroups)

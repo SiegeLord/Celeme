@@ -275,79 +275,80 @@ class CNeuronGroup
 	 * and to create the local kernels*/
 	void Initialize()
 	{
+		int arg_id;
 		/* Step kernel */
-		auto step_kernel_name = Name ~ "_step\0";
-		int err;
+		StepKernel = new CCLKernel(&Model.Program, Name ~ "_step");
 		
-		StepKernel = clCreateKernel(Model.Program, step_kernel_name.ptr, &err);
-		assert(err == CL_SUCCESS);
-		
-		/* Set the arguments. Start at 1 to skip the t argument*/
-		int arg_id = 1;
-		SetGlobalArg(StepKernel, arg_id++, &DtBuffer);
-		SetGlobalArg(StepKernel, arg_id++, &ErrorBuffer);
-		SetGlobalArg(StepKernel, arg_id++, &RecordFlagsBuffer);
-		SetGlobalArg(StepKernel, arg_id++, &RecordIdxBuffer);
-		SetGlobalArg(StepKernel, arg_id++, &RecordBuffer);
-		foreach(buffer; ValueBuffers)
+		with(StepKernel)
 		{
-			SetGlobalArg(StepKernel, arg_id++, &buffer.Buffer);
+			/* Set the arguments. Start at 1 to skip the t argument*/
+			arg_id = 1;
+			SetGlobalArg(arg_id++, &DtBuffer);
+			SetGlobalArg(arg_id++, &ErrorBuffer);
+			SetGlobalArg(arg_id++, &RecordFlagsBuffer);
+			SetGlobalArg(arg_id++, &RecordIdxBuffer);
+			SetGlobalArg(arg_id++, &RecordBuffer);
+			foreach(buffer; ValueBuffers)
+			{
+				SetGlobalArg(arg_id++, &buffer.Buffer);
+			}
+			arg_id += Constants.length;
+			if(NeedSrcSynCode)
+			{
+				/* Set the event source args */
+				SetGlobalArg(arg_id++, &CircBufferStart);
+				SetGlobalArg(arg_id++, &CircBufferEnd);
+				SetGlobalArg(arg_id++, &CircBuffer);
+			}
+			if(NumDestSynapses)
+			{
+				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynBuffer);
+			}
+			SetGlobalArg(arg_id++, &Count);
 		}
-		arg_id += Constants.length;
-		if(NeedSrcSynCode)
-		{
-			/* Set the event source args */
-			SetGlobalArg(StepKernel, arg_id++, &CircBufferStart);
-			SetGlobalArg(StepKernel, arg_id++, &CircBufferEnd);
-			SetGlobalArg(StepKernel, arg_id++, &CircBuffer);
-		}
-		if(NumDestSynapses)
-		{
-			SetGlobalArg(StepKernel, arg_id++, &Model.FiredSynIdxBuffer);
-			SetGlobalArg(StepKernel, arg_id++, &Model.FiredSynBuffer);
-		}
-		SetGlobalArg(StepKernel, arg_id++, &Count);
 		
 		/* Init kernel */
-		auto init_kernel_name = Name ~ "_init\0";
-		InitKernel = clCreateKernel(Model.Program, init_kernel_name.ptr, &err);
-		assert(err == CL_SUCCESS);
-		
-		/* Nothing to skip, so set it at 0 */
-		arg_id = 0;
-		foreach(buffer; ValueBuffers)
+		InitKernel = new CCLKernel(&Model.Program, Name ~ "_init");
+		with(InitKernel)
 		{
-			SetGlobalArg(InitKernel, arg_id++, &buffer.Buffer);
+			/* Nothing to skip, so set it at 0 */
+			arg_id = 0;
+			foreach(buffer; ValueBuffers)
+			{
+				SetGlobalArg(arg_id++, &buffer.Buffer);
+			}
+			arg_id += Constants.length;
+			if(NeedSrcSynCode)
+			{
+				SetGlobalArg(arg_id++, &DestSynBuffer);
+			}
+			SetGlobalArg(arg_id++, &Count);
 		}
-		arg_id += Constants.length;
-		if(NeedSrcSynCode)
-		{
-			SetGlobalArg(InitKernel, arg_id++, &DestSynBuffer);
-		}
-		SetGlobalArg(InitKernel, arg_id++, &Count);
 		
 		/* Deliver kernel */
-		auto deliver_kernel_name = Name ~ "_deliver\0";
-		DeliverKernel = clCreateKernel(Model.Program, deliver_kernel_name.ptr, &err);
-		assert(err == CL_SUCCESS);
+		DeliverKernel = new CCLKernel(&Model.Program, Name ~ "_deliver");
 		
-		/* Set the arguments. Start at 1 to skip the t argument*/
-		arg_id = 1;
-		SetGlobalArg(DeliverKernel, arg_id++, &ErrorBuffer);
-		SetGlobalArg(DeliverKernel, arg_id++, &RecordIdxBuffer);
-		if(NeedSrcSynCode)
+		with(DeliverKernel)
 		{
-			/* Skip the fire table */
-			arg_id++;
-			/* Set the event source args */
-			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferStart);
-			SetGlobalArg(DeliverKernel, arg_id++, &CircBufferEnd);
-			SetGlobalArg(DeliverKernel, arg_id++, &CircBuffer);
-			SetGlobalArg(DeliverKernel, arg_id++, &DestSynBuffer);
-			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynIdxBuffer);
-			SetGlobalArg(DeliverKernel, arg_id++, &Model.FiredSynBuffer);
+			/* Set the arguments. Start at 1 to skip the t argument*/
+			arg_id = 1;
+			SetGlobalArg(arg_id++, &ErrorBuffer);
+			SetGlobalArg(arg_id++, &RecordIdxBuffer);
+			if(NeedSrcSynCode)
+			{
+				/* Skip the fire table */
+				arg_id++;
+				/* Set the event source args */
+				SetGlobalArg(arg_id++, &CircBufferStart);
+				SetGlobalArg(arg_id++, &CircBufferEnd);
+				SetGlobalArg(arg_id++, &CircBuffer);
+				SetGlobalArg(arg_id++, &DestSynBuffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynBuffer);
+			}
+			SetGlobalArg(arg_id++, &Count);
 		}
-		SetGlobalArg(DeliverKernel, arg_id++, &Count);
 		
 		Model.Core.Finish();
 		
@@ -398,14 +399,14 @@ class CNeuronGroup
 		if(Model.SinglePrecision)
 		{
 			float val = Constants[idx];
-			SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
-			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
+			InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
+			StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
 		}
 		else
 		{
 			double val = Constants[idx];
-			SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
-			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
+			InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
+			StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
 		}
 	}
 	
@@ -435,7 +436,7 @@ class CNeuronGroup
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
-		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -445,19 +446,22 @@ class CNeuronGroup
 		if(total_num < Count)
 			total_num += workgroup_size;
 		
-		if(Model.SinglePrecision)
+		with(StepKernel)
 		{
-			float t_val = t;
-			SetGlobalArg(StepKernel, 0, &t_val);
-		}
-		else
-		{
-			double t_val = t;
-			SetGlobalArg(StepKernel, 0, &t_val);
-		}
+			if(Model.SinglePrecision)
+			{
+				float t_val = t;
+				SetGlobalArg(0, &t_val);
+			}
+			else
+			{
+				double t_val = t;
+				SetGlobalArg(0, &t_val);
+			}
 
-		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, StepKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
-		assert(err == CL_SUCCESS);
+			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			assert(err == CL_SUCCESS);
+		}
 	}
 	
 	void CallDeliverKernel(double t, size_t workgroup_size)
@@ -466,25 +470,28 @@ class CNeuronGroup
 		if(total_num < Count)
 			total_num += workgroup_size;
 		
-		if(Model.SinglePrecision)
+		with(DeliverKernel)
 		{
-			float t_val = t;
-			SetGlobalArg(DeliverKernel, 0, &t_val);
-		}
-		else
-		{
-			double t_val = t;
-			SetGlobalArg(DeliverKernel, 0, &t_val);
-		}
-		
-		if(NeedSrcSynCode)
-		{
-			/* Local fire table */
-			SetLocalArg(DeliverKernel, ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
-		}
+			if(Model.SinglePrecision)
+			{
+				float t_val = t;
+				SetGlobalArg(0, &t_val);
+			}
+			else
+			{
+				double t_val = t;
+				SetGlobalArg(0, &t_val);
+			}
+			
+			if(NeedSrcSynCode)
+			{
+				/* Local fire table */
+				SetLocalArg(ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
+			}
 
-		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, DeliverKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
-		assert(err == CL_SUCCESS);
+			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			assert(err == CL_SUCCESS);
+		}
 	}
 	
 	void CreateStepKernel(CNeuronType type)
@@ -1072,9 +1079,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	char[] InitKernelSource;
 	char[] DeliverKernelSource;
 	
-	cl_kernel InitKernel;
-	cl_kernel StepKernel;
-	cl_kernel DeliverKernel;
+	CCLKernel InitKernel;
+	CCLKernel StepKernel;
+	CCLKernel DeliverKernel;
 	
 	cl_mem DtBuffer;
 	cl_mem CircBufferStart;

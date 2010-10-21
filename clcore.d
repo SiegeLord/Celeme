@@ -3,23 +3,45 @@ module clcore;
 import opencl.cl;
 
 import tango.io.Stdout;
+import tango.stdc.stringz;
+import tango.util.Convert;
 
-void SetGlobalArg(T)(cl_kernel kernel, uint argnum, T* arg)
+class CCLKernel
 {
-	auto err = clSetKernelArg(kernel, argnum, T.sizeof, arg);
-	if(err != CL_SUCCESS)
+	this(cl_program *program, char[] name)
 	{
-		throw new Exception("Failed to set a global kernel argument");
+		Program = program;
+		Name = name;
+		
+		int err;
+		Kernel = clCreateKernel(*Program, toStringz(Name), &err);
+		if(err != CL_SUCCESS)
+		{
+			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");
+		}
 	}
-}
+	
+	void SetGlobalArg(T)(uint argnum, T* arg)
+	{
+		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, arg);
+		if(err != CL_SUCCESS)
+		{
+			throw new Exception("Failed to set a global argument " ~ to!(char[])(argnum) ~ "of kernel '" ~ Name ~ "'.");
+		}
+	}
 
-void SetLocalArg(cl_kernel kernel, uint argnum, size_t size)
-{
-	auto err = clSetKernelArg(kernel, argnum, size, null);
-	if(err != CL_SUCCESS)
+	void SetLocalArg(uint argnum, size_t size)
 	{
-		throw new Exception("Failed to set a local kernel argument");
+		auto err = clSetKernelArg(Kernel, argnum, size, null);
+		if(err != CL_SUCCESS)
+		{
+			throw new Exception("Failed to set a local argument " ~ to!(char[])(argnum) ~ "of kernel '" ~ Name ~ "'.");
+		}
 	}
+	
+	cl_program* Program;
+	cl_kernel Kernel;
+	char[] Name;
 }
 
 class CCLCore

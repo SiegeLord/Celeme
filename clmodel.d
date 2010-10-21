@@ -92,11 +92,8 @@ class CModel
 		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
-		int err;
-		FloatMemsetKernel = clCreateKernel(Program, "float_memset", &err);
-		assert(err == CL_SUCCESS);
-		IntMemsetKernel = clCreateKernel(Program, "int_memset", &err);
-		assert(err == CL_SUCCESS);
+		FloatMemsetKernel = new CCLKernel(&Program, "float_memset");
+		IntMemsetKernel = new CCLKernel(&Program, "int_memset");
 		
 		/* Set it to -1, so that when the neuron step functions are called,
 		 * it gets reset automatically there */
@@ -178,21 +175,24 @@ class CModel
 	
 	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
 	{
-		SetGlobalArg(FloatMemsetKernel, 0, &buffer);
-		if(SinglePrecision)
+		with(FloatMemsetKernel)
 		{
-			float val = value;
-			SetGlobalArg(FloatMemsetKernel, 1, &val);
+			SetGlobalArg(0, &buffer);
+			if(SinglePrecision)
+			{
+				float val = value;
+				SetGlobalArg(1, &val);
+			}
+			else
+			{
+				double val = value;
+				SetGlobalArg(1, &val);
+			}
+			SetGlobalArg(2, &count);
+			size_t total_size = count;
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
+			assert(err == CL_SUCCESS);
 		}
-		else
-		{
-			double val = value;
-			SetGlobalArg(FloatMemsetKernel, 1, &val);
-		}
-		SetGlobalArg(FloatMemsetKernel, 2, &count);
-		size_t total_size = count;
-		auto err = clEnqueueNDRangeKernel(Core.Commands, FloatMemsetKernel, 1, null, &total_size, null, 0, null, null);
-		assert(err == CL_SUCCESS);
 	}
 	
 	void SetFloat(ref cl_mem buffer, int idx, double value)
@@ -227,17 +227,20 @@ class CModel
 	
 	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
 	{
-		SetGlobalArg(IntMemsetKernel, 0, &buffer);
-		SetGlobalArg(IntMemsetKernel, 1, &value);
-		SetGlobalArg(IntMemsetKernel, 2, &count);
-		size_t total_size = count;
-		auto err = clEnqueueNDRangeKernel(Core.Commands, IntMemsetKernel, 1, null, &total_size, null, 0, null, null);
-		assert(err == CL_SUCCESS);
+		with(IntMemsetKernel)
+		{
+			SetGlobalArg(0, &buffer);
+			SetGlobalArg(1, &value);
+			SetGlobalArg(2, &count);
+			size_t total_size = count;
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
+			assert(err == CL_SUCCESS);
+		}
 	}
 	
 	cl_program Program;
-	cl_kernel FloatMemsetKernel;
-	cl_kernel IntMemsetKernel;
+	CCLKernel FloatMemsetKernel;
+	CCLKernel IntMemsetKernel;
 	
 	cl_mem FiredSynIdxBuffer;
 	cl_mem FiredSynBuffer;

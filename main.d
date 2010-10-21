@@ -10,37 +10,49 @@ import tango.io.Stdout;
 void main()
 {
 	auto iz_mech = new CMechanism("IzMech");
-	iz_mech.AddState("V") = -65;
-	iz_mech.AddState("u") = 5;
-	iz_mech.AddLocal("I");
-	iz_mech.SetStage(0, "I = 0;");
-	iz_mech.SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", 5);
+	with(iz_mech)
+	{
+		AddState("V") = -65;
+		AddState("u") = -5;
+		AddLocal("I");
+		SetStage(0, "I = 0;");
+		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
+		AddThreshold("V", "> 0", "V = -65; u += 8;", 5);
+	}
 
 	auto i_clamp = new CMechanism("IClamp");
-	i_clamp.AddExternal("I");
-	i_clamp.AddConstant("amp");
-	i_clamp.SetStage(1, "if(i == 1) { I += 0; } else { I += amp; }");
+	with(i_clamp)
+	{
+		AddExternal("I");
+		AddConstant("amp");
+		SetStage(1, "if(i == 1) { I += 0; } else { I += amp; }");
+	}
 	
 	auto glu_syn = new CSynapse("GluSyn");
-	glu_syn.AddConstant("gsyn") = 5;
-	glu_syn.AddConstant("tau") = 5;
-	glu_syn.AddState("s");
-	glu_syn.SetStage(1, "I += s;");
-	glu_syn.SetStage(2, "s' = -s / tau;");
-	glu_syn.SetSynCode("s += gsyn;");
+	with(glu_syn)
+	{
+		AddConstant("gsyn") = 10;
+		AddConstant("tau") = 5;
+		AddState("s");
+		SetStage(1, "I += s;");
+		SetStage(2, "s' = -s / tau;");
+		SetSynCode("s += gsyn;");
+	}
 	
 	auto type = new CNeuronType("TestNeuron");
-	type.AddMechanism(iz_mech);
-	type.AddMechanism(i_clamp);
-	type.AddSynapse(glu_syn, 10);
-	type.SetInitCode(
-	"
-	if(i == 0)
+	with(type)
 	{
-		dest_syn_buffer[0].s0 = 1;
-		dest_syn_buffer[0].s1 = 0;
-	}");
+		AddMechanism(iz_mech);
+		AddMechanism(i_clamp);
+		AddSynapse(glu_syn, 10);
+		SetInitCode(
+		"
+		if(i == 0)
+		{
+			dest_syn_buffer[0].s0 = 1;
+			dest_syn_buffer[0].s1 = 0;
+		}");
+	}
 	
 	auto core = new CCLCore(false);
 	

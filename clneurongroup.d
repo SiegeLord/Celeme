@@ -298,6 +298,7 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &CircBuffer);
 		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
+		
 		/* Init kernel */
 		if(InitKernelSource.length)
 		{

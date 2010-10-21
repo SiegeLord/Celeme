@@ -61,7 +61,6 @@ class CModel
 		
 		auto group = new CNeuronGroup(this, type, number, name, sink_offset);
 		
-		
 		NeuronGroups[type.Name] = group;
 	}
 	
@@ -96,7 +95,10 @@ class CModel
 		
 		/* Set it to -1, so that when the neuron step functions are called,
 		 * it gets reset automatically there */
-		MemsetIntBuffer(FiredSynIdxBuffer, NumNeurons, -1);
+		if(NumDestSynapses)
+		{
+			MemsetIntBuffer(FiredSynIdxBuffer, NumNeurons, -1);
+		}
 		
 		foreach(group; NeuronGroups)
 			group.Initialize();
@@ -232,6 +234,7 @@ class CModel
 	cl_mem FiredSynIdxBuffer;
 	cl_mem FiredSynBuffer;
 	
+	/* Total model number of dest synapses */
 	int NumDestSynapses = 0;
 	int NumNeurons = 0;
 	

@@ -9,26 +9,34 @@ import tango.io.Stdout;
 
 void main()
 {
-	auto type = new CNeuronType("TestNeuron");
 	auto iz_mech = new CMechanism("IzMech");
-	auto i_clamp = new CMechanism("IClamp");
 	iz_mech.AddState("V") = -65;
 	iz_mech.AddState("u") = 5;
 	iz_mech.AddLocal("I");
 	iz_mech.SetStage(0, "I = 0;");
 	iz_mech.SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
 	iz_mech.AddThreshold("V", "> 0", "V = -65; u += 8;", true);
-
 	iz_mech.SetInitFunction(`u = 0;`);
 
+	auto i_clamp = new CMechanism("IClamp");
 	i_clamp.AddExternal("I");
 	i_clamp.AddConstant("amp");
-	i_clamp.SetStage(0, "I = amp; if(i == 1) { I = amp + 2; }");
+	i_clamp.SetStage(1, "I += amp; if(i == 1) { I += amp + 2; }");
 	
+	auto glu_syn = new CMechanism("GluSyn");
+	glu_syn.AddConstant("gsyn") = 0.1;
+	glu_syn.AddConstant("tau") = 5;
+	glu_syn.AddState("s");
+	glu_syn.SetStage(1, "I += s;");
+	glu_syn.SetStage(2, "s' = -s / tau;");
+	glu_syn.IsEventSink = true;
+	
+	auto type = new CNeuronType("TestNeuron");
 	type.AddMechanism(iz_mech);
 	type.AddMechanism(i_clamp);
+	type.AddSynapse(glu_syn, 10);
 	
-	auto core = new CCLCore(false, false);
+	auto core = new CCLCore(false);
 	
 	auto model = new CModel(core);
 	
@@ -47,28 +55,13 @@ void main()
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");
 	
-	
 	int tstop = 100;
 	model.Run(tstop);
-	
-	/*foreach(ii, t; v_rec1.T)
-	{
-		Stdout.formatln("{:5}\t{:5}", t, v_rec1.Data[ii]);
-	}
-	
-	Stdout.nl;
-	
-	foreach(ii, t; v_rec2.T)
-	{
-		Stdout.formatln("{:5}\t{:5}", t, v_rec2.Data[ii]);
-	}*/
-	
-	
 	
 	model.Shutdown();
 	core.Shutdown();
 	
-	if(false)
+	//if(false)
 	{
 		pl.Init("wxwidgets", [0, 0, 0]);
 		pl.SetColor(1, [0, 255, 0]);

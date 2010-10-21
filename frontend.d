@@ -109,6 +109,16 @@ class CMechanism
 		return 0;
 	}
 	
+	int AllStates(int delegate(ref CValue value) dg)
+	{
+		foreach(val; States)
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
+		return 0;
+	}
+	
 	void SetStage(int stage, char[] source)
 	{
 		assert(stage >= 0, "stage must be between positive");
@@ -184,6 +194,12 @@ class CMechanism
 	bool IsEventSink = false; /* TODO: Possibly WRONG! */
 }
 
+struct SSynType
+{
+	CMechanism Mechanism;
+	int NumSynapses;
+}
+
 class CNeuronType
 {
 	this(char[] name)
@@ -205,12 +221,25 @@ class CNeuronType
 		}
 		
 		NumEventSources += mech.NumEventSources;
-		
-		/* TODO: WRONG! */
-		if(mech.IsEventSink)
-			NumDestSynapses++;
 			
 		Mechanisms ~= mech;
+	}
+	
+	void AddSynapse(CMechanism mech, int num_slots)
+	{
+		if(!mech.IsEventSink)
+			throw new Exception("'" ~ mech.Name ~ "' cannot accept synapses.");
+		AddMechanism(mech);
+		SynapseTypes ~= SSynType(mech, num_slots);
+	}
+	
+	int NumDestSynapses()
+	{
+		int ret = 0;
+		foreach(type; SynapseTypes)
+			ret += type.NumSynapses;
+		
+		return ret;
 	}
 	
 	/* Double checks that each mechanism has its externals satisfied*/
@@ -313,6 +342,16 @@ class CNeuronType
 			{
 				if(mech.Stages[ii].length)
 					ret ~= "{\n" ~ mech.Stages[ii] ~ "\n}\n";
+				else if(ii == 2)
+				{
+					/* Generate a dummy stage that sets all the derivatives to 0 */
+					foreach(state; &mech.AllStates)
+					{
+						ret ~= "{\n";
+						ret ~= state.Name ~ "' = 0;";
+						ret ~= "\n}\n";
+					}
+				}
 			}
 		}
 		return ret;
@@ -331,12 +370,12 @@ class CNeuronType
 	
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
+	SSynType[] SynapseTypes;
 	char[] Name;
 	
 	int RecordLength = 1000;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	
-	int NumDestSynapses = 10; /* TODO: Testing only! */
 	int NumSrcSynapses = 10;
 }

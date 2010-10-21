@@ -239,8 +239,12 @@ class CNeuronGroup
 		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
 		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
-		/* TODO: Initialize */
-		DestSynBuffer = Model.Core.CreateBuffer(NumEventSources * NumSrcSynapses * 2 * int.sizeof);
+		
+		if(NeedSrcSynCode)
+		{
+			DestSynBuffer = Model.Core.CreateBuffer(NumEventSources * NumSrcSynapses * 2 * int.sizeof);
+		}
+		
 		if(Model.SinglePrecision)
 		{
 			FloatOutput.length = RecordLength;
@@ -365,6 +369,7 @@ class CNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
+			Model.MemsetIntBuffer(DestSynBuffer, 2 * NumSrcSynapses * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
 		}

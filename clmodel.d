@@ -70,7 +70,6 @@ class CModel
 		assert(NumNeurons);
 		if(NumDestSynapses)
 		{
-			/* TODO: Initialize */
 			FiredSynIdxBuffer = Core.CreateBuffer(int.sizeof * NumNeurons);
 			FiredSynBuffer = Core.CreateBuffer(int.sizeof * NumDestSynapses);
 		}
@@ -94,6 +93,10 @@ class CModel
 		assert(err == CL_SUCCESS);
 		IntMemsetKernel = clCreateKernel(Program, "int_memset", &err);
 		assert(err == CL_SUCCESS);
+		
+		/* Set it to -1, so that when the neuron step functions are called,
+		 * it gets reset automatically there */
+		MemsetIntBuffer(FiredSynIdxBuffer, NumNeurons, -1);
 		
 		foreach(group; NeuronGroups)
 			group.Initialize();

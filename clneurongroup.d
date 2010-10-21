@@ -26,6 +26,7 @@ __kernel void $type_name$_step
 $val_args$
 $constant_args$
 $event_source_args$
+$synapse_args$
 		const int count
 	)
 {
@@ -39,6 +40,8 @@ $event_source_args$
 		
 		$num_type$ dt = dt_buf[i];
 $load_vals$
+
+$synapse_code$
 
 		while(cur_time < timestep)
 		{
@@ -203,7 +206,7 @@ class CNeuronGroup
 		cl_mem Buffer;
 	}
 	
-	this(CModel model, CNeuronType type, int count, char[] name, int sink_offset)
+	this(CModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
 	{
 		Model = model;
 		Count = count;
@@ -212,6 +215,7 @@ class CNeuronGroup
 		RecordLength = type.RecordLength;
 		CircBufferSize = type.CircBufferSize;
 		SynOffset = sink_offset;
+		NrnOffset = nrn_offset;
 		NumDestSynapses = type.NumDestSynapses;
 		NumSrcSynapses = type.NumSrcSynapses;
 		
@@ -297,24 +301,26 @@ class CNeuronGroup
 			SetGlobalArg(StepKernel, arg_id++, &CircBufferEnd);
 			SetGlobalArg(StepKernel, arg_id++, &CircBuffer);
 		}
+		if(NumDestSynapses)
+		{
+			SetGlobalArg(StepKernel, arg_id++, &Model.FiredSynIdxBuffer);
+			SetGlobalArg(StepKernel, arg_id++, &Model.FiredSynBuffer);
+		}
 		SetGlobalArg(StepKernel, arg_id++, &Count);
 		
 		/* Init kernel */
-		if(InitKernelSource.length)
+		auto init_kernel_name = Name ~ "_init\0";
+		InitKernel = clCreateKernel(Model.Program, init_kernel_name.ptr, &err);
+		assert(err == CL_SUCCESS);
+		
+		/* Nothing to skip, so set it at 0 */
+		arg_id = 0;
+		foreach(buffer; ValueBuffers)
 		{
-			auto init_kernel_name = Name ~ "_init\0";
-			InitKernel = clCreateKernel(Model.Program, init_kernel_name.ptr, &err);
-			assert(err == CL_SUCCESS);
-			
-			/* Nothing to skip, so set it at 0 */
-			arg_id = 0;
-			foreach(buffer; ValueBuffers)
-			{
-				SetGlobalArg(InitKernel, arg_id++, &buffer.Buffer);
-			}
-			arg_id += Constants.length;
-			SetGlobalArg(InitKernel, arg_id++, &Count);
+			SetGlobalArg(InitKernel, arg_id++, &buffer.Buffer);
 		}
+		arg_id += Constants.length;
+		SetGlobalArg(InitKernel, arg_id++, &Count);
 		
 		/* Deliver kernel */
 		auto deliver_kernel_name = Name ~ "_deliver\0";
@@ -388,15 +394,13 @@ class CNeuronGroup
 		if(Model.SinglePrecision)
 		{
 			float val = Constants[idx];
-			if(InitKernelSource.length)
-				SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
+			SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
 			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
 		}
 		else
 		{
 			double val = Constants[idx];
-			if(InitKernelSource.length)
-				SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
+			SetGlobalArg(InitKernel, idx + ValueBuffers.length + ArgOffsetInit, &val);
 			SetGlobalArg(StepKernel, idx + ValueBuffers.length + ArgOffsetStep, &val);
 		}
 	}
@@ -424,14 +428,11 @@ class CNeuronGroup
 	
 	void CallInitKernel(size_t workgroup_size)
 	{
-		if(InitKernelSource.length)
-		{
-			size_t total_num = (Count / workgroup_size) * workgroup_size;
-			if(total_num < Count)
-				total_num += workgroup_size;
-			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
-			assert(err == CL_SUCCESS);
-		}
+		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		if(total_num < Count)
+			total_num += workgroup_size;
+		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		assert(err == CL_SUCCESS);
 	}
 	
 	void CallStepKernel(double t, size_t workgroup_size)
@@ -516,6 +517,25 @@ class CNeuronGroup
 		}
 		apply("$constant_args$");
 		
+		/* Event source args */
+		source.Tab(2);
+		if(NeedSrcSynCode)
+		{
+			source ~= "__global int* circ_buffer_start,";
+			source ~= "__global int* circ_buffer_end,";
+			source ~= "__global $num_type$* circ_buffer,";
+		}
+		apply("$event_source_args$");
+		
+		/* Synapse args */
+		source.Tab(2);
+		if(NumDestSynapses)
+		{
+			source ~= "__global int* fired_syn_idx_buffer,";
+			source ~= "__global int* fired_syn_buffer,";
+		}
+		apply("$synapse_args$");
+		
 		/* Load vals */
 		source.Tab(2);
 		foreach(state; &type.AllNonLocals)
@@ -523,6 +543,46 @@ class CNeuronGroup
 			source ~= "$num_type$ " ~ state.Name ~ " = " ~ state.Name ~ "_buf[i];";
 		}
 		apply("$load_vals$");
+		
+		/* Synapse code */
+		source.Tab(2);
+		if(NumDestSynapses)
+		{
+			source.AddBlock(
+"
+int syn_table_end = fired_syn_idx_buffer[i + $nrn_offset$];
+if(syn_table_end != $syn_offset$)
+{
+	for(int syn_table_idx = $syn_offset$; syn_table_idx < syn_table_end; syn_table_idx++)
+	{
+		int syn_i = fired_syn_buffer[syn_table_idx];
+");
+			source.Tab(2);
+			int syn_offset = 0;
+			foreach(ii, syn_type; type.SynapseTypes)
+			{
+				syn_offset += syn_type.NumSynapses;
+				char[] cond;
+				if(ii != 0)
+					cond ~= "else ";
+				cond ~= "if(syn_i < " ~ to!(char[])(syn_offset) ~ ")";
+				source ~= cond;
+				source ~= "{";
+				source.Tab();
+				source.AddBlock(syn_type.Synapse.SynCode);
+				source.DeTab();
+				source ~= "}";
+			}
+			source.DeTab(2);
+			source.AddBlock(
+"	}
+	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
+}");
+			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
+			source.Source = source.Source.substitute("$syn_offset$", to!(char[])(SynOffset));
+			source.DeTab(2);
+		}
+		apply("$synapse_code$");
 		
 		/* Record vals */
 		source.Tab(5);
@@ -624,16 +684,6 @@ class CNeuronGroup
 			source ~= state.Name ~ " = " ~ state.Name ~ "_0;";
 		}
 		apply("$reset_state$");
-		
-		/* Event source args */
-		source.Tab(2);
-		if(NeedSrcSynCode)
-		{
-			source ~= "__global int* circ_buffer_start,";
-			source ~= "__global int* circ_buffer_end,";
-			source ~= "__global $num_type$* circ_buffer,";
-		}
-		apply("$event_source_args$");
 		
 		/* Thresholds */
 		source.Tab(3);
@@ -803,9 +853,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		scope source = new CSourceConstructor;
 		
 		auto init_source = type.GetInitSource();
-		
-		if(init_source.length == 0)
-			return;
 		
 		auto kernel_source = InitKernelTemplate.dup;
 		
@@ -1036,4 +1083,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	/* The place we reset the fired syn idx to*/
 	int SynOffset;
+	/* Offset for indexing into the model global indices */
+	int NrnOffset;
 }

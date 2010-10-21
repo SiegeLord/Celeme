@@ -55,11 +55,12 @@ class CModel
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 		
+		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
 		
-		auto group = new CNeuronGroup(this, type, number, name, sink_offset);
+		auto group = new CNeuronGroup(this, type, number, name, sink_offset, nrn_offset);
 		
 		NeuronGroups[type.Name] = group;
 	}
@@ -145,6 +146,9 @@ class CModel
 		/* Run the model */
 		while(t <= tstop)
 		{
+			/* Called first because it resets the record index to 0,
+			 * so the update recorders wouldn't get anything if it was right 
+			 * before it */
 			foreach(group; groups)
 				group.CallDeliverKernel(t, 16);
 			foreach(group; groups)

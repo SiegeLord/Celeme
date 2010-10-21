@@ -191,12 +191,26 @@ class CMechanism
 	SThreshold[] Thresholds;
 	
 	int NumEventSources = 0;
-	bool IsEventSink = false; /* TODO: Possibly WRONG! */
+}
+
+class CSynapse : CMechanism
+{
+	this(char[] name)
+	{
+		super(name);
+	}
+	
+	void SetSynCode(char[] code)
+	{
+		SynCode = code;
+	}
+	
+	char[] SynCode;
 }
 
 struct SSynType
 {
-	CMechanism Mechanism;
+	CSynapse Synapse;
 	int NumSynapses;
 }
 
@@ -225,12 +239,10 @@ class CNeuronType
 		Mechanisms ~= mech;
 	}
 	
-	void AddSynapse(CMechanism mech, int num_slots)
+	void AddSynapse(CSynapse syn, int num_slots)
 	{
-		if(!mech.IsEventSink)
-			throw new Exception("'" ~ mech.Name ~ "' cannot accept synapses.");
-		AddMechanism(mech);
-		SynapseTypes ~= SSynType(mech, num_slots);
+		AddMechanism(syn);
+		SynapseTypes ~= SSynType(syn, num_slots);
 	}
 	
 	int NumDestSynapses()

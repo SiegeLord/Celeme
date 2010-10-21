@@ -21,15 +21,15 @@ void main()
 	auto i_clamp = new CMechanism("IClamp");
 	i_clamp.AddExternal("I");
 	i_clamp.AddConstant("amp");
-	i_clamp.SetStage(1, "I += amp; if(i == 1) { I += amp + 2; }");
+	i_clamp.SetStage(1, "I += amp; if(i == 1) { I += 2; }");
 	
-	auto glu_syn = new CMechanism("GluSyn");
+	auto glu_syn = new CSynapse("GluSyn");
 	glu_syn.AddConstant("gsyn") = 0.1;
 	glu_syn.AddConstant("tau") = 5;
 	glu_syn.AddState("s");
 	glu_syn.SetStage(1, "I += s;");
 	glu_syn.SetStage(2, "s' = -s / tau;");
-	glu_syn.IsEventSink = true;
+	glu_syn.SetSynCode("s += gsyn;");
 	
 	auto type = new CNeuronType("TestNeuron");
 	type.AddMechanism(iz_mech);

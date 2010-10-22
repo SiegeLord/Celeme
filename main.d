@@ -31,7 +31,7 @@ void main()
 	auto glu_syn = new CSynapse("GluSyn");
 	with(glu_syn)
 	{
-		AddConstant("gsyn") = 10;
+		AddConstant("gsyn") = 11;
 		AddConstant("tau") = 5;
 		AddState("s");
 		SetStage(1, "I += s;");
@@ -45,13 +45,13 @@ void main()
 		AddMechanism(iz_mech);
 		AddMechanism(i_clamp);
 		AddSynapse(glu_syn, 10);
-		SetInitCode(
+		/*SetInitCode(
 		"
 		if(i == 0)
 		{
 			dest_syn_buffer[0].s0 = 1;
 			dest_syn_buffer[0].s1 = 0;
-		}");
+		}");*/
 	}
 	
 	auto core = new CCLCore(false);
@@ -63,12 +63,15 @@ void main()
 	
 	model.AddNeuronGroup(type, 2);
 	model.Generate();
-	Stdout(model.Source).nl;
+	//Stdout(model.Source).nl;
 	
 //	model["TestNeuron"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
 	
 	model["TestNeuron"]["amp"] = 20;
+	
+	model["TestNeuron"].ConnectTo(0, 0, 0, 1, 0);
+	model["TestNeuron"].ConnectTo(1, 0, 0, 0, 0);
 	
 	auto v_rec1 = model["TestNeuron"].Record(0, "V");
 	auto v_rec2 = model["TestNeuron"].Record(1, "V");

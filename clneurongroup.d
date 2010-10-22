@@ -353,6 +353,7 @@ class CNeuronGroup
 		Model.Core.Finish();
 		
 		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
+		Model.MemsetIntBuffer(DestSynBuffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
 		
 		ResetBuffers();
 	}
@@ -381,7 +382,6 @@ class CNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			Model.MemsetIntBuffer(DestSynBuffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
 			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
 		}
@@ -587,7 +587,7 @@ if(syn_table_end != $syn_offset$)
 			source.DeTab(2);
 			source.AddBlock(
 "	}
-	dt = 0.001;
+	dt = 0.001f;
 	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
 }");
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
@@ -1058,6 +1058,19 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 				Stdout.formatln("Error: {} : {}", ii, error);
 			}
 		}
+	}
+	
+	void ConnectTo(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
+	{
+		assert(Model.Generated);
+		assert(src_nrn_id >= 0 && src_nrn_id < Count);
+		assert(event_source >= 0 && event_source < NumEventSources);
+		assert(src_slot >= 0 && src_slot < NumSrcSynapses);
+		
+		int dest_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
+		
+		Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 0, dest_neuron_id);
+		Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 1, dest_slot);
 	}
 	
 	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;

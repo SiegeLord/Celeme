@@ -401,5 +401,5 @@ class CNeuronType
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	
-	int NumSrcSynapses = 10;
+	int NumSrcSynapses = 0;
 }

@@ -27,7 +27,7 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -65; u += 8;", true);
+		AddThreshold("V", "> 0", "V = -65; u += 8;", true, true);
 	}
 	
 	auto iz_mech2 = new CMechanism("IzMech2");
@@ -38,7 +38,7 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true);
+		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true, true);
 	}
 
 	auto i_clamp = new CMechanism("IClamp");

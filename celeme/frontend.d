@@ -38,6 +38,7 @@ struct SThreshold
 	char[] Condition;
 	char[] Source;
 	bool IsEventSource = false;
+	bool ResetTime = false;
 }
 
 class CMechanism
@@ -131,13 +132,14 @@ class CMechanism
 	}
 	
 	/* TODO: think about non-resetting thresholds too */
-	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source)
+	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source = false, bool resetting = false)
 	{
 		SThreshold thresh;
 		thresh.State = state;
 		thresh.Condition = condition;
 		thresh.Source = source;
 		thresh.IsEventSource = event_source;
+		thresh.ResetTime = resetting;
 		
 		if(thresh.IsEventSource)
 			NumEventSources++;

@@ -131,7 +131,6 @@ class CMechanism
 		Stages[stage] = source;
 	}
 	
-	/* TODO: think about non-resetting thresholds too */
 	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source = false, bool resetting = false)
 	{
 		SThreshold thresh;

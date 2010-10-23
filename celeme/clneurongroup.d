@@ -61,6 +61,9 @@ $record_vals$
 			}
 			
 			$num_type$ error = 0;
+			
+			/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
+$threshold_pre_check$
 
 			/* Declare local variables */
 $declare_locals$
@@ -624,6 +627,17 @@ if(syn_table_end != $syn_offset$)
 		}
 		apply("$record_vals$");
 		
+		/* Threshold pre-check */
+		source.Tab(3);
+		int thresh_idx = 0;
+		foreach(thresh; &type.AllThresholds)
+		{
+			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
+			
+			thresh_idx++;
+		}
+		apply("$threshold_pre_check$");
+		
 		/* Declare locals */
 		source.Tab(3);
 		foreach(name, state; &type.AllLocals)
@@ -711,10 +725,11 @@ if(syn_table_end != $syn_offset$)
 		
 		/* Thresholds */
 		source.Tab(3);
-		int thresh_idx = 0;
+		int event_src_idx = 0;
+		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "if(" ~ thresh.State ~ " " ~ thresh.Condition ~ ")";
+			source ~= "if(!thresh_" ~ to!(char[])(thresh_idx) ~ "_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
 			source ~= "{";
 			source.Tab;
 			
@@ -755,17 +770,18 @@ else //It is full, error
 `.dup;
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
-				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
+				src = src.substitute("$event_source_idx$", to!(char[])(event_src_idx));
 				
 				source.AddBlock(src);
 				
-				thresh_idx++;
+				event_src_idx++;
 /* TODO: Better error reporting */
 /* TODO: Check that the darn thing works */
 			}
 			
 			source.DeTab;
 			source ~= "}";
+			thresh_idx++;
 		}
 		apply("$thresholds$");
 		
@@ -812,7 +828,7 @@ else //It is full, error
 		
 		/* Thresholds */
 		source.Tab(2);
-		int thresh_idx = 0;
+		int event_src_idx = 0;
 		foreach(thresh; &type.AllEventSources)
 		{
 			if(Model.NumDestSynapses)
@@ -858,13 +874,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 }
 `.dup;
 				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
-				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
+				src = src.substitute("$event_source_idx$", to!(char[])(event_src_idx));
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 				
 				source.AddBlock(src);
 				source.DeTab;
 				source ~= "}";
-				thresh_idx++;
+				event_src_idx++;
 			}
 		}
 		apply("$event_source_code$");

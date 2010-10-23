@@ -15,7 +15,7 @@ void main()
 	auto dummy = new CMechanism("DummyThresh");
 	with(dummy)
 	{
-		AddThreshold("V", "> 0", "delay = 5;", true);
+		AddThreshold("V", "> -10", "delay = 5;", true);
 		AddExternal("V");
 	}
 	
@@ -96,12 +96,12 @@ void main()
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
-	model.Generate();
+	model.Generate(false);
 	
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;
 	
-	//Stdout(model.Source).nl;
+	Stdout(model.Source).nl;
 	
 //	model["Regular"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["Regular"]["u"]);
@@ -113,7 +113,7 @@ void main()
 	
 	model["Regular"]["amp"] = 0;
 	model["Burster"]["amp"] = 10;
-	model["Regular"]["glu_gsyn"] = 0.03;
+	model["Regular"]["glu_gsyn"] = 0.04;
 	model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	model["Burster"].ConnectTo(0, 0, 0, 0, 0);

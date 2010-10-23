@@ -1,4 +1,4 @@
-module recorder;
+module celeme.recorder;
 
 import tango.io.Stdout;
 

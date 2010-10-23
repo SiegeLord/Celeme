@@ -1,4 +1,4 @@
-module sourceconstructor;
+module celeme.sourceconstructor;
 
 import tango.text.Util;
 

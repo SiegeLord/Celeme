@@ -1,8 +1,9 @@
-module clmodel;
+module celeme.clmodel;
 
-import clcore;
-import frontend;
-import clneurongroup;
+import celeme.clcore;
+import celeme.frontend;
+import celeme.clneurongroup;
+
 import tango.text.Util;
 import tango.io.Stdout;
 
@@ -132,7 +133,7 @@ class CCLModel
 			return double.sizeof;
 	}
 	
-	void Run(int tstop)
+	void Run(int tstop, int run_workgroup_size = 16, int deliver_workgroup_size = 16)
 	{
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
@@ -142,7 +143,7 @@ class CCLModel
 		foreach(group; groups)
 		{
 			group.ResetBuffers();
-			group.CallInitKernel(16);
+			group.CallInitKernel(run_workgroup_size);
 		}
 		/* Run the model */
 		while(t <= tstop)
@@ -151,9 +152,9 @@ class CCLModel
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
 			foreach(group; groups)
-				group.CallDeliverKernel(t, 16);
+				group.CallDeliverKernel(t, deliver_workgroup_size);
 			foreach(group; groups)
-				group.CallStepKernel(t, 16);
+				group.CallStepKernel(t, run_workgroup_size);
 			foreach(group; groups)
 				group.UpdateRecorders();
 			t++;

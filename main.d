@@ -1,9 +1,6 @@
 module main;
 
-import frontend;
-import clmodel;
-import clcore;
-import recorder;
+import celeme.celeme;
 import pl = plplot;
 
 import tango.time.StopWatch;
@@ -87,7 +84,15 @@ void main()
 	
 	model.AddNeuronGroup(regular, 1000);
 	model.AddNeuronGroup(burster, 1000);
+	
+	Stdout.formatln("Specify time: {}", timer.stop);
+	timer.start;
+	
 	model.Generate();
+	
+	Stdout.formatln("Generating time: {}", timer.stop);
+	timer.start;
+	
 	//Stdout(model.Source).nl;
 	
 //	model["Regular"]["u"] = 7;
@@ -116,11 +121,11 @@ void main()
 		v_rec2 = model["Burster"].Record(1, "V");
 	}
 	
-	Stdout.formatln("Generating time: {}", timer.stop);
+	Stdout.formatln("Init time: {}", timer.stop);
 	timer.start;
 	
-	int tstop = 100;
-	model.Run(tstop);
+	int tstop = 2000;
+	model.Run(tstop, 64, 64);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
 	
@@ -128,7 +133,7 @@ void main()
 	core.Shutdown();
 	
 	if(record)
-	//if(false)
+	if(false)
 	{
 		pl.Init("wxwidgets", [0, 0, 0]);
 		pl.SetColor(1, [0, 255, 0]);

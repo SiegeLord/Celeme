@@ -1,4 +1,4 @@
-module util;
+module celeme.util;
 
 import tango.core.Array;
 

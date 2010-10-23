@@ -1,6 +1,6 @@
-module frontend;
+module celeme.frontend;
 
-import util;
+import celeme.util;
 
 import tango.core.Array;
 import tango.io.Stdout;

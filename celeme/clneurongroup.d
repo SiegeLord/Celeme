@@ -1,12 +1,12 @@
-module clneurongroup;
+module celeme.clneurongroup;
 
-import frontend;
-import clcore;
-import clmodel;
-import recorder;
-import alignedarray;
-import sourceconstructor;
-import util;
+import celeme.frontend;
+import celeme.clcore;
+import celeme.clmodel;
+import celeme.recorder;
+import celeme.alignedarray;
+import celeme.sourceconstructor;
+import celeme.util;
 
 import opencl.cl;
 

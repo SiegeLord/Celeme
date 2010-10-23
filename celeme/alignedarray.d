@@ -1,4 +1,4 @@
-module alignedarray;
+module celeme.alignedarray;
 
 import tango.stdc.string;
 import tango.stdc.stdint;

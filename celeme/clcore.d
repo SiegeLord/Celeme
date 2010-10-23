@@ -1,4 +1,4 @@
-module clcore;
+module celeme.clcore;
 
 import opencl.cl;
 

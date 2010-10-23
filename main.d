@@ -20,7 +20,7 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -65; u += 8;", 5);
+		AddThreshold("V", "> 0", "V = -65; u += 8;", true);
 	}
 	
 	auto iz_mech2 = new CMechanism("IzMech2");
@@ -31,7 +31,8 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -50; u += 2;", 5);
+		AddThreshold("V", "> 0", "delay = 5;", true);
+		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true);
 	}
 
 	auto i_clamp = new CMechanism("IClamp");
@@ -77,13 +78,13 @@ void main()
 	
 	auto model = new CCLModel(core);
 	
-	regular.CircBufferSize = 5;
+	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;
-	burster.CircBufferSize = 5;
+	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
 	model.AddNeuronGroup(regular, 1000);
-	model.AddNeuronGroup(burster, 1000);
+	model.AddNeuronGroup(burster, 1);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
@@ -109,7 +110,7 @@ void main()
 	model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	model["Burster"].ConnectTo(0, 0, 0, 0, 0);
-	model["Burster"].ConnectTo(1, 0, 0, 0, 10);
+	//model["Burster"].ConnectTo(1, 0, 0, 0, 10);
 //	model["Regular"].ConnectTo(1, 0, 0, 0, 0);
 	
 	bool record = true;
@@ -118,13 +119,13 @@ void main()
 	if(record)
 	{
 		v_rec1 = model["Regular"].Record(0, "V");
-		v_rec2 = model["Burster"].Record(1, "V");
+		v_rec2 = model["Burster"].Record(0, "V");
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
 	timer.start;
 	
-	int tstop = 2000;
+	int tstop = 100;
 	model.Run(tstop, 64, 64);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
@@ -133,7 +134,7 @@ void main()
 	core.Shutdown();
 	
 	if(record)
-	if(false)
+	//if(false)
 	{
 		pl.Init("wxwidgets", [0, 0, 0]);
 		pl.SetColor(1, [0, 255, 0]);

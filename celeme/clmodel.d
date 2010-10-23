@@ -77,6 +77,7 @@ class CCLModel
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
+		//Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
 		if(parallel_delivery)
 			Source ~= "#define PARALLEL_DELIVERY 1\n";
 		else

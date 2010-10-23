@@ -719,14 +719,14 @@ if(syn_table_end != $syn_offset$)
 			source.Tab;
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
-				source ~= "$num_type$ delay = " ~ to!(char[])(thresh.EventDelay) ~ ";";
+				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
 			source ~= "dt = 0.001f;";
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
 				char[] src = 
-"int idx_idx = " ~ to!(char)(NumEventSources) ~ " * i + " ~ to!(char)(thresh_idx) ~ ";
+`int idx_idx = $num_event_sources$ * i + $event_source_idx$;
 int buff_start = circ_buffer_start[idx_idx];
 
 if(buff_start != circ_buffer_end[idx_idx])
@@ -744,16 +744,17 @@ if(buff_start != circ_buffer_end[idx_idx])
 	{
 		end_idx = circ_buffer_end[idx_idx] = (circ_buffer_end[idx_idx] + 1) % circ_buffer_size;
 	}
-	int buff_idx = (i * " ~ to!(char)(NumEventSources) ~ " + " ~ to!(char)(thresh_idx) ~ ") * circ_buffer_size + end_idx - 1;
-
+	int buff_idx = (i * $num_event_sources$ + $event_source_idx$) * circ_buffer_size + end_idx - 1;
 	circ_buffer[buff_idx] = t + cur_time + delay;
 }
 else //It is full, error
 {
-	error_buffer[i + 1] = 6;
+	error_buffer[i + 1] = 100 + $event_source_idx$;
 }
-".dup;
+`.dup;
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
+				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
+				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
 				
 				source.AddBlock(src);
 				
@@ -818,7 +819,7 @@ else //It is full, error
 				source ~= "{";
 				source.Tab;
 			
-				char[] src = "
+				char[] src = `
 int idx_idx = $num_event_sources$ * i + $event_source_idx$;
 int buff_start = circ_buffer_start[idx_idx];
 if(buff_start >= 0) /* See if we have any spikes that we can check */
@@ -854,7 +855,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		circ_buffer_start[idx_idx] = buff_start;
 	}
 }
-".dup;
+`.dup;
 				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 				src = src.substitute("$event_source_idx$", to!(char[])(thresh_idx));
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));

@@ -6,13 +6,13 @@ import clmodel;
 import recorder;
 import alignedarray;
 import sourceconstructor;
+import util;
 
 import opencl.cl;
 
 import tango.io.Stdout;
 import tango.text.Util;
 import tango.util.Convert;
-import tango.core.Array;
 
 const ArgOffsetStep = 6;
 char[] StepKernelTemplate = "
@@ -199,60 +199,6 @@ $event_source_code$
 }
 ";
 
-/*
- * Like substitute, but using proper delimeters
- */
-char[] c_substitute(char[] text, char[] pattern, char[] what)
-{
-	bool allowed_char(char c)
-	{
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-	}
-	
-	char[] ret;
-	char[] rem = text;
-	int start;
-	auto L = pattern.length;
-	while((start = rem.find(pattern)) != rem.length)
-	{
-		if((start > 0 && allowed_char(rem[start - 1]))
-		     || (start + L < rem.length - 1 && allowed_char(rem[start + L])))
-		{
-			ret ~= rem[0..start] ~ pattern;
-		}
-		else
-		{
-			ret ~= rem[0..start] ~ what;
-		}
-		rem = rem[start + L .. $];
-	}
-	ret ~= rem;
-	return ret;
-}
-
-unittest
-{
-	char[] a = "Alpha beta gamma zeta".dup;
-	
-	a = a.c_substitute("Alpha", "Kappa");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("eta", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("gam", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("gam", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("zeta", "eta");
-	assert(a == "Kappa beta gamma eta", a);
-	
-	a = a.c_substitute("eta", "gddd");
-	assert(a == "Kappa beta gamma gddd", a);
-}
-
 class CNeuronGroup
 {
 	struct SValueBuffer
@@ -275,9 +221,9 @@ class CNeuronGroup
 		NumSrcSynapses = type.NumSrcSynapses;
 		
 		/* Copy the non-locals and constants from the type */
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			ValueBufferRegistry[state.Name] = ValueBuffers.length;
+			ValueBufferRegistry[name] = ValueBuffers.length;
 			
 			SValueBuffer buff;
 			buff.Value = state.Value;
@@ -313,9 +259,9 @@ class CNeuronGroup
 			assert(0, "Unimplemented");
 		}
 
-		foreach(state; &type.AllConstants)
+		foreach(name, state; &type.AllConstants)
 		{
-			ConstantRegistry[state.Name] = Constants.length;
+			ConstantRegistry[name] = Constants.length;
 			
 			Constants ~= state.Value;
 		}
@@ -569,17 +515,17 @@ class CNeuronGroup
 		
 		/* Value arguments */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "__global $num_type$* " ~ state.Name ~ "_buf,";
+			source ~= "__global $num_type$* " ~ name ~ "_buf,";
 		}
 		apply("$val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
-		foreach(state; &type.AllConstants)
+		foreach(name, state; &type.AllConstants)
 		{
-			source ~= "const $num_type$ " ~ state.Name ~ ",";
+			source ~= "const $num_type$ " ~ name ~ ",";
 		}
 		apply("$constant_args$");
 		
@@ -604,9 +550,9 @@ class CNeuronGroup
 		
 		/* Load vals */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "$num_type$ " ~ state.Name ~ " = " ~ state.Name ~ "_buf[i];";
+			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
 		}
 		apply("$load_vals$");
 		
@@ -635,7 +581,18 @@ if(syn_table_end != $syn_offset$)
 				source ~= cond;
 				source ~= "{";
 				source.Tab();
-				source.AddBlock(syn_type.Synapse.SynCode);
+				
+				auto syn_code = syn_type.Synapse.SynCode;
+				auto prefix = syn_type.Prefix;
+				if(syn_type.Prefix != "")
+				{
+					foreach(val; &syn_type.Synapse.AllValues)
+					{
+						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
+					}
+				}
+				source.AddBlock(syn_code);
+				
 				source.DeTab();
 				source ~= "}";
 			}
@@ -656,11 +613,11 @@ if(syn_table_end != $syn_offset$)
 		/* The indices are offset by 1, so that 0 can be used as a special
 		 * index indicating that nothing is to be recorded*/
 		int idx = 1; 
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
 			source ~= "case " ~ to!(char[])(idx) ~ ":";
 			source.Tab;
-			source ~= "record.s2 = " ~ state.Name ~ ";";
+			source ~= "record.s2 = " ~ name ~ ";";
 			source.DeTab;
 			source ~= "break;";
 			idx++;
@@ -669,41 +626,41 @@ if(syn_table_end != $syn_offset$)
 		
 		/* Declare locals */
 		source.Tab(3);
-		foreach(state; &type.AllLocals)
+		foreach(name, state; &type.AllLocals)
 		{
-			source ~= "$num_type$ " ~ state.Name ~ ";";
+			source ~= "$num_type$ " ~ name ~ ";";
 		}
 		apply("$declare_locals$");
 		
 		/* Declare temp states */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ " ~ state.Name ~ "_0 = " ~ state.Name ~ ";";
+			source ~= "$num_type$ " ~ name ~ "_0 = " ~ name ~ ";";
 		}
 		apply("$declare_temp_states$");
 		
 		/* Declare derivs 1 */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ d" ~ state.Name ~ "_dt_1;";
+			source ~= "$num_type$ d" ~ name ~ "_dt_1;";
 		}
 		apply("$declare_derivs_1$");
 		
 		/* Declare derivs 2 */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ d" ~ state.Name ~ "_dt_2;";
+			source ~= "$num_type$ d" ~ name ~ "_dt_2;";
 		}
 		apply("$declare_derivs_2$");
 		
 		/* Compute derivs 1 */
 		auto first_source = eval_source.dup;
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			first_source = first_source.c_substitute(state.Name ~ "'", "d" ~ state.Name ~ "_dt_1");
+			first_source = first_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_1");
 		}
 		source.Tab(3);
 		source.AddBlock(first_source);
@@ -711,17 +668,17 @@ if(syn_table_end != $syn_offset$)
 		
 		/* Apply derivs 1 */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= state.Name ~ " += dt * d" ~ state.Name ~ "_dt_1;";
+			source ~= name ~ " += dt * d" ~ name ~ "_dt_1;";
 		}
 		apply("$apply_derivs_1$");
 		
 		/* Compute derivs 2 */
 		auto second_source = eval_source.dup;
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			second_source = second_source.c_substitute(state.Name ~ "'", "d" ~ state.Name ~ "_dt_2");
+			second_source = second_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_2");
 		}
 		source.Tab(3);
 		source.AddBlock(second_source);
@@ -729,26 +686,26 @@ if(syn_table_end != $syn_offset$)
 		
 		/* Apply derivs 2 */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= state.Name ~ "_0 += dt / 2 * (d" ~ state.Name ~ "_dt_1 + d" ~ state.Name ~ "_dt_2);";
+			source ~= name ~ "_0 += dt / 2 * (d" ~ name ~ "_dt_1 + d" ~ name ~ "_dt_2);";
 		}
 		apply("$apply_derivs_2$");
 		
 		/* Compute error */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= state.Name ~ " -= " ~ state.Name ~ "_0;";
-			source ~= "error += " ~ state.Name ~ " * " ~ state.Name ~ ";";
+			source ~= name ~ " -= " ~ name ~ "_0;";
+			source ~= "error += " ~ name ~ " * " ~ name ~ ";";
 		}
 		apply("$compute_error$");
 		
 		/* Reset state */
 		source.Tab(3);
-		foreach(state; &type.AllStates)
+		foreach(name, state; &type.AllStates)
 		{
-			source ~= state.Name ~ " = " ~ state.Name ~ "_0;";
+			source ~= name ~ " = " ~ name ~ "_0;";
 		}
 		apply("$reset_state$");
 		
@@ -812,9 +769,9 @@ else //It is full, error
 		
 		/* Save values */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= state.Name ~ "_buf[i] = " ~ state.Name ~ ";";
+			source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		apply("$save_vals$");
 		
@@ -935,17 +892,17 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		/* Value arguments */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "__global $num_type$* " ~ state.Name ~ "_buf,";
+			source ~= "__global $num_type$* " ~ name ~ "_buf,";
 		}
 		apply("$val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
-		foreach(state; &type.AllConstants)
+		foreach(name, state; &type.AllConstants)
 		{
-			source ~= "const $num_type$ " ~ state.Name ~ ",";
+			source ~= "const $num_type$ " ~ name ~ ",";
 		}
 		apply("$constant_args$");
 		
@@ -958,9 +915,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		/* Load vals */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "$num_type$ " ~ state.Name ~ " = " ~ state.Name ~ "_buf[i];";
+			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
 		}
 		apply("$load_vals$");
 		
@@ -971,9 +928,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		/* Save values */
 		source.Tab(2);
-		foreach(state; &type.AllNonLocals)
+		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= state.Name ~ "_buf[i] = " ~ state.Name ~ ";";
+			source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		apply("$save_vals$");
 		

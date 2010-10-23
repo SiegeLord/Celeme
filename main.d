@@ -45,87 +45,74 @@ void main()
 		SetStage(1, "if(i == 1) { I += amp + 5; } else { I += amp; }");
 	}
 	
-	auto glu_syn = new CSynapse("GluSyn");
-	with(glu_syn)
+	auto exp_syn = new CSynapse("ExpSyn");
+	with(exp_syn)
 	{
 		AddConstant("gsyn") = 0.1;
 		AddConstant("tau") = 5;
+		AddConstant("E") = 0;
 		AddExternal("V");
 		AddState("s");
-		SetStage(1, "I += s * (0 - V);");
+		SetStage(1, "I += s * (E - V);");
 		SetStage(2, "s' = -s / tau;");
 		SetSynCode("s += gsyn;");
 	}
 	
-	auto gaba_syn = new CSynapse("GABASyn");
-	with(gaba_syn)
-	{
-		AddConstant("gaba_gsyn") = 0.1;
-		AddConstant("gaba_tau") = 5;
-		AddExternal("V");
-		AddState("gaba_s");
-		SetStage(1, "I += gaba_s * (-80 - V);");
-		SetStage(2, "gaba_s' = -gaba_s / gaba_tau;");
-		SetSynCode("gaba_s += gaba_gsyn;");
-	}
-	
-	auto type = new CNeuronType("TestNeuron");
-	with(type)
+	auto regular = new CNeuronType("Regular");
+	with(regular)
 	{
 		AddMechanism(iz_mech);
 		AddMechanism(i_clamp);
-		AddSynapse(glu_syn, 10);
-		AddSynapse(gaba_syn, 10);
+		AddSynapse(exp_syn, 10, "glu");
+		AddSynapse(exp_syn, 10, "gaba");
 	}
 	
-	auto type2 = new CNeuronType("Burster");
-	with(type2)
+	auto burster = new CNeuronType("Burster");
+	with(burster)
 	{
 		AddMechanism(iz_mech2);
 		AddMechanism(i_clamp);
-		AddSynapse(glu_syn, 10);
-		AddSynapse(gaba_syn, 10);
-		/*SetInitCode(
-		"
-		if(i == 0)
-		{
-			dest_syn_buffer[0].s0 = 1;
-			dest_syn_buffer[0].s1 = 0;
-		}");*/
+		AddSynapse(exp_syn, 10, "glu");
+		AddSynapse(exp_syn, 10, "gaba");
 	}
 	
 	auto core = new CCLCore(false);
 	
 	auto model = new CCLModel(core);
 	
-	type.CircBufferSize = 5;
-	type.NumSrcSynapses = 10;
-	type2.NumSrcSynapses = 10;
-	type2.NumSrcSynapses = 10;
+	regular.CircBufferSize = 5;
+	regular.NumSrcSynapses = 10;
+	burster.CircBufferSize = 5;
+	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(type, 10000);
-	model.AddNeuronGroup(type2, 10000);
+	model.AddNeuronGroup(regular, 1000);
+	model.AddNeuronGroup(burster, 1000);
 	model.Generate();
 	//Stdout(model.Source).nl;
 	
-//	model["TestNeuron"]["u"] = 7;
-//	Stdout.formatln("u = {}", model["TestNeuron"]["u"]);
+//	model["Regular"]["u"] = 7;
+//	Stdout.formatln("u = {}", model["Regular"]["u"]);
+
+	model["Burster"]["glu_E"] = 0;
+	model["Regular"]["glu_E"] = 0;
+	model["Burster"]["gaba_E"] = -80;
+	model["Regular"]["gaba_E"] = -80;
 	
-	model["TestNeuron"]["amp"] = 0;
+	model["Regular"]["amp"] = 0;
 	model["Burster"]["amp"] = 10;
-	model["TestNeuron"]["gsyn"] = 0.03;
-	model["TestNeuron"]["gaba_gsyn"] = 0.5;
+	model["Regular"]["glu_gsyn"] = 0.03;
+	model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	model["Burster"].ConnectTo(0, 0, 0, 0, 0);
 	model["Burster"].ConnectTo(1, 0, 0, 0, 10);
-//	model["TestNeuron"].ConnectTo(1, 0, 0, 0, 0);
+//	model["Regular"].ConnectTo(1, 0, 0, 0, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
 	CRecorder v_rec2;
 	if(record)
 	{
-		v_rec1 = model["TestNeuron"].Record(0, "V");
+		v_rec1 = model["Regular"].Record(0, "V");
 		v_rec2 = model["Burster"].Record(1, "V");
 	}
 	

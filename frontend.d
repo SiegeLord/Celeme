@@ -1,6 +1,9 @@
 module frontend;
 
+import util;
+
 import tango.core.Array;
+import tango.io.Stdout;
 
 /* A front end value, primarily stores the name and default value */
 class CValue
@@ -214,6 +217,7 @@ struct SSynType
 {
 	CSynapse Synapse;
 	int NumSynapses;
+	char[] Prefix;
 }
 
 class CNeuronType
@@ -223,28 +227,30 @@ class CNeuronType
 		Name = name;
 	}
 	
-	void AddMechanism(CMechanism mech)
+	void AddMechanism(CMechanism mech, char[] prefix = "")
 	{
 		assert(mech);
 		foreach(val; &mech.AllValues)
 		{
-			auto old_val = val.Name in Values;
+			auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+			auto old_val = name in Values;
 			if(old_val !is null)
 			{
-				throw new Exception("'" ~ val.Name ~ "' has already been added by the '" ~ (*old_val).Name ~ "' mechanism.");
+				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ (*old_val).Name ~ "' mechanism.");
 			}
-			Values[val.Name] = mech;
+			Values[name] = mech;
 		}
 		
 		NumEventSources += mech.NumEventSources;
 			
 		Mechanisms ~= mech;
+		MechanismPrefixes ~= prefix;
 	}
 	
-	void AddSynapse(CSynapse syn, int num_slots)
+	void AddSynapse(CSynapse syn, int num_slots, char[] prefix = "")
 	{
-		AddMechanism(syn);
-		SynapseTypes ~= SSynType(syn, num_slots);
+		AddMechanism(syn, prefix);
+		SynapseTypes ~= SSynType(syn, num_slots, prefix);
 	}
 	
 	int NumDestSynapses()
@@ -276,13 +282,14 @@ class CNeuronType
 			throw new Exception(error);
 	}
 	
-	int AllStates(int delegate(ref CValue value) dg)
+	int AllStates(int delegate(ref char[] name, ref CValue value) dg)
 	{
-		foreach(mech; Mechanisms)
+		foreach(ii, mech; Mechanisms)
 		{
-			foreach(state; mech.States)
+			foreach(val; mech.States)
 			{
-				if(int ret = dg(state))
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
 					return ret;
 			}
 		}
@@ -290,44 +297,48 @@ class CNeuronType
 	}
 	
 	/* I.e. all globals */
-	int AllNonLocals(int delegate(ref CValue value) dg)
+	int AllNonLocals(int delegate(ref char[] name, ref CValue value) dg)
 	{
-		foreach(mech; Mechanisms)
+		foreach(ii, mech; Mechanisms)
 		{
 			foreach(val; mech.States)
 			{
-				if(int ret = dg(val))
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
 					return ret;
 			}
 			foreach(val; mech.Globals)
 			{
-				if(int ret = dg(val))
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
 					return ret;
 			}
 		}
 		return 0;
 	}
 	
-	int AllConstants(int delegate(ref CValue value) dg)
+	int AllConstants(int delegate(ref char[] name, ref CValue value) dg)
 	{
-		foreach(mech; Mechanisms)
+		foreach(ii, mech; Mechanisms)
 		{
 			foreach(val; mech.Constants)
 			{
-				if(int ret = dg(val))
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
 					return ret;
 			}
 		}
 		return 0;
 	}
 	
-	int AllLocals(int delegate(ref CValue value) dg)
+	int AllLocals(int delegate(ref char[] name, ref CValue value) dg)
 	{
-		foreach(mech; Mechanisms)
+		foreach(ii, mech; Mechanisms)
 		{
 			foreach(val; mech.Locals)
 			{
-				if(int ret = dg(val))
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
 					return ret;
 			}
 		}
@@ -352,17 +363,34 @@ class CNeuronType
 		char[] ret;
 		for(int ii = 0; ii < 3; ii++)
 		{
-			foreach(mech; Mechanisms)
+			foreach(jj, mech; Mechanisms)
 			{
+				auto prefix = MechanismPrefixes[jj];
+				bool need_prefix = prefix != "";
+				
 				if(mech.Stages[ii].length)
-					ret ~= "{\n" ~ mech.Stages[ii] ~ "\n}\n";
+				{
+					auto stage_src = mech.Stages[ii].dup;
+					
+					if(need_prefix)
+					{
+						foreach(val; &mech.AllValues)
+						{
+							auto name = val.Name;
+							stage_src = stage_src.c_substitute(name, prefix ~ "_" ~ name);
+						}
+					}
+					
+					ret ~= "{\n" ~ stage_src ~ "\n}\n";
+				}
 				else if(ii == 2)
 				{
 					/* Generate a dummy stage that sets all the derivatives to 0 */
-					foreach(state; &mech.AllStates)
+					foreach(val; &mech.AllStates)
 					{
+						auto name = need_prefix ? prefix ~ "_" ~ val.Name : val.Name;
 						ret ~= "{\n";
-						ret ~= state.Name ~ "' = 0;";
+						ret ~= name ~ "' = 0;";
 						ret ~= "\n}\n";
 					}
 				}
@@ -378,10 +406,22 @@ class CNeuronType
 		{
 			ret ~= "{\n" ~ InitCode ~ "\n}\n";
 		}
-		foreach(mech; Mechanisms)
+		foreach(ii, mech; Mechanisms)
 		{
 			if(mech.Init.length)
-				ret ~= "{\n" ~ mech.Init ~ "\n}\n";
+			{
+				auto prefix = MechanismPrefixes[ii];
+				auto init_src = mech.Init.dup;
+				if(prefix != "")
+				{
+					foreach(val; &mech.AllValues)
+					{
+						auto name = val.Name;
+						init_src = init_src.c_substitute(name, prefix ~ "_" ~ name);
+					}
+				}
+				ret ~= "{\n" ~ init_src ~ "\n}\n";
+			}
 		}
 		return ret;
 	}
@@ -393,6 +433,7 @@ class CNeuronType
 	
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
+	char[][] MechanismPrefixes;
 	SSynType[] SynapseTypes;
 	char[] Name;
 	char[] InitCode;

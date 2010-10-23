@@ -12,6 +12,13 @@ void main()
 	
 	timer.start;
 	
+	auto dummy = new CMechanism("DummyThresh");
+	with(dummy)
+	{
+		AddThreshold("V", "> 0", "delay = 5;", true);
+		AddExternal("V");
+	}
+	
 	auto iz_mech = new CMechanism("IzMech");
 	with(iz_mech)
 	{
@@ -31,7 +38,6 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "delay = 5;", true);
 		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true);
 	}
 
@@ -68,6 +74,7 @@ void main()
 	auto burster = new CNeuronType("Burster");
 	with(burster)
 	{
+		AddMechanism(dummy, "hl");
 		AddMechanism(iz_mech2);
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");

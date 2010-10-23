@@ -133,8 +133,6 @@ class CMechanism
 	/* TODO: think about non-resetting thresholds too */
 	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source)
 	{
-		if(!IsDuplicateName(state))
-			throw new Exception("'" ~ state ~ "' does not exist in '" ~ Name ~ "'.");
 		SThreshold thresh;
 		thresh.State = state;
 		thresh.Condition = condition;
@@ -270,14 +268,12 @@ class CNeuronType
 			{
 				if((external in Values) is null)
 				{
-					if(error.length == 0)
-						error ~= "Unresolved externals:";
 					error ~= "\n'" ~ external ~ "' from '" ~ mech.Name ~ "'.";
 				}
 			}
 		}
 		if(error.length)
-			throw new Exception(error);
+			throw new Exception("Unreasolved externals:\n" ~ error);
 	}
 	
 	int AllStates(int delegate(ref char[] name, ref CValue value) dg)
@@ -343,14 +339,61 @@ class CNeuronType
 		return 0;
 	}
 	
+	/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */
 	int AllThresholds(int delegate(ref SThreshold thresh) dg)
+	{
+		foreach(ii, mech; Mechanisms)
+		{
+			auto prefix = MechanismPrefixes[ii];
+			bool need_prefix = prefix != "";
+			
+			foreach(thresh; mech.Thresholds)
+			{
+				auto thresh2 = thresh;
+				if(need_prefix)
+				{
+					thresh2.State = thresh2.State.dup;
+					thresh2.Condition = thresh2.Condition.dup;
+					thresh2.Source = thresh2.Source.dup;
+					
+					/* If the state name is one of the states of the mechanism, it gets a prefix...
+					 * otherwise, it's external, and it gets nothing */
+					foreach(state; &mech.AllStates)
+					{
+						if(state.Name == thresh2.State)
+						{
+							thresh2.State = prefix ~ "_" ~ thresh2.State;
+							break;
+						}
+					}
+					 
+					foreach(val; &mech.AllValues)
+					{
+						auto name = val.Name;
+						thresh2.Condition = thresh2.Condition.c_substitute(name, prefix ~ "_" ~ name);
+						thresh2.Source = thresh2.Source.c_substitute(name, prefix ~ "_" ~ name);
+					}
+				}
+				if(int ret = dg(thresh2))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
+	/* This one, unlike AllThresholds returns the raw thresholds 
+	 * TODO: Is this okay? */
+	int AllEventSources(int delegate(ref SThreshold thresh) dg)
 	{
 		foreach(mech; Mechanisms)
 		{
 			foreach(thresh; mech.Thresholds)
 			{
-				if(int ret = dg(thresh))
-					return ret;
+				if(thresh.IsEventSource)
+				{
+					if(int ret = dg(thresh))
+						return ret;
+				}
 			}
 		}
 		return 0;

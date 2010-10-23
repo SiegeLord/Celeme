@@ -812,9 +812,9 @@ else //It is full, error
 		/* Thresholds */
 		source.Tab(2);
 		int thresh_idx = 0;
-		foreach(thresh; &type.AllThresholds)
+		foreach(thresh; &type.AllEventSources)
 		{
-			if(Model.NumDestSynapses && thresh.IsEventSource)
+			if(Model.NumDestSynapses)
 			{
 				source ~= "{";
 				source.Tab;

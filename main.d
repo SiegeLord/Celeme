@@ -150,9 +150,9 @@ void main()
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);
 			Color([0,0,0]);
-			Plot(v_rec1.T, v_rec1.Data, "vrec1");
+			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
-			Plot(v_rec2.T, v_rec2.Data, "vrec2");
+			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 		}
 	}
 }

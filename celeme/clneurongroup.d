@@ -1055,7 +1055,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		/* Offset the index by 1 */
 		Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
 		
-		auto rec = new CRecorder(neuron_id, name);
+		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
 		Recorders[neuron_id] = rec;
 		return rec;
 	}

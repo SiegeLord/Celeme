@@ -149,10 +149,13 @@ void main()
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);
+			
+			Hold = true;
 			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
+			Hold = false;
 		}
 	}
 }

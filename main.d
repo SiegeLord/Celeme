@@ -1,7 +1,7 @@
 module main;
 
 import celeme.celeme;
-import pl = plplot;
+import gnuplot;
 
 import tango.time.StopWatch;
 import tango.io.Stdout;
@@ -143,20 +143,16 @@ void main()
 	if(record)
 	//if(false)
 	{
-		pl.Init("wxwidgets", [0, 0, 0]);
-		pl.SetColor(1, [0, 255, 0]);
-		pl.ChooseColor(1);
-		pl.SetEnvironment(0, tstop, -80, 20, 0, 0);
-		pl.SetLabels("Time (ms)", "Voltage (mV)", "");
-		
-		pl.SetColor(2, [255, 128, 128]);
-		pl.ChooseColor(2);
-		pl.PlotLine(v_rec1.T, v_rec1.Data);
-		
-		pl.SetColor(3, [128, 128, 255]);
-		pl.ChooseColor(3);
-		pl.PlotLine(v_rec2.T, v_rec2.Data);
-		
-		pl.End();
+		auto plot = new CGNUPlot;
+		with(plot)
+		{
+			XLabel("Time (ms)");
+			YLabel("Voltage (mV)");
+			YRange([-80, 10]);
+			Color([0,0,0]);
+			Plot(v_rec1.T, v_rec1.Data, "vrec1");
+			Color([255,0,0]);
+			Plot(v_rec2.T, v_rec2.Data, "vrec2");
+		}
 	}
 }

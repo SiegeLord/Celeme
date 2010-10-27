@@ -44,6 +44,38 @@ class CCLKernel
 	char[] Name;
 }
 
+class CCLBuffer(T)
+{
+	this(CCLCore core, size_t length)
+	{
+		Core = core;
+		Length = length;
+		
+		int err;
+		Buffer = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, Length * T.sizeof, null, &err);
+		assert(err == CL_SUCCESS);
+	}
+	
+	T* Map(cl_map_flags flags, size_t offset = 0, size_t length = -1)
+	{
+		if(length == -1)
+			length = Length;
+		int err;
+		T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, flags, offset * T.sizeof, length * T.sizeof, 0, null, null, &err);
+		assert(err == CL_SUCCESS);
+		return ret;
+	}
+	
+	void UnMap(T* ptr)
+	{
+		clEnqueueUnmapMemObject(Core.Commands, Buffer, ptr, 0, null, null);
+	}
+	
+	CCLCore Core;
+	cl_mem Buffer;
+	size_t Length;
+}
+
 class CCLCore
 {
 	this(bool use_gpu = false, bool verbose = false)
@@ -159,6 +191,11 @@ class CCLCore
 		auto ret = clCreateBuffer(Context, CL_MEM_READ_WRITE, size, null, &err);
 		assert(err == CL_SUCCESS);
 		return ret;
+	}
+	
+	CCLBuffer!(T) CreateBufferEx(T)(size_t length)
+	{
+		return new CCLBuffer!(T)(this, length);
 	}
 	
 	cl_program BuildProgram(char[] source)

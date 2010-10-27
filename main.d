@@ -90,8 +90,8 @@ void main()
 	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(regular, 1000);
-	model.AddNeuronGroup(burster, 1);
+	model.AddNeuronGroup(regular, 16);
+	model.AddNeuronGroup(burster, 16);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
@@ -140,6 +140,7 @@ void main()
 	model.Shutdown();
 	core.Shutdown();
 	
+	timer.start;
 	if(record)
 	//if(false)
 	{
@@ -158,4 +159,5 @@ void main()
 			Hold = false;
 		}
 	}
+	Stdout.formatln("Plotting time: {}", timer.stop);
 }

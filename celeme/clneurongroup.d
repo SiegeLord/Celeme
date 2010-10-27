@@ -244,7 +244,8 @@ class CNeuronGroup
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
-		RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
+		//RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
+		RecordFlagsBuffer = Model.Core.CreateBufferEx!(int)(Count);
 		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
 		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
 		
@@ -289,7 +290,7 @@ class CNeuronGroup
 			arg_id = 1;
 			SetGlobalArg(arg_id++, &DtBuffer);
 			SetGlobalArg(arg_id++, &ErrorBuffer);
-			SetGlobalArg(arg_id++, &RecordFlagsBuffer);
+			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer);
 			SetGlobalArg(arg_id++, &RecordBuffer);
 			foreach(buffer; ValueBuffers)
@@ -356,7 +357,7 @@ class CNeuronGroup
 		
 		Model.Core.Finish();
 		
-		Model.MemsetIntBuffer(RecordFlagsBuffer, Count, 0);
+		Model.MemsetIntBuffer(RecordFlagsBuffer.Buffer, Count, 0);
 		Model.MemsetIntBuffer(DestSynBuffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
 		
 		ResetBuffers();
@@ -1053,7 +1054,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 		
 		/* Offset the index by 1 */
-		Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
+		//Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
+		auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
+		*ptr = 1 + *idx_ptr;
+		RecordFlagsBuffer.UnMap(ptr);
 		
 		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
 		Recorders[neuron_id] = rec;
@@ -1069,7 +1073,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			idx_ptr.Detach();
 			Recorders.remove(neuron_id);
-			Model.SetInt(RecordFlagsBuffer, neuron_id, 0);
+			//Model.SetInt(RecordFlagsBuffer, neuron_id, 0);
+			auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
+			*ptr = 0;
+			RecordFlagsBuffer.UnMap(ptr);
 		}
 	}
 	
@@ -1131,7 +1138,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem CircBufferEnd;
 	cl_mem CircBuffer;
 	cl_mem ErrorBuffer;
-	cl_mem RecordFlagsBuffer;
+	//cl_mem RecordFlagsBuffer;
+	CCLBuffer!(int) RecordFlagsBuffer;
 	cl_mem RecordBuffer;
 	cl_mem RecordIdxBuffer;
 	cl_mem DestSynBuffer;

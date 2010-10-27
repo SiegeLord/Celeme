@@ -27,7 +27,7 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -65; u += 8;", true, true);
+		AddThreshold("V", "> 0", "V = -65; u += 8; delay = 5;", true, true);
 	}
 	
 	auto iz_mech2 = new CMechanism("IzMech2");
@@ -90,8 +90,8 @@ void main()
 	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(regular, 16);
-	model.AddNeuronGroup(burster, 16);
+	model.AddNeuronGroup(regular, 2024);
+	model.AddNeuronGroup(burster, 2024);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
@@ -101,7 +101,7 @@ void main()
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;
 	
-	Stdout(model.Source).nl;
+	//Stdout(model.Source).nl;
 	
 //	model["Regular"]["u"] = 7;
 //	Stdout.formatln("u = {}", model["Regular"]["u"]);
@@ -113,21 +113,26 @@ void main()
 	
 	model["Regular"]["amp"] = 0;
 	model["Burster"]["amp"] = 10;
+	
 	model["Regular"]["glu_gsyn"] = 0.04;
 	model["Regular"]["gaba_gsyn"] = 0.5;
 	
+	model["Burster"]["glu_gsyn"] = 0.04;
+	model["Burster"]["gaba_gsyn"] = 0.5;
+	
 	model["Burster"].ConnectTo(0, 0, 0, 0, 0);
 	//model["Burster"].ConnectTo(1, 0, 0, 0, 10);
-//	model["Regular"].ConnectTo(1, 0, 0, 0, 0);
+	model["Regular"].ConnectTo(0, 0, 0, 2, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
 	CRecorder v_rec2;
 	if(record)
 	{
-		v_rec1 = model["Regular"].Record(0, "V");
-		v_rec2 = model["Burster"].Record(0, "V");
-		//v_rec2 = model["Burster"].Record(0, 0);
+		//v_rec1 = model["Regular"].Record(0, "V");
+		//v_rec2 = model["Burster"].Record(0, "V");
+		v_rec1 = model["Regular"].Record(0, 0);
+		v_rec2 = model["Burster"].Record(0, 0);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
@@ -154,12 +159,15 @@ void main()
 			
 			Hold = true;
 			Color([0,0,0]);
+			Style = "points";
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
 			//Style = "points";
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 			Hold = false;
 		}
+		
+		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
 }

@@ -56,19 +56,41 @@ class CCLBuffer(T)
 		assert(err == CL_SUCCESS);
 	}
 	
-	T* Map(cl_map_flags flags, size_t offset = 0, size_t length = -1)
+	T[] Map(cl_map_flags flags, size_t offset = 0, size_t length = 0)
 	{
-		if(length == -1)
+		assert(offset >= 0 && offset < Length);
+		assert(length <= Length - offset);
+		
+		if(length <= 0)
 			length = Length;
 		int err;
 		T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, flags, offset * T.sizeof, length * T.sizeof, 0, null, null, &err);
 		assert(err == CL_SUCCESS);
+		return ret[0..length];
+	}
+	
+	void UnMap(T[] arr)
+	{
+		clEnqueueUnmapMemObject(Core.Commands, Buffer, arr.ptr, 0, null, null);
+	}
+	
+	T ReadOne(size_t idx)
+	{
+		assert(idx >= 0 && idx < Length);
+		
+		auto arr = Map(CL_MAP_READ, idx, 1);
+		auto ret = arr[0];
+		UnMap(arr);
 		return ret;
 	}
 	
-	void UnMap(T* ptr)
+	void WriteOne(size_t idx, T val)
 	{
-		clEnqueueUnmapMemObject(Core.Commands, Buffer, ptr, 0, null, null);
+		assert(idx >= 0 && idx < Length);
+		
+		auto arr = Map(CL_MAP_WRITE, idx, 1);
+		arr[0] = val;
+		UnMap(arr);
 	}
 	
 	CCLCore Core;

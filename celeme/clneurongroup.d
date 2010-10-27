@@ -244,23 +244,17 @@ class CNeuronGroup
 		
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
-		//RecordFlagsBuffer = Model.Core.CreateBuffer(Count * int.sizeof);
 		RecordFlagsBuffer = Model.Core.CreateBufferEx!(int)(Count);
-		RecordBuffer = Model.Core.CreateBuffer(RecordLength * Model.NumSize * 4);
-		RecordIdxBuffer = Model.Core.CreateBuffer(int.sizeof);
+		if(Model.SinglePrecision)
+			RecordBufferFloat = Model.Core.CreateBufferEx!(cl_float4)(RecordLength);
+		else
+			assert(0, "unimplemented");
+		RecordIdxBuffer = Model.Core.CreateBufferEx!(int)(1);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Model.Core.CreateBuffer(Count * NumEventSources * NumSrcSynapses * 2 * int.sizeof);
-		}
-		
-		if(Model.SinglePrecision)
-		{
-			FloatOutput.length = RecordLength;
-		}
-		else
-		{
-			assert(0, "Unimplemented");
+			//DestSynBuffer = Model.Core.CreateBuffer(Count * NumEventSources * NumSrcSynapses * 2 * int.sizeof);
+			DestSynBuffer = Model.Core.CreateBufferEx!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -291,8 +285,11 @@ class CNeuronGroup
 			SetGlobalArg(arg_id++, &DtBuffer);
 			SetGlobalArg(arg_id++, &ErrorBuffer);
 			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
-			SetGlobalArg(arg_id++, &RecordIdxBuffer);
-			SetGlobalArg(arg_id++, &RecordBuffer);
+			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
+			if(Model.SinglePrecision)
+				SetGlobalArg(arg_id++, &RecordBufferFloat.Buffer);
+			else
+				assert(0, "unimplemented");
 			foreach(buffer; ValueBuffers)
 			{
 				SetGlobalArg(arg_id++, &buffer.Buffer);
@@ -326,7 +323,7 @@ class CNeuronGroup
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
 			{
-				SetGlobalArg(arg_id++, &DestSynBuffer);
+				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
 			}
 			SetGlobalArg(arg_id++, &Count);
 		}
@@ -339,7 +336,7 @@ class CNeuronGroup
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
 			SetGlobalArg(arg_id++, &ErrorBuffer);
-			SetGlobalArg(arg_id++, &RecordIdxBuffer);
+			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
 			if(NeedSrcSynCode)
 			{
 				/* Skip the fire table */
@@ -348,7 +345,7 @@ class CNeuronGroup
 				SetGlobalArg(arg_id++, &CircBufferStart);
 				SetGlobalArg(arg_id++, &CircBufferEnd);
 				SetGlobalArg(arg_id++, &CircBuffer);
-				SetGlobalArg(arg_id++, &DestSynBuffer);
+				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
 				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer);
 				SetGlobalArg(arg_id++, &Model.FiredSynBuffer);
 			}
@@ -358,7 +355,7 @@ class CNeuronGroup
 		Model.Core.Finish();
 		
 		Model.MemsetIntBuffer(RecordFlagsBuffer.Buffer, Count, 0);
-		Model.MemsetIntBuffer(DestSynBuffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
+		Model.MemsetIntBuffer(DestSynBuffer.Buffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
 		
 		ResetBuffers();
 	}
@@ -383,7 +380,7 @@ class CNeuronGroup
 		/* Initialize the buffers */
 		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
-		Model.MemsetIntBuffer(RecordIdxBuffer, 1, 0);
+		RecordIdxBuffer.WriteOne(0, 0);
 		
 		if(NeedSrcSynCode)
 		{
@@ -1040,23 +1037,25 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		if(Recorders.length)
 		{
-			int num_written;
-			clEnqueueReadBuffer(Model.Core.Commands, RecordIdxBuffer, CL_TRUE, 0, int.sizeof, &num_written, 0, null, null);
-			if(Model.SinglePrecision)
+			int num_written = RecordIdxBuffer.ReadOne(0);
+			if(num_written)
 			{
-				FloatOutput.length = num_written;
-				clEnqueueReadBuffer(Model.Core.Commands, RecordBuffer, CL_TRUE, 0, num_written * cl_float4.sizeof, FloatOutput.ptr, 0, null, null);
-				//Stdout.formatln("num_written: {}", num_written);
-				foreach(quad; FloatOutput)
+				if(Model.SinglePrecision)
 				{
-					int id = cast(int)quad[0];
-					//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-					Recorders[id].AddDatapoint(quad[1], quad[2]);
+					auto output = RecordBufferFloat.Map(CL_MAP_READ, 0, num_written);
+					//Stdout.formatln("num_written: {} {}", num_written, output.length);
+					foreach(quad; output)
+					{
+						int id = cast(int)quad[0];
+						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
+						Recorders[id].AddDatapoint(quad[1], quad[2]);
+					}
+					RecordBufferFloat.UnMap(output);
 				}
-			}
-			else
-			{
-				assert(0, "Unimplemented");
+				else
+				{
+					assert(0, "unimplemented");
+				}
 			}
 		}
 	}
@@ -1070,10 +1069,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 		
 		/* Offset the index by 1 */
-		//Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
-		auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
-		*ptr = 1 + *idx_ptr;
-		RecordFlagsBuffer.UnMap(ptr);
+		RecordFlagsBuffer.WriteOne(neuron_id, 1 + *idx_ptr);
 		
 		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
 		Recorders[neuron_id] = rec;
@@ -1087,12 +1083,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(thresh_id >= 0);
 		
 		/* Offset the index by 1 */
-		//Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
-		auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
-		*ptr = thresh_id + ThreshRecordOffset;
-		RecordFlagsBuffer.UnMap(ptr);
+		RecordFlagsBuffer.WriteOne(neuron_id, thresh_id + ThreshRecordOffset);
 		
-		auto rec = new CRecorder(neuron_id, Name ~ " events from source " ~ to!(char[])(thresh_id));
+		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]" ~ " events from source " ~ to!(char[])(thresh_id));
 		Recorders[neuron_id] = rec;
 		return rec;
 	}
@@ -1106,10 +1099,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			idx_ptr.Detach();
 			Recorders.remove(neuron_id);
-			//Model.SetInt(RecordFlagsBuffer, neuron_id, 0);
-			auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
-			*ptr = 0;
-			RecordFlagsBuffer.UnMap(ptr);
+			RecordFlagsBuffer.WriteOne(neuron_id, 0);
 		}
 	}
 	
@@ -1139,12 +1129,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		int dest_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
-		Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 0, dest_neuron_id);
-		Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 1, dest_slot);
+		//Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 0, dest_neuron_id);
+		//Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 1, dest_slot);
+		DestSynBuffer.WriteOne(dest_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
-	
-	SAlignedArray!(cl_float4, cl_float4.sizeof) FloatOutput;
-	//SAlignedArray!(cl_double4, cl_double4.sizeof) DoubleOutput;
 	
 	CRecorder[int] Recorders;
 	
@@ -1171,11 +1159,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem CircBufferEnd;
 	cl_mem CircBuffer;
 	cl_mem ErrorBuffer;
-	//cl_mem RecordFlagsBuffer;
 	CCLBuffer!(int) RecordFlagsBuffer;
-	cl_mem RecordBuffer;
-	cl_mem RecordIdxBuffer;
-	cl_mem DestSynBuffer;
+	CCLBuffer!(cl_float4) RecordBufferFloat;
+	CCLBuffer!(int) RecordIdxBuffer;
+	CCLBuffer!(cl_int2) DestSynBuffer;
 	
 	int RecordLength;
 	int CircBufferSize = 20;

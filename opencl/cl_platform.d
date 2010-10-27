@@ -141,28 +141,34 @@ typedef uint	cl_GLenum;
  *          Maintaining proper alignment is the user's responsibility.
  */
 
-struct cl_float4
+struct cl_vec(T, int N)
 {
-	float[4] vals;
+	T[N] Vals;
 	
-	float opIndex(uint n)
+	T opIndex(int idx)
 	{
-		return vals[n];
+		return Vals[idx];
 	}
-	float opIndexAssign(float val, uint n)
+	
+	T opIndexAssign(T val, int idx)
 	{
-		return vals[n] = val;
+		return Vals[idx] = val;
 	}
-	static cl_float4 opCall(float x, float y, float z, float w)
+	
+	static cl_vec!(T, N) opCall(T[] arr ...)
 	{
-		cl_float4 ret;
-		ret.vals[0] = x;
-		ret.vals[1] = y;
-		ret.vals[2] = z;
-		ret.vals[3] = w;
+		cl_vec!(T, N) ret;
+		assert(arr.length == N);
+		ret.Vals[] = arr[];
 		return ret;
 	}
 }
+
+alias cl_vec!(float, 2) cl_float2;
+alias cl_vec!(float, 4) cl_float4;
+
+alias cl_vec!(int, 2) cl_int2;
+alias cl_vec!(int, 4) cl_int4;
 
 /+
 import tango.util.Convert;

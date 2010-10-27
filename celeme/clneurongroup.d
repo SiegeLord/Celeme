@@ -47,7 +47,7 @@ $synapse_code$
 		while(cur_time < timestep)
 		{
 			/* Record if necessary */
-			if(record_flags)
+			if(record_flags && record_flags < $thresh_rec_offset$)
 			{
 				int idx = atom_inc(&record_idx[0]);
 				$num_type$4 record;
@@ -616,15 +616,15 @@ if(syn_table_end != $syn_offset$)
 		source.Tab(5);
 		/* The indices are offset by 1, so that 0 can be used as a special
 		 * index indicating that nothing is to be recorded*/
-		int idx = 1; 
+		int non_local_idx = 1; 
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "case " ~ to!(char[])(idx) ~ ":";
+			source ~= "case " ~ to!(char[])(non_local_idx) ~ ":";
 			source.Tab;
 			source ~= "record.s2 = " ~ name ~ ";";
 			source.DeTab;
 			source ~= "break;";
-			idx++;
+			non_local_idx++;
 		}
 		apply("$record_vals$");
 		
@@ -730,7 +730,7 @@ if(syn_table_end != $syn_offset$)
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "if(!thresh_" ~ to!(char[])(thresh_idx) ~ "_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
+			source ~= "if(!thresh_$thresh_idx$_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
 			source ~= "{";
 			source.Tab;
 			
@@ -739,6 +739,18 @@ if(syn_table_end != $syn_offset$)
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime)
 				source ~= "dt = 0.001f;";
+			
+			source.AddBlock(
+`if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)
+{
+	int idx = atom_inc(&record_idx[0]);
+	$num_type$4 record;
+	record.s0 = i;
+	record.s1 = cur_time + t;
+	record.s2 = $thresh_idx$;
+	record_buffer[idx] = record;
+}`);
+			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
@@ -793,6 +805,10 @@ else //It is full, error
 			source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		apply("$save_vals$");
+		
+		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
+		
+		ThreshRecordOffset = non_local_idx;
 		
 		StepKernelSource = kernel_source;
 	}
@@ -1064,6 +1080,23 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return rec;
 	}
 	
+	CRecorder Record(int neuron_id, int thresh_id)
+	{
+		assert(neuron_id >= 0);
+		assert(neuron_id < Count);
+		assert(thresh_id >= 0);
+		
+		/* Offset the index by 1 */
+		//Model.SetInt(RecordFlagsBuffer, neuron_id, 1 + *idx_ptr);
+		auto ptr = RecordFlagsBuffer.Map(CL_MAP_WRITE, neuron_id, 1);
+		*ptr = thresh_id + ThreshRecordOffset;
+		RecordFlagsBuffer.UnMap(ptr);
+		
+		auto rec = new CRecorder(neuron_id, Name ~ " events from source " ~ to!(char[])(thresh_id));
+		Recorders[neuron_id] = rec;
+		return rec;
+	}
+	
 	void StopRecording(int neuron_id)
 	{
 		assert(neuron_id >= 0);
@@ -1155,4 +1188,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int SynOffset;
 	/* Offset for indexing into the model global indices */
 	int NrnOffset;
+	
+	int ThreshRecordOffset = 0;
 }

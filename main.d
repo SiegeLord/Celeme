@@ -127,6 +127,7 @@ void main()
 	{
 		v_rec1 = model["Regular"].Record(0, "V");
 		v_rec2 = model["Burster"].Record(0, "V");
+		//v_rec2 = model["Burster"].Record(0, 0);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
@@ -155,6 +156,7 @@ void main()
 			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
+			//Style = "points";
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 			Hold = false;
 		}

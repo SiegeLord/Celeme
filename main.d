@@ -69,6 +69,8 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
+		RecordLength = 1000;
+		RecordRate = 1;
 	}
 	
 	auto burster = new CNeuronType("Burster");
@@ -79,6 +81,8 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
+		RecordLength = 1000;
+		RecordRate = 1;
 	}
 	
 	auto core = new CCLCore(false);
@@ -129,10 +133,10 @@ void main()
 	CRecorder v_rec2;
 	if(record)
 	{
-		//v_rec1 = model["Regular"].Record(0, "V");
-		//v_rec2 = model["Burster"].Record(0, "V");
-		v_rec1 = model["Regular"].Record(0, 0);
-		v_rec2 = model["Burster"].Record(0, 0);
+		v_rec1 = model["Regular"].Record(0, "V");
+		v_rec2 = model["Burster"].Record(0, "V");
+		//v_rec1 = model["Regular"].Record(0, 0);
+		//v_rec2 = model["Burster"].Record(0, 0);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
@@ -156,10 +160,11 @@ void main()
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);
+			XRange([0, tstop]);
 			
 			Hold = true;
 			Color([0,0,0]);
-			Style = "points";
+			//Style = "points";
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
 			//Style = "points";

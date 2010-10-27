@@ -481,6 +481,7 @@ class CNeuronType
 	char[] InitCode;
 	
 	int RecordLength = 1000;
+	int RecordRate = 0;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	

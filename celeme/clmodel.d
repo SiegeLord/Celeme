@@ -157,9 +157,13 @@ class CCLModel
 			foreach(group; groups)
 				group.CallStepKernel(t, run_workgroup_size);
 			foreach(group; groups)
-				group.UpdateRecorders();
+				group.UpdateRecorders(t);
 			t++;
 		}
+		
+		foreach(group; groups)
+			group.UpdateRecorders(t, true);
+
 		Core.Finish();
 		/* Check for errors */
 		foreach(group; groups)

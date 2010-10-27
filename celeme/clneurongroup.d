@@ -14,7 +14,7 @@ import tango.io.Stdout;
 import tango.text.Util;
 import tango.util.Convert;
 
-const ArgOffsetStep = 6;
+const ArgOffsetStep = 7;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
@@ -24,6 +24,7 @@ __kernel void $type_name$_step
 		__global int* record_flags_buffer,
 		__global int* record_idx,
 		__global $num_type$4* record_buffer,
+		const int record_buffer_size,
 $val_args$
 $constant_args$
 $event_source_args$
@@ -140,21 +141,24 @@ $save_vals$
 }
 ";
 
-const ArgOffsetDeliver = 3;
+const ArgOffsetDeliver = 4;
 const char[] DeliverKernelTemplate = "
 __kernel void $type_name$_deliver
 	(
 		const float t,
 		__global int* error_buffer,
 		__global int* record_idx,
+		const int record_rate,
 $event_source_args$
 		const uint count
 	)
 {
 	int i = get_global_id(0);
 	
-	if(i == 0)
+	if(i == 0 && record_rate && ((int)t % record_rate == 0))
+	{
 		record_idx[0] = 0;
+	}
 	
 #if PARALLEL_DELIVERY
 	int local_id = get_local_id(0);
@@ -217,6 +221,7 @@ class CNeuronGroup
 		Name = name;
 		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
+		RecordRate = type.RecordRate;
 		CircBufferSize = type.CircBufferSize;
 		SynOffset = sink_offset;
 		NrnOffset = nrn_offset;
@@ -290,6 +295,7 @@ class CNeuronGroup
 				SetGlobalArg(arg_id++, &RecordBufferFloat.Buffer);
 			else
 				assert(0, "unimplemented");
+			SetGlobalArg(arg_id++, &RecordLength);
 			foreach(buffer; ValueBuffers)
 			{
 				SetGlobalArg(arg_id++, &buffer.Buffer);
@@ -337,6 +343,7 @@ class CNeuronGroup
 			arg_id = 1;
 			SetGlobalArg(arg_id++, &ErrorBuffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
+			SetGlobalArg(arg_id++, &RecordRate);
 			if(NeedSrcSynCode)
 			{
 				/* Skip the fire table */
@@ -1033,28 +1040,31 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		clReleaseMemObject(DtBuffer);
 	}
 	
-	void UpdateRecorders()
+	void UpdateRecorders(int t, bool last = false)
 	{
 		if(Recorders.length)
 		{
-			int num_written = RecordIdxBuffer.ReadOne(0);
-			if(num_written)
+			if((RecordRate && ((t + 1) % RecordRate == 0)) || last)
 			{
-				if(Model.SinglePrecision)
+				int num_written = RecordIdxBuffer.ReadOne(0);
+				if(num_written)
 				{
-					auto output = RecordBufferFloat.Map(CL_MAP_READ, 0, num_written);
-					//Stdout.formatln("num_written: {} {}", num_written, output.length);
-					foreach(quad; output)
+					if(Model.SinglePrecision)
 					{
-						int id = cast(int)quad[0];
-						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-						Recorders[id].AddDatapoint(quad[1], quad[2]);
+						auto output = RecordBufferFloat.Map(CL_MAP_READ, 0, num_written);
+						//Stdout.formatln("num_written: {} {}", num_written, output.length);
+						foreach(quad; output)
+						{
+							int id = cast(int)quad[0];
+							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
+							Recorders[id].AddDatapoint(quad[1], quad[2]);
+						}
+						RecordBufferFloat.UnMap(output);
 					}
-					RecordBufferFloat.UnMap(output);
-				}
-				else
-				{
-					assert(0, "unimplemented");
+					else
+					{
+						assert(0, "unimplemented");
+					}
 				}
 			}
 		}
@@ -1165,6 +1175,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLBuffer!(cl_int2) DestSynBuffer;
 	
 	int RecordLength;
+	int RecordRate;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	

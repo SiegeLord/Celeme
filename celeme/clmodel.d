@@ -220,28 +220,6 @@ class CCLModel(float_t)
 		}
 	}
 	
-	void SetFloat(ref cl_mem buffer, int idx, double value)
-	{
-		int err;
-		float_t val = value;
-		err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
-		assert(err == CL_SUCCESS);
-	}
-	
-	void SetInt(ref cl_mem buffer, int idx, int value)
-	{
-		auto err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
-		assert(err == CL_SUCCESS);
-	}
-	
-	int ReadInt(ref cl_mem buffer, int idx)
-	{
-		int value;
-		auto err = clEnqueueReadBuffer(Core.Commands, buffer, CL_TRUE, int.sizeof * idx, int.sizeof, &value, 0, null, null);
-		assert(err == CL_SUCCESS);
-		return value;
-	}
-	
 	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
 	{
 		with(IntMemsetKernel)

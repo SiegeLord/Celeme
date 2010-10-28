@@ -78,9 +78,12 @@ class CCLModel(float_t)
 		NeuronGroups[type.Name] = group;
 	}
 	
-	void Generate(bool parallel_delivery = true)
+	void Generate(bool parallel_delivery = true, bool initialize = true)
 	{
 		assert(NumNeurons);
+		assert(!Generated);
+		assert(!Initialized);
+		
 		if(NumDestSynapses)
 		{
 			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(NumNeurons);
@@ -105,6 +108,17 @@ class CCLModel(float_t)
 		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
+		Generated = true;
+		
+		if(initialize)
+			Initialize();
+	}
+	
+	void Initialize()
+	{
+		assert(Generated);
+		assert(!Initialized);
+		
 		FloatMemsetKernel = new CCLKernel(&Program, "float_memset");
 		IntMemsetKernel = new CCLKernel(&Program, "int_memset");
 		
@@ -117,10 +131,10 @@ class CCLModel(float_t)
 			FiredSynIdxBuffer.UnMap(arr);
 		}
 		
+		Initialized = true;
+		
 		foreach(group; NeuronGroups)
 			group.Initialize();
-		
-		Generated = true;
 	}
 	
 	CNeuronGroup!(float_t) opIndex(char[] name)
@@ -145,6 +159,8 @@ class CCLModel(float_t)
 	
 	void ResetRun()
 	{
+		assert(Initialized);
+		
 		T = 0;
 		foreach(group; NeuronGroups)
 		{
@@ -154,6 +170,8 @@ class CCLModel(float_t)
 	
 	void InitRun()
 	{
+		assert(Initialized);
+		
 		/* Initialize */
 		foreach(group; NeuronGroups)
 		{
@@ -163,6 +181,8 @@ class CCLModel(float_t)
 	
 	void RunUntil(int tstop)
 	{
+		assert(Initialized);
+		
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
@@ -206,10 +226,13 @@ class CCLModel(float_t)
 		FiredSynIdxBuffer.Release();
 		
 		Generated = false;
+		Initialized = false;
 	}
 	
 	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
 	{
+		assert(FloatMemsetKernel);
+		
 		with(FloatMemsetKernel)
 		{
 			SetGlobalArg(0, &buffer);
@@ -224,6 +247,8 @@ class CCLModel(float_t)
 	
 	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
 	{
+		assert(IntMemsetKernel);
+		
 		with(IntMemsetKernel)
 		{
 			SetGlobalArg(0, &buffer);
@@ -241,6 +266,8 @@ class CCLModel(float_t)
 	 */
 	void Connect(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_slot)
 	{
+		assert(Initialized);
+		
 		auto src = opIndex(src_group);
 		auto dest = opIndex(dest_group);
 		
@@ -274,5 +301,6 @@ class CCLModel(float_t)
 	CCLCore Core;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;
 	char[] Source;
+	bool Initialized = false;
 	bool Generated = false;
 }

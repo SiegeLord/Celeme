@@ -394,6 +394,8 @@ class CNeuronGroup(float_t)
 	
 	void ResetBuffers()
 	{
+		assert(Model.Initialized);
+		
 		/* Set the constants. Here because SetConstant sets it to both kernels, so both need
 		 * to be created
 		 */
@@ -435,6 +437,8 @@ class CNeuronGroup(float_t)
 	
 	void SetConstant(int idx)
 	{
+		assert(Model.Initialized);
+		
 		float_t val = Constants[idx];
 		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
 		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
@@ -442,6 +446,8 @@ class CNeuronGroup(float_t)
 	
 	void CallInitKernel(size_t workgroup_size)
 	{
+		assert(Model.Initialized);
+		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
@@ -451,6 +457,8 @@ class CNeuronGroup(float_t)
 	
 	void CallStepKernel(double t, size_t workgroup_size)
 	{
+		assert(Model.Initialized);
+		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
@@ -467,6 +475,8 @@ class CNeuronGroup(float_t)
 	
 	void CallDeliverKernel(double t, size_t workgroup_size)
 	{
+		assert(Model.Initialized);
+		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
@@ -487,7 +497,7 @@ class CNeuronGroup(float_t)
 		}
 	}
 	
-	void CreateStepKernel(CNeuronType type)
+	private void CreateStepKernel(CNeuronType type)
 	{
 		scope source = new CSourceConstructor;
 		
@@ -836,7 +846,7 @@ else //It is full, error
 		StepKernelSource = kernel_source;
 	}
 	
-	void CreateDeliverKernel(CNeuronType type)
+	private void CreateDeliverKernel(CNeuronType type)
 	{
 		scope source = new CSourceConstructor;
 		
@@ -930,7 +940,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		DeliverKernelSource = kernel_source;
 	}
 	
-	void CreateInitKernel(CNeuronType type)
+	private void CreateInitKernel(CNeuronType type)
 	{
 		scope source = new CSourceConstructor;
 		
@@ -1024,7 +1034,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		if(idx_ptr !is null)
 		{
 			Constants[*idx_ptr] = val;
-			if(Model.Generated)
+			if(Model.Initialized)
 				SetConstant(*idx_ptr);
 			return val;
 		}
@@ -1050,7 +1060,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	 */
 	double opIndex(char[] name, int idx)
 	{
-		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 		assert(idx >= 0, "Invalid neuron index.");
 	
@@ -1065,7 +1075,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	double opIndexAssign(double val, char[] name, int idx)
 	{
-		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 		assert(idx >= 0, "Invalid neuron index.");
 		
@@ -1083,7 +1093,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	 */
 	double opIndex(char[] name, int nrn_idx, int syn_idx)
 	{
-		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
 		assert(nrn_idx >= 0, "Invalid neuron index.");
 		assert(syn_idx >= 0, "Invalid synapse index.");
@@ -1105,7 +1115,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx)
 	{
-		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
 		assert(nrn_idx >= 0, "Invalid neuron index.");
 		assert(syn_idx >= 0, "Invalid synapse index.");
@@ -1129,6 +1139,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	void Shutdown()
 	{
+		assert(Model.Initialized);
+		
 		foreach(buffer; ValueBuffers)
 			buffer.Release();
 			
@@ -1152,6 +1164,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	void UpdateRecorders(int t, bool last = false)
 	{
+		assert(Model.Initialized);
+		
 		if(Recorders.length)
 		{
 			if((RecordRate && ((t + 1) % RecordRate == 0)) || last)
@@ -1177,8 +1191,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	CRecorder Record(int neuron_id, char[] name)
 	{
+		assert(Model.Initialized);
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
+		
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr is null)
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1193,6 +1209,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	CRecorder Record(int neuron_id, int thresh_id)
 	{
+		assert(Model.Initialized);
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		assert(thresh_id >= 0);
@@ -1207,8 +1224,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	void StopRecording(int neuron_id)
 	{
+		assert(Model.Initialized);
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
+		
 		auto idx_ptr = neuron_id in Recorders;
 		if(idx_ptr !is null)
 		{
@@ -1220,6 +1239,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	void CheckErrors()
 	{
+		assert(Model.Initialized);
+		
 		auto errors = new int[](Count + 1);
 		clEnqueueReadBuffer(Model.Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
 		if(errors[0])
@@ -1237,7 +1258,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	void ConnectTo(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
 	{
-		assert(Model.Generated);
+		assert(Model.Initialized);
+		
 		assert(src_nrn_id >= 0 && src_nrn_id < Count);
 		assert(event_source >= 0 && event_source < NumEventSources);
 		assert(src_slot >= 0 && src_slot < NumSrcSynapses);

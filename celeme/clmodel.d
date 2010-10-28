@@ -136,35 +136,45 @@ class CCLModel
 			return double.sizeof;
 	}
 	
-	void Run(int tstop, int run_workgroup_size = 16, int deliver_workgroup_size = 16)
+	void Run(int tstop)
+	{
+		InitRun();
+		RunUntil(tstop);
+	}
+	
+	void InitRun()
+	{
+		T = 0;
+		/* Initialize */
+		foreach(group; NeuronGroups)
+		{
+			group.ResetBuffers();
+			group.CallInitKernel(StepWorkgroupSize);
+		}
+	}
+	
+	void RunUntil(int tstop)
 	{
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
-		int t = 0;
-		/* Initialize */
-		foreach(group; groups)
-		{
-			group.ResetBuffers();
-			group.CallInitKernel(run_workgroup_size);
-		}
+		int t = T;
 		/* Run the model */
-		while(t <= tstop)
+		while(t < tstop)
 		{
 			/* Called first because it resets the record index to 0,
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
 			foreach(group; groups)
-				group.CallDeliverKernel(t, deliver_workgroup_size);
+				group.CallDeliverKernel(t, DeliverWorkgroupSize);
 			foreach(group; groups)
-				group.CallStepKernel(t, run_workgroup_size);
+				group.CallStepKernel(t, StepWorkgroupSize);
 			foreach(group; groups)
-				group.UpdateRecorders(t);
+				group.UpdateRecorders(t, t == tstop - 1);
 			t++;
 		}
-		
-		foreach(group; groups)
-			group.UpdateRecorders(t, true);
+			
+		T = t;
 
 		Core.Finish();
 		/* Check for errors */
@@ -265,6 +275,11 @@ class CCLModel
 	/* Total model number of dest synapses */
 	int NumDestSynapses = 0;
 	int NumNeurons = 0;
+	
+	int StepWorkgroupSize = 64;
+	int DeliverWorkgroupSize = 64;
+	
+	int T = 0;
 	
 	CCLCore Core;
 	bool SinglePrecision = true;

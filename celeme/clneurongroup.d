@@ -407,6 +407,9 @@ class CNeuronGroup
 			WriteToBuffer(buffer);
 		}
 		Model.Core.Finish();
+		
+		foreach(recorder; Recorders)
+			recorder.Length = 0;
 	}
 	
 	void SetConstant(int idx)
@@ -1091,6 +1094,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 					}
 				}
 			}
+			if(last)
+				RecordIdxBuffer.WriteOne(0, 0);
 		}
 	}
 	

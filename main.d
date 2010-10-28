@@ -69,7 +69,7 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 100;
+		RecordLength = 1000;
 		RecordRate = 1;
 	}
 	
@@ -81,7 +81,7 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 100;
+		RecordLength = 1000;
 		RecordRate = 0;
 	}
 	
@@ -143,7 +143,14 @@ void main()
 	timer.start;
 	
 	int tstop = 100;
-	model.Run(tstop, 64, 64);
+	//model.Run(tstop);
+	model.InitRun();
+	model.RunUntil(50);
+	model.RunUntil(101);
+	
+	model.InitRun();
+	model.RunUntil(50);
+	model.RunUntil(101);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
 	
@@ -172,7 +179,18 @@ void main()
 			Hold = false;
 		}
 		
+		auto t_old = v_rec1.T[0];
+		auto v_old = v_rec1.Data[0];
+		foreach(ii, t; v_rec1.T[1..$])
+		{
+			auto v = v_rec1.Data[1..$][ii];
+			assert(v != v_old);// || t != t_old);
+			t_old = t;
+			v_old = v;
+		}
+		
 		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
+		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
 }

@@ -51,6 +51,12 @@ $synapse_code$
 			if(record_flags && record_flags < $thresh_rec_offset$)
 			{
 				int idx = atom_inc(&record_idx[0]);
+				if(idx >= record_buffer_size)
+				{
+					error_buffer[i + 1] = 10;
+					idx--;
+					atomic_xchg(&record_idx[0], idx);
+				}
 				$num_type$4 record;
 				record.s0 = i;
 				record.s1 = cur_time + t;
@@ -310,8 +316,8 @@ class CNeuronGroup
 			}
 			if(NumDestSynapses)
 			{
-				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynBuffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
 			}
 			SetGlobalArg(arg_id++, &Count);
 		}
@@ -353,8 +359,8 @@ class CNeuronGroup
 				SetGlobalArg(arg_id++, &CircBufferEnd);
 				SetGlobalArg(arg_id++, &CircBuffer);
 				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynBuffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
+				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
 			}
 			SetGlobalArg(arg_id++, &Count);
 		}
@@ -748,6 +754,12 @@ if(syn_table_end != $syn_offset$)
 `if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)
 {
 	int idx = atom_inc(&record_idx[0]);
+	if(idx >= record_buffer_size)
+	{
+		error_buffer[i + 1] = 10;
+		idx--;
+		atomic_xchg(&record_idx[0], idx);
+	}
 	$num_type$4 record;
 	record.s0 = i;
 	record.s1 = cur_time + t;
@@ -1038,6 +1050,18 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			clReleaseMemObject(buffer.Buffer);
 
 		clReleaseMemObject(DtBuffer);
+		clReleaseMemObject(CircBufferStart);
+		clReleaseMemObject(CircBufferEnd);
+		clReleaseMemObject(CircBuffer);
+		clReleaseMemObject(ErrorBuffer);
+		RecordFlagsBuffer.Release();
+		RecordBufferFloat.Release();
+		RecordIdxBuffer.Release();
+		DestSynBuffer.Release();
+		
+		InitKernel.Release();
+		StepKernel.Release();
+		DeliverKernel.Release();
 	}
 	
 	void UpdateRecorders(int t, bool last = false)
@@ -1139,8 +1163,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		int dest_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
-		//Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 0, dest_neuron_id);
-		//Model.SetInt(DestSynBuffer, dest_syn_id * 2 + 1, dest_slot);
 		DestSynBuffer.WriteOne(dest_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
 	
@@ -1164,6 +1186,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLKernel StepKernel;
 	CCLKernel DeliverKernel;
 	
+	/* TODO: Convert these to CCLBuffers */
 	cl_mem DtBuffer;
 	cl_mem CircBufferStart;
 	cl_mem CircBufferEnd;

@@ -69,7 +69,7 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 1000;
+		RecordLength = 100;
 		RecordRate = 1;
 	}
 	
@@ -81,8 +81,8 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 1000;
-		RecordRate = 1;
+		RecordLength = 100;
+		RecordRate = 0;
 	}
 	
 	auto core = new CCLCore(false);
@@ -94,8 +94,8 @@ void main()
 	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(regular, 2024);
-	model.AddNeuronGroup(burster, 2024);
+	model.AddNeuronGroup(regular, 16);
+	model.AddNeuronGroup(burster, 16);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;

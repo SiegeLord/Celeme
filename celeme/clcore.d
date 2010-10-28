@@ -39,6 +39,11 @@ class CCLKernel
 		}
 	}
 	
+	void Release()
+	{
+		clReleaseKernel(Kernel);
+	}
+	
 	cl_program* Program;
 	cl_kernel Kernel;
 	char[] Name;
@@ -91,6 +96,11 @@ class CCLBuffer(T)
 		auto arr = Map(CL_MAP_WRITE, idx, 1);
 		arr[0] = val;
 		UnMap(arr);
+	}
+	
+	void Release()
+	{
+		clReleaseMemObject(Buffer);
 	}
 	
 	CCLCore Core;

@@ -72,8 +72,8 @@ class CCLModel
 		assert(NumNeurons);
 		if(NumDestSynapses)
 		{
-			FiredSynIdxBuffer = Core.CreateBuffer(int.sizeof * NumNeurons);
-			FiredSynBuffer = Core.CreateBuffer(int.sizeof * NumDestSynapses);
+			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(NumNeurons);
+			FiredSynBuffer = Core.CreateBufferEx!(int)(NumDestSynapses);
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
@@ -101,7 +101,9 @@ class CCLModel
 		 * it gets reset automatically there */
 		if(NumDestSynapses)
 		{
-			MemsetIntBuffer(FiredSynIdxBuffer, NumNeurons, -1);
+			auto arr = FiredSynIdxBuffer.Map(CL_MAP_WRITE);
+			arr[] = -1;
+			FiredSynIdxBuffer.UnMap(arr);
 		}
 		
 		foreach(group; NeuronGroups)
@@ -176,6 +178,15 @@ class CCLModel
 	{
 		foreach(group; NeuronGroups)
 			group.Shutdown();
+			
+		clReleaseProgram(Program);
+		
+		FloatMemsetKernel.Release();
+		IntMemsetKernel.Release();
+		
+		FiredSynBuffer.Release();
+		FiredSynIdxBuffer.Release();
+		
 		Generated = false;
 	}
 	
@@ -248,8 +259,8 @@ class CCLModel
 	CCLKernel FloatMemsetKernel;
 	CCLKernel IntMemsetKernel;
 	
-	cl_mem FiredSynIdxBuffer;
-	cl_mem FiredSynBuffer;
+	CCLBuffer!(int) FiredSynIdxBuffer;
+	CCLBuffer!(int) FiredSynBuffer;
 	
 	/* Total model number of dest synapses */
 	int NumDestSynapses = 0;

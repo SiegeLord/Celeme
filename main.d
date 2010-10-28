@@ -87,7 +87,7 @@ void main()
 		RecordRate = 0;
 	}
 	
-	auto core = new CCLCore(true);
+	auto core = new CCLCore(false);
 	
 	auto model = new CCLModel!(float)(core);
 	
@@ -161,14 +161,13 @@ void main()
 	
 	timer.start;
 	
-	Stdout(GetGitRevisionHash()).nl;
-	
 	if(record)
 	//if(false)
 	{
 		auto plot = new CGNUPlot;
 		with(plot)
 		{
+			Title(GetGitRevisionHash());
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);

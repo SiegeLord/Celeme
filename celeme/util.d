@@ -43,10 +43,8 @@ char[] GetGitRevisionHash()
 	{
 		auto git = new Process(true, "git rev-parse HEAD");
 		git.execute();
-		Stdout.copy(git.stdin);
-		/*auto input = new TextInput(git.stdin);
-		//input.flush();
-		input.readln(ret);*/
+		auto input = new TextInput(git.stdout);
+		input.readln(ret);
 		git.wait();
 	}
 	catch(Exception e)

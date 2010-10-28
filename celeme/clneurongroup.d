@@ -219,12 +219,6 @@ class CNeuronGroup(float_t)
 		alias cl_float4 float_t4;
 	}
 	
-	struct SValueBuffer
-	{
-		double Value;
-		cl_mem Buffer;
-	}
-	
 	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
 	{
 		Model = model;
@@ -244,10 +238,9 @@ class CNeuronGroup(float_t)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
 			
-			SValueBuffer buff;
-			buff.Value = state.Value;
-			buff.Buffer = Model.Core.CreateBuffer(Count * Model.NumSize);
+			auto buff = Model.Core.CreateBufferEx!(float_t)(Count);
 			
+			DefaultValues ~= state.Value;			
 			ValueBuffers ~= buff;
 		}
 		
@@ -401,9 +394,11 @@ class CNeuronGroup(float_t)
 		}
 		
 		/* Write the default values to the global buffers*/
-		foreach(buffer; ValueBuffers)
+		foreach(ii, buffer; ValueBuffers)
 		{
-			WriteToBuffer(buffer);
+			auto arr = buffer.Map(CL_MAP_WRITE);
+			arr[] = DefaultValues[ii];
+			buffer.UnMap(arr);
 		}
 		Model.Core.Finish();
 		
@@ -416,18 +411,6 @@ class CNeuronGroup(float_t)
 		float_t val = Constants[idx];
 		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
 		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
-	}
-	
-	void WriteToBuffer(SValueBuffer buffer)
-	{
-		Model.MemsetFloatBuffer(buffer.Buffer, Count, buffer.Value);
-	}
-	
-	double ReadFromBuffer(SValueBuffer buffer, int idx)
-	{
-		float_t val;
-		clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, float_t.sizeof * idx, float_t.sizeof, &val, 0, null, null);
-		return val;
 	}
 	
 	void CallInitKernel(size_t workgroup_size)
@@ -957,13 +940,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	/* These two functions can be used to modify values after the model has been created.
-	 * TODO: These functions are really misguided. Allow for them to index specific states,
-	 * and force them to work only after the model is generated.
 	 */
-	double opIndex(char[] name, int idx = -1)
+	double opIndex(char[] name, int idx = 0)
 	{
 		assert(idx < Count, "idx needs to be less than Count.");
-		
+	
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
@@ -973,23 +954,19 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			if(Model.Generated && idx >= 0)
-			{
-				auto val = ReadFromBuffer(ValueBuffers[*idx_ptr], idx);
-				Model.Core.Finish();
-				return val;
-			}
+			if(Model.Generated)
+				return ValueBuffers[*idx_ptr].ReadOne(idx);
 			else
-			{
-				return ValueBuffers[*idx_ptr].Value;
-			}
+				return DefaultValues[*idx_ptr];
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
-	double opIndexAssign(double val, char[] name)
+	double opIndexAssign(double val, char[] name, int idx = 0)
 	{
+		assert(Model.Generated, "Model needs to be generated");
+		
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
@@ -1002,12 +979,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			ValueBuffers[*idx_ptr].Value = val;
 			if(Model.Generated)
-			{
-				WriteToBuffer(ValueBuffers[*idx_ptr]);
-				Model.Core.Finish();
-			}
+				ValueBuffers[*idx_ptr].WriteOne(idx, val);
+			else
+				DefaultValues[*idx_ptr] = val;
 			return val;
 		}
 		
@@ -1136,7 +1111,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
-	SValueBuffer[] ValueBuffers;
+	float_t[] DefaultValues;
+	CCLBuffer!(float_t)[] ValueBuffers;
 	int[char[]] ValueBufferRegistry;
 	
 	char[] Name;

@@ -6,6 +6,18 @@ import gnuplot;
 import tango.time.StopWatch;
 import tango.io.Stdout;
 
+/*
+ * Split Init into Reset and Init
+ * 
+ * Reset resets all values to default values
+ * 
+ * Init just runs the init kernel
+ * 
+ * Allow setting of default values separately from the current values
+ * (assert if try to set the current values)
+ *  - Need to store default values separately (already done for normal values)
+ */
+
 void main()
 {
 	StopWatch timer;

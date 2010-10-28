@@ -6,18 +6,6 @@ import gnuplot;
 import tango.time.StopWatch;
 import tango.io.Stdout;
 
-/*
- * Split Init into Reset and Init
- * 
- * Reset resets all values to default values
- * 
- * Init just runs the init kernel
- * 
- * Allow setting of default values separately from the current values
- * (assert if try to set the current values)
- *  - Need to store default values separately (already done for normal values)
- */
-
 void main()
 {
 	StopWatch timer;
@@ -82,7 +70,7 @@ void main()
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
 		RecordLength = 1000;
-		RecordRate = 1;
+		RecordRate = 0;
 	}
 	
 	auto burster = new CNeuronType("Burster");
@@ -97,7 +85,7 @@ void main()
 		RecordRate = 0;
 	}
 	
-	auto core = new CCLCore(false);
+	auto core = new CCLCore(true);
 	
 	auto model = new CCLModel!(float)(core);
 	
@@ -156,6 +144,7 @@ void main()
 	
 	int tstop = 100;
 	//model.Run(tstop);
+	model.ResetRun();
 	model.InitRun();
 	model.RunUntil(50);
 	model.RunUntil(101);

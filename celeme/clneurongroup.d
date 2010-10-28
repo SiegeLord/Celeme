@@ -55,7 +55,7 @@ $synapse_code$
 				{
 					error_buffer[i + 1] = 10;
 					idx--;
-					atomic_xchg(&record_idx[0], idx);
+					atom_xchg(&record_idx[0], idx);
 				}
 				$num_type$4 record;
 				record.s0 = i;
@@ -709,7 +709,7 @@ if(syn_table_end != $syn_offset$)
 	{
 		error_buffer[i + 1] = 10;
 		idx--;
-		atomic_xchg(&record_idx[0], idx);
+		atom_xchg(&record_idx[0], idx);
 	}
 	$num_type$4 record;
 	record.s0 = i;
@@ -939,12 +939,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		InitKernelSource = kernel_source;
 	}
 	
-	/* These two functions can be used to modify values after the model has been created.
-	 */
-	double opIndex(char[] name, int idx = 0)
+	double opIndex(char[] name)
 	{
-		assert(idx < Count, "idx needs to be less than Count.");
-	
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
@@ -954,19 +950,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			if(Model.Generated)
-				return ValueBuffers[*idx_ptr].ReadOne(idx);
-			else
-				return DefaultValues[*idx_ptr];
+			return DefaultValues[*idx_ptr];
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
-	double opIndexAssign(double val, char[] name, int idx = 0)
-	{
-		assert(Model.Generated, "Model needs to be generated");
-		
+	double opIndexAssign(double val, char[] name)
+	{	
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
 		{
@@ -979,10 +970,40 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			if(Model.Generated)
-				ValueBuffers[*idx_ptr].WriteOne(idx, val);
-			else
-				DefaultValues[*idx_ptr] = val;
+			DefaultValues[*idx_ptr] = val;
+			return val;
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
+	/* These two functions can be used to modify values after the model has been created.
+	 */
+	double opIndex(char[] name, int idx)
+	{
+		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(idx < Count, "idx needs to be less than Count.");
+		assert(idx >= 0, "Invalid index.");
+	
+		auto idx_ptr = name in ValueBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			return ValueBuffers[*idx_ptr].ReadOne(idx);
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
+	double opIndexAssign(double val, char[] name, int idx)
+	{
+		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(idx < Count, "idx needs to be less than Count.");
+		assert(idx >= 0, "Invalid index.");
+		
+		auto idx_ptr = name in ValueBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			ValueBuffers[*idx_ptr].WriteOne(idx, val);
 			return val;
 		}
 		

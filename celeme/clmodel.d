@@ -136,17 +136,25 @@ class CCLModel(float_t)
 	
 	void Run(int tstop)
 	{
+		ResetRun();
 		InitRun();
 		RunUntil(tstop);
 	}
 	
-	void InitRun()
+	void ResetRun()
 	{
 		T = 0;
-		/* Initialize */
 		foreach(group; NeuronGroups)
 		{
 			group.ResetBuffers();
+		}
+	}
+	
+	void InitRun()
+	{
+		/* Initialize */
+		foreach(group; NeuronGroups)
+		{
 			group.CallInitKernel(StepWorkgroupSize);
 		}
 	}

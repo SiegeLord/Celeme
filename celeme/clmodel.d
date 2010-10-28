@@ -58,6 +58,8 @@ class CCLModel(float_t)
 	
 	void AddNeuronGroup(CNeuronType type, int number, char[] name = null)
 	{
+		assert(number > 0, "Need at least 1 neuron in a group");
+		
 		type.VerifyExternals();
 		
 		if(name is null)
@@ -241,6 +243,14 @@ class CCLModel(float_t)
 	{
 		auto src = opIndex(src_group);
 		auto dest = opIndex(dest_group);
+		
+		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
+		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid source index.");
+		
+		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
+		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
+		
+		assert(dest_slot >= 0 && dest_slot < (dest.NumDestSynapses / dest.Count), "Invalid event source slot index.");
 		
 		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest_slot);
 	}

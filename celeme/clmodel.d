@@ -40,8 +40,17 @@ __kernel void int_memset(
 ";
 
 
-class CCLModel
+class CCLModel(float_t)
 {
+	static if(is(float_t == float))
+	{
+		char[] NumStr = "float";
+	}
+	else
+	{
+		static assert(0);
+	}
+	
 	this(CCLCore core)
 	{
 		Core = core;
@@ -62,7 +71,7 @@ class CCLModel
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
 		
-		auto group = new CNeuronGroup(this, type, number, name, sink_offset, nrn_offset);
+		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset);
 		
 		NeuronGroups[type.Name] = group;
 	}
@@ -90,7 +99,7 @@ class CCLModel
 			Source ~= group.InitKernelSource;
 			Source ~= group.DeliverKernelSource;
 		}
-		Source = Source.substitute("$num_type$", NumType);
+		Source = Source.substitute("$num_type$", NumStr);
 		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		
@@ -112,7 +121,7 @@ class CCLModel
 		Generated = true;
 	}
 	
-	CNeuronGroup opIndex(char[] name)
+	CNeuronGroup!(float_t) opIndex(char[] name)
 	{
 		auto ret_ptr = name in NeuronGroups;
 		if(ret_ptr is null)
@@ -120,20 +129,9 @@ class CCLModel
 		return *ret_ptr;
 	}
 	
-	char[] NumType()
-	{
-		if(SinglePrecision)
-			return "float";
-		else
-			return "double";
-	}
-	
 	size_t NumSize()
 	{
-		if(SinglePrecision)
-			return float.sizeof;
-		else
-			return double.sizeof;
+		return float_t.sizeof;
 	}
 	
 	void Run(int tstop)
@@ -205,16 +203,8 @@ class CCLModel
 		with(FloatMemsetKernel)
 		{
 			SetGlobalArg(0, &buffer);
-			if(SinglePrecision)
-			{
-				float val = value;
-				SetGlobalArg(1, &val);
-			}
-			else
-			{
-				double val = value;
-				SetGlobalArg(1, &val);
-			}
+			float_t val = value;
+			SetGlobalArg(1, &val);
 			SetGlobalArg(2, &count);
 			size_t total_size = count;
 			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
@@ -225,16 +215,8 @@ class CCLModel
 	void SetFloat(ref cl_mem buffer, int idx, double value)
 	{
 		int err;
-		if(SinglePrecision)
-		{
-			float val = value;
-			err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
-		}
-		else
-		{
-			double val = value;
-			err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
-		}
+		float_t val = value;
+		err = clEnqueueWriteBuffer(Core.Commands, buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -282,8 +264,7 @@ class CCLModel
 	int T = 0;
 	
 	CCLCore Core;
-	bool SinglePrecision = true;
-	CNeuronGroup[char[]] NeuronGroups;
+	CNeuronGroup!(float_t)[char[]] NeuronGroups;
 	char[] Source;
 	bool Generated = false;
 }

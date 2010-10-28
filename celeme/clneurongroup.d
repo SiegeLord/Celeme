@@ -212,15 +212,20 @@ $event_source_code$
 }
 ";
 
-class CNeuronGroup
+class CNeuronGroup(float_t)
 {
+	static if(is(float_t == float))
+	{
+		alias cl_float4 float_t4;
+	}
+	
 	struct SValueBuffer
 	{
 		double Value;
 		cl_mem Buffer;
 	}
 	
-	this(CCLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
+	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
 	{
 		Model = model;
 		Count = count;
@@ -256,10 +261,7 @@ class CNeuronGroup
 		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
 		RecordFlagsBuffer = Model.Core.CreateBufferEx!(int)(Count);
-		if(Model.SinglePrecision)
-			RecordBufferFloat = Model.Core.CreateBufferEx!(cl_float4)(RecordLength);
-		else
-			assert(0, "unimplemented");
+		RecordBuffer = Model.Core.CreateBufferEx!(float_t4)(RecordLength);
 		RecordIdxBuffer = Model.Core.CreateBufferEx!(int)(1);
 		
 		if(NeedSrcSynCode)
@@ -297,10 +299,7 @@ class CNeuronGroup
 			SetGlobalArg(arg_id++, &ErrorBuffer);
 			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
-			if(Model.SinglePrecision)
-				SetGlobalArg(arg_id++, &RecordBufferFloat.Buffer);
-			else
-				assert(0, "unimplemented");
+			SetGlobalArg(arg_id++, &RecordBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordLength);
 			foreach(buffer; ValueBuffers)
 			{
@@ -414,18 +413,9 @@ class CNeuronGroup
 	
 	void SetConstant(int idx)
 	{
-		if(Model.SinglePrecision)
-		{
-			float val = Constants[idx];
-			InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
-			StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
-		}
-		else
-		{
-			double val = Constants[idx];
-			InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
-			StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
-		}
+		float_t val = Constants[idx];
+		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
+		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
 	}
 	
 	void WriteToBuffer(SValueBuffer buffer)
@@ -435,18 +425,9 @@ class CNeuronGroup
 	
 	double ReadFromBuffer(SValueBuffer buffer, int idx)
 	{
-		if(Model.SinglePrecision)
-		{
-			float val;
-			clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, float.sizeof * idx, float.sizeof, &val, 0, null, null);
-			return val;
-		}
-		else
-		{
-			double val;
-			clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, double.sizeof * idx, double.sizeof, &val, 0, null, null);
-			return val;
-		}
+		float_t val;
+		clEnqueueReadBuffer(Model.Core.Commands, buffer.Buffer, CL_TRUE, float_t.sizeof * idx, float_t.sizeof, &val, 0, null, null);
+		return val;
 	}
 	
 	void CallInitKernel(size_t workgroup_size)
@@ -466,16 +447,8 @@ class CNeuronGroup
 		
 		with(StepKernel)
 		{
-			if(Model.SinglePrecision)
-			{
-				float t_val = t;
-				SetGlobalArg(0, &t_val);
-			}
-			else
-			{
-				double t_val = t;
-				SetGlobalArg(0, &t_val);
-			}
+			float_t t_val = t;
+			SetGlobalArg(0, &t_val);
 
 			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 			assert(err == CL_SUCCESS);
@@ -490,16 +463,8 @@ class CNeuronGroup
 		
 		with(DeliverKernel)
 		{
-			if(Model.SinglePrecision)
-			{
-				float t_val = t;
-				SetGlobalArg(0, &t_val);
-			}
-			else
-			{
-				double t_val = t;
-				SetGlobalArg(0, &t_val);
-			}
+			float_t t_val = t;
+			SetGlobalArg(0, &t_val);
 			
 			if(NeedSrcSynCode)
 			{
@@ -992,6 +957,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	/* These two functions can be used to modify values after the model has been created.
+	 * TODO: These functions are really misguided. Allow for them to index specific states,
+	 * and force them to work only after the model is generated.
 	 */
 	double opIndex(char[] name, int idx = -1)
 	{
@@ -1006,7 +973,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			if(Model.Generated && idx > 0)
+			if(Model.Generated && idx >= 0)
 			{
 				auto val = ReadFromBuffer(ValueBuffers[*idx_ptr], idx);
 				Model.Core.Finish();
@@ -1058,7 +1025,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		clReleaseMemObject(CircBuffer);
 		clReleaseMemObject(ErrorBuffer);
 		RecordFlagsBuffer.Release();
-		RecordBufferFloat.Release();
+		RecordBuffer.Release();
 		RecordIdxBuffer.Release();
 		DestSynBuffer.Release();
 		
@@ -1076,22 +1043,15 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 				int num_written = RecordIdxBuffer.ReadOne(0);
 				if(num_written)
 				{
-					if(Model.SinglePrecision)
+					auto output = RecordBuffer.Map(CL_MAP_READ, 0, num_written);
+					//Stdout.formatln("num_written: {} {}", num_written, output.length);
+					foreach(quad; output)
 					{
-						auto output = RecordBufferFloat.Map(CL_MAP_READ, 0, num_written);
-						//Stdout.formatln("num_written: {} {}", num_written, output.length);
-						foreach(quad; output)
-						{
-							int id = cast(int)quad[0];
-							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-							Recorders[id].AddDatapoint(quad[1], quad[2]);
-						}
-						RecordBufferFloat.UnMap(output);
+						int id = cast(int)quad[0];
+						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
+						Recorders[id].AddDatapoint(quad[1], quad[2]);
 					}
-					else
-					{
-						assert(0, "unimplemented");
-					}
+					RecordBuffer.UnMap(output);
 				}
 			}
 			if(last)
@@ -1181,7 +1141,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	char[] Name;
 	int Count = 0;
-	CCLModel Model;
+	CCLModel!(float_t) Model;
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;
@@ -1198,7 +1158,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem CircBuffer;
 	cl_mem ErrorBuffer;
 	CCLBuffer!(int) RecordFlagsBuffer;
-	CCLBuffer!(cl_float4) RecordBufferFloat;
+	CCLBuffer!(float_t4) RecordBuffer;
 	CCLBuffer!(int) RecordIdxBuffer;
 	CCLBuffer!(cl_int2) DestSynBuffer;
 	

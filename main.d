@@ -87,7 +87,7 @@ void main()
 	
 	auto core = new CCLCore(false);
 	
-	auto model = new CCLModel(core);
+	auto model = new CCLModel!(float)(core);
 	
 	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;
@@ -144,10 +144,6 @@ void main()
 	
 	int tstop = 100;
 	//model.Run(tstop);
-	model.InitRun();
-	model.RunUntil(50);
-	model.RunUntil(101);
-	
 	model.InitRun();
 	model.RunUntil(50);
 	model.RunUntil(101);

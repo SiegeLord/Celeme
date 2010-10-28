@@ -126,10 +126,10 @@ void main()
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
 	model["Regular"]["glu_weight"] = 1;
+	model["Burster"]["glu_weight"] = 1;
 	
-	model["Burster"].ConnectTo(0, 0, 0, 0, 0);
-	//model["Burster"].ConnectTo(1, 0, 0, 0, 10);
-	model["Regular"].ConnectTo(0, 0, 0, 16, 0);
+	model.Connect("Burster", 0, 0, 0, "Regular", 0, 0);
+	model.Connect("Regular", 0, 0, 0, "Burster", 0, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;

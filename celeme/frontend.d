@@ -41,6 +41,22 @@ struct SThreshold
 	bool ResetTime = false;
 }
 
+char[] AddMechFunc(char[] name)()
+{
+	return 
+	`CValue Add` ~ name ~ `(char[] name)
+		{
+			if(!IsValidName(name))
+				throw new Exception("The name '" ~ name ~ "' is reserved.");
+			if(IsDuplicateName(name))
+				throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
+			auto val = new CValue(name);				
+			` ~ name ~ `s ~= val;
+			return val;
+		}
+	`;
+}
+
 class CMechanism
 {
 	this(char[] name)
@@ -48,26 +64,10 @@ class CMechanism
 		Name = name;
 	}
 	
-	static char[] AddFunc(char[] name)()
-	{
-		return 
-		`CValue Add` ~ name ~ `(char[] name)
-			{
-				if(!IsValidName(name))
-					throw new Exception("The name '" ~ name ~ "' is reserved.");
-				if(IsDuplicateName(name))
-					throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
-				auto val = new CValue(name);				
-				` ~ name ~ `s ~= val;
-				return val;
-			}
-		`;
-	}
-	
-	mixin(AddFunc!("State"));
-	mixin(AddFunc!("Local"));
-	mixin(AddFunc!("Global"));
-	mixin(AddFunc!("Constant"));
+	mixin(AddMechFunc!("State"));
+	mixin(AddMechFunc!("Local"));
+	mixin(AddMechFunc!("Global"));
+	mixin(AddMechFunc!("Constant"));
 	
 	void AddExternal(char[] name)
 	{
@@ -125,7 +125,7 @@ class CMechanism
 	
 	void SetStage(int stage, char[] source)
 	{
-		assert(stage >= 0, "stage must be between positive");
+		assert(stage >= 0, "stage must be greater than or equal to 0");
 		assert(stage < 3, "stage must be less than 3");
 		
 		Stages[stage] = source;
@@ -202,10 +202,26 @@ class CSynapse : CMechanism
 		super(name);
 	}
 	
+	mixin(AddMechFunc!("SynGlobal"));
+	
 	void SetSynCode(char[] code)
 	{
 		SynCode = code;
 	}
+	
+	int AllSynGlobals(int delegate(ref CValue value) dg)
+	{
+		foreach(val; SynGlobals)
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
+		return 0;
+	}
+	
+	/* A value that every synapse has (like synaptic weight).
+	 */
+	CValue[] SynGlobals;
 	
 	char[] SynCode;
 }
@@ -224,17 +240,32 @@ class CNeuronType
 		Name = name;
 	}
 	
+	/* Returns null if it isn't duplicate and the name of the containing mechanism if it is */
+	char[] IsDuplicateName(char[] name)
+	{
+		auto old_mech = name in Values;
+		if(old_mech !is null)
+			return (*old_mech).Name;
+		
+		auto old_syn = name in SynGlobals;
+		if(old_syn !is null)
+			return (*old_syn).Name;
+		
+		return null;
+	}
+	
 	void AddMechanism(CMechanism mech, char[] prefix = "")
 	{
 		assert(mech);
 		foreach(val; &mech.AllValues)
 		{
 			auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
-			auto old_val = name in Values;
-			if(old_val !is null)
+			auto mech_name = IsDuplicateName(name);
+			if(mech_name !is null)
 			{
-				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ (*old_val).Name ~ "' mechanism.");
+				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ mech_name ~ "' mechanism.");
 			}
+
 			Values[name] = mech;
 		}
 		
@@ -247,6 +278,17 @@ class CNeuronType
 	void AddSynapse(CSynapse syn, int num_slots, char[] prefix = "")
 	{
 		AddMechanism(syn, prefix);
+		foreach(val; &syn.AllSynGlobals)
+		{
+			auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+			auto mech_name = IsDuplicateName(name);
+			if(mech_name !is null)
+			{
+				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ mech_name ~ "' mechanism.");
+			}
+			
+			SynGlobals[name] = syn;
+		}
 		SynapseTypes ~= SSynType(syn, num_slots, prefix);
 	}
 	
@@ -275,6 +317,20 @@ class CNeuronType
 		}
 		if(error.length)
 			throw new Exception("Unreasolved externals:\n" ~ error);
+	}
+	
+	int AllSynGlobals(int delegate(ref char[] name, ref CValue value) dg)
+	{
+		foreach(syn_type; SynapseTypes)
+		{
+			foreach(val; &syn_type.Synapse.AllSynGlobals)
+			{
+				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
+					return ret;
+			}
+		}
+		return 0;
 	}
 	
 	int AllStates(int delegate(ref char[] name, ref CValue value) dg)
@@ -476,6 +532,7 @@ class CNeuronType
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	char[][] MechanismPrefixes;
+	CSynapse[char[]] SynGlobals;
 	SSynType[] SynapseTypes;
 	char[] Name;
 	char[] InitCode;

@@ -29,6 +29,7 @@ $val_args$
 $constant_args$
 $event_source_args$
 $synapse_args$
+$synapse_globals$
 		const int count
 	)
 {
@@ -244,6 +245,22 @@ class CNeuronGroup(float_t)
 			ValueBuffers ~= buff;
 		}
 		
+		/* Syn globals are special, so they get treated separately */
+		foreach(syn_type; type.SynapseTypes)
+		{
+			foreach(val; &syn_type.Synapse.AllSynGlobals)
+			{
+				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
+				
+				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
+				
+				auto buff = Model.Core.CreateBufferEx!(float_t)(Count * syn_type.NumSynapses);
+				
+				DefaultSynGlobals ~= val.Value;			
+				SynGlobalBuffers ~= buff;
+			}
+		}
+		
 		if(NeedSrcSynCode)
 		{
 			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
@@ -259,7 +276,6 @@ class CNeuronGroup(float_t)
 		
 		if(NeedSrcSynCode)
 		{
-			//DestSynBuffer = Model.Core.CreateBuffer(Count * NumEventSources * NumSrcSynapses * 2 * int.sizeof);
 			DestSynBuffer = Model.Core.CreateBufferEx!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
 		}
 
@@ -310,6 +326,10 @@ class CNeuronGroup(float_t)
 			{
 				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
 				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
+				foreach(buffer; SynGlobalBuffers)
+				{
+					SetGlobalArg(arg_id++, &buffer.Buffer);
+				}
 			}
 			SetGlobalArg(arg_id++, &Count);
 		}
@@ -398,6 +418,13 @@ class CNeuronGroup(float_t)
 		{
 			auto arr = buffer.Map(CL_MAP_WRITE);
 			arr[] = DefaultValues[ii];
+			buffer.UnMap(arr);
+		}
+		
+		foreach(ii, buffer; SynGlobalBuffers)
+		{
+			auto arr = buffer.Map(CL_MAP_WRITE);
+			arr[] = DefaultSynGlobals[ii];
 			buffer.UnMap(arr);
 		}
 		Model.Core.Finish();
@@ -513,6 +540,17 @@ class CNeuronGroup(float_t)
 		}
 		apply("$synapse_args$");
 		
+		/* Synapse globals */
+		source.Tab(2);
+		if(NumDestSynapses)
+		{
+			foreach(name, val; &type.AllSynGlobals)
+			{
+				source ~= "__global $num_type$* " ~ name ~ "_buf,";
+			}
+		}
+		apply("$synapse_globals$");
+		
 		/* Load vals */
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
@@ -533,30 +571,48 @@ if(syn_table_end != $syn_offset$)
 	for(int syn_table_idx = $syn_offset$; syn_table_idx < syn_table_end; syn_table_idx++)
 	{
 		int syn_i = fired_syn_buffer[syn_table_idx];
+		int g_syn_i = syn_i + i * " ~ to!(char[])(NumDestSynapses) ~ ";
 ");
 			source.Tab(2);
-			int syn_offset = 0;
+			int syn_type_offset = 0;
 			foreach(ii, syn_type; type.SynapseTypes)
 			{
-				syn_offset += syn_type.NumSynapses;
+				syn_type_offset += syn_type.NumSynapses;
 				char[] cond;
 				if(ii != 0)
 					cond ~= "else ";
-				cond ~= "if(syn_i < " ~ to!(char[])(syn_offset) ~ ")";
+				cond ~= "if(syn_i < " ~ to!(char[])(syn_type_offset) ~ ")";
 				source ~= cond;
 				source ~= "{";
 				source.Tab();
+				auto prefix = syn_type.Prefix;
+				
+				foreach(val; &syn_type.Synapse.AllSynGlobals)
+				{
+					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+					source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
+				}
 				
 				auto syn_code = syn_type.Synapse.SynCode;
-				auto prefix = syn_type.Prefix;
 				if(syn_type.Prefix != "")
 				{
 					foreach(val; &syn_type.Synapse.AllValues)
 					{
 						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
 					}
+					
+					foreach(val; &syn_type.Synapse.AllSynGlobals)
+					{
+						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
+					}
 				}
 				source.AddBlock(syn_code);
+				
+				foreach(val; &syn_type.Synapse.AllSynGlobals)
+				{
+					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+					source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+				}
 				
 				source.DeTab();
 				source ~= "}";
@@ -953,6 +1009,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			return DefaultValues[*idx_ptr];
 		}
 		
+		idx_ptr = name in SynGlobalBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			return DefaultSynGlobals[*idx_ptr];
+		}
+		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
@@ -974,6 +1036,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			return val;
 		}
 		
+		idx_ptr = name in SynGlobalBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			DefaultSynGlobals[*idx_ptr] = val;
+			return val;
+		}
+		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
@@ -982,8 +1051,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double opIndex(char[] name, int idx)
 	{
 		assert(Model.Generated, "Model needs to be generated before using this function.");
-		assert(idx < Count, "idx needs to be less than Count.");
-		assert(idx >= 0, "Invalid index.");
+		assert(idx < Count, "Neuron index needs to be less than Count.");
+		assert(idx >= 0, "Invalid neuron index.");
 	
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
@@ -997,8 +1066,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double opIndexAssign(double val, char[] name, int idx)
 	{
 		assert(Model.Generated, "Model needs to be generated before using this function.");
-		assert(idx < Count, "idx needs to be less than Count.");
-		assert(idx >= 0, "Invalid index.");
+		assert(idx < Count, "Neuron index needs to be less than Count.");
+		assert(idx >= 0, "Invalid neuron index.");
 		
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
@@ -1010,10 +1079,61 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
+	/* These two functions can be used to modify synglobals after the model has been created.
+	 */
+	double opIndex(char[] name, int nrn_idx, int syn_idx)
+	{
+		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
+		assert(nrn_idx >= 0, "Invalid neuron index.");
+		assert(syn_idx >= 0, "Invalid synapse index.");
+	
+		auto idx_ptr = name in SynGlobalBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			auto buffer = SynGlobalBuffers[*idx_ptr];
+			auto num_syns_per_nrn = buffer.Length / Count;
+			assert(syn_idx < num_syns_per_nrn, "Synapse index needs to be less than the number of synapses for this synapse type.");
+			
+			auto idx = num_syns_per_nrn * nrn_idx + syn_idx;
+			
+			return buffer.ReadOne(idx);
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
+	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx)
+	{
+		assert(Model.Generated, "Model needs to be generated before using this function.");
+		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
+		assert(nrn_idx >= 0, "Invalid neuron index.");
+		assert(syn_idx >= 0, "Invalid synapse index.");
+		
+		auto idx_ptr = name in SynGlobalBufferRegistry;
+		if(idx_ptr !is null)
+		{
+			auto buffer = SynGlobalBuffers[*idx_ptr];
+			auto num_syns_per_nrn = buffer.Length / Count;
+			assert(syn_idx < num_syns_per_nrn, "Synapse index needs to be less than the number of synapses for this synapse type.");
+			
+			auto idx = num_syns_per_nrn * nrn_idx + syn_idx;
+			
+			buffer.WriteOne(idx, val);
+			
+			return val;
+		}
+		
+		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+	}
+	
 	void Shutdown()
 	{
 		foreach(buffer; ValueBuffers)
-			clReleaseMemObject(buffer.Buffer);
+			buffer.Release();
+			
+		foreach(buffer; SynGlobalBuffers)
+			buffer.Release();
 
 		clReleaseMemObject(DtBuffer);
 		clReleaseMemObject(CircBufferStart);
@@ -1134,7 +1254,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	float_t[] DefaultValues;
 	CCLBuffer!(float_t)[] ValueBuffers;
+	
+	float_t[] DefaultSynGlobals;
+	CCLBuffer!(float_t)[] SynGlobalBuffers;
+	
 	int[char[]] ValueBufferRegistry;
+	int[char[]] SynGlobalBufferRegistry;
 	
 	char[] Name;
 	int Count = 0;

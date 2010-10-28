@@ -56,10 +56,11 @@ void main()
 		AddConstant("tau") = 5;
 		AddConstant("E") = 0;
 		AddExternal("V");
+		AddSynGlobal("weight");
 		AddState("s");
 		SetStage(1, "I += s * (E - V);");
 		SetStage(2, "s' = -s / tau;");
-		SetSynCode("s += gsyn;");
+		SetSynCode("s += gsyn * weight;");
 	}
 	
 	auto regular = new CNeuronType("Regular");
@@ -124,9 +125,11 @@ void main()
 	model["Burster"]["glu_gsyn"] = 0.04;
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
+	model["Regular"]["glu_weight"] = 1;
+	
 	model["Burster"].ConnectTo(0, 0, 0, 0, 0);
 	//model["Burster"].ConnectTo(1, 0, 0, 0, 10);
-	model["Regular"].ConnectTo(0, 0, 0, 2, 0);
+	model["Regular"].ConnectTo(0, 0, 0, 16, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
@@ -145,6 +148,7 @@ void main()
 	int tstop = 100;
 	//model.Run(tstop);
 	model.ResetRun();
+	
 	model.InitRun();
 	model.RunUntil(50);
 	model.RunUntil(101);
@@ -176,7 +180,7 @@ void main()
 			Hold = false;
 		}
 		
-		auto t_old = v_rec1.T[0];
+		/+auto t_old = v_rec1.T[0];
 		auto v_old = v_rec1.Data[0];
 		foreach(ii, t; v_rec1.T[1..$])
 		{
@@ -184,7 +188,7 @@ void main()
 			assert(v != v_old);// || t != t_old);
 			t_old = t;
 			v_old = v;
-		}
+		}+/
 		
 		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);

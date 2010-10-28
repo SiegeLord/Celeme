@@ -301,6 +301,7 @@ class CCLModel(float_t)
 	CCLCore Core;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;
 	char[] Source;
+	
 	bool Initialized = false;
 	bool Generated = false;
 }

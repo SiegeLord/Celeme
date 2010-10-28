@@ -1,6 +1,9 @@
 module celeme.util;
 
 import tango.core.Array;
+import tango.sys.Process;
+import tango.io.stream.Text;
+import tango.io.Stdout;
 
 /*
  * Like substitute, but using proper delimeters
@@ -30,6 +33,26 @@ char[] c_substitute(char[] text, char[] pattern, char[] what)
 		rem = rem[start + L .. $];
 	}
 	ret ~= rem;
+	return ret;
+}
+
+char[] GetGitRevisionHash()
+{
+	char[] ret;
+	try
+	{
+		auto git = new Process(true, "git rev-parse HEAD");
+		git.execute();
+		Stdout.copy(git.stdin);
+		/*auto input = new TextInput(git.stdin);
+		//input.flush();
+		input.readln(ret);*/
+		git.wait();
+	}
+	catch(Exception e)
+	{
+		Stdout(e).nl;
+	}
 	return ret;
 }
 

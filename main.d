@@ -2,6 +2,7 @@ module main;
 
 import celeme.celeme;
 import gnuplot;
+import celeme.util;
 
 import tango.time.StopWatch;
 import tango.io.Stdout;
@@ -159,6 +160,9 @@ void main()
 	core.Shutdown();
 	
 	timer.start;
+	
+	Stdout(GetGitRevisionHash()).nl;
+	
 	if(record)
 	//if(false)
 	{

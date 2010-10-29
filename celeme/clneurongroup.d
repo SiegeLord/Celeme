@@ -170,10 +170,18 @@ $event_source_args$
 #if PARALLEL_DELIVERY
 	int local_id = get_local_id(0);
 
-	fire_table[local_id] = -1;
+#if USE_ATOMIC_DELIVERY
+	__local int fire_table_idx;
+	if(local_id == 0)
+		fire_table_idx = 0;
+#else
+	for(int ii = 0; ii < $num_event_sources$; ii++)
+		fire_table[local_id * $num_event_sources$ + ii] = -1;
 
 	__local bool need_to_deliver;
 	need_to_deliver = false;
+#endif
+
 	barrier(CLK_LOCAL_MEM_FENCE);
 #endif
 	
@@ -187,14 +195,24 @@ $event_source_code$
 
 #if PARALLEL_DELIVERY
 	barrier(CLK_LOCAL_MEM_FENCE);
+#if !USE_ATOMIC_DELIVERY
 	if(need_to_deliver)
 	{
+#endif
 		int local_size = get_local_size(0);
+		int num_fired;
+#if USE_ATOMIC_DELIVERY
+		num_fired = fire_table_idx;
+#else
+		num_fired = local_size * $num_event_sources$;
+#endif
 
-		for(int ii = 0; ii < local_size; ii++)
+		for(int ii = 0; ii < num_fired; ii++)
 		{
+#if !USE_ATOMIC_DELIVERY
 			if(fire_table[ii] < 0)
 				continue;
+#endif
 
 			int syn_start = num_synapses * fire_table[ii];
 			for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
@@ -208,7 +226,9 @@ $event_source_code$
 				}
 			}
 		}
+#if !USE_ATOMIC_DELIVERY
 	}
+#endif
 #endif
 }
 ";
@@ -898,8 +918,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		int buff_end = circ_buffer_end[idx_idx];
 #if PARALLEL_DELIVERY
+#if USE_ATOMIC_DELIVERY
+		fire_table[atom_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;
+#else
 		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
 		need_to_deliver = true;
+#endif
 #else
 		int syn_start = num_synapses * idx_idx;
 		for(int syn_id = 0; syn_id < num_synapses; syn_id++)
@@ -923,9 +947,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 }
 `.dup;
-				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 				src = src.substitute("$event_source_idx$", to!(char[])(event_src_idx));
-				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 				
 				source.AddBlock(src);
 				source.DeTab;
@@ -935,6 +957,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		}
 		apply("$event_source_code$");
 		
+		kernel_source = kernel_source.substitute("$num_event_sources$", to!(char[])(NumEventSources));
+		kernel_source = kernel_source.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 		kernel_source = kernel_source.substitute("$num_synapses$", to!(char[])(NumSrcSynapses));
 		
 		DeliverKernelSource = kernel_source;
@@ -1312,7 +1336,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int NumEventSources = 0;
 	
 	int NumSrcSynapses; /* Number of pre-synaptic slots per event source */
-	int NumDestSynapses; /* Number of post-synaptic slots (total) */
+	int NumDestSynapses; /* Number of post-synaptic slots per neuron */
 	
 	/* The place we reset the fired syn idx to*/
 	int SynOffset;

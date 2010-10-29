@@ -78,7 +78,7 @@ class CCLModel(float_t)
 		NeuronGroups[type.Name] = group;
 	}
 	
-	void Generate(bool parallel_delivery = true, bool initialize = true)
+	void Generate(bool parallel_delivery = true, bool atomic_delivery = true, bool initialize = true)
 	{
 		assert(NumNeurons);
 		assert(!Generated);
@@ -96,6 +96,17 @@ class CCLModel(float_t)
 			Source ~= "#define PARALLEL_DELIVERY 1\n";
 		else
 			Source ~= "#define PARALLEL_DELIVERY 0\n";
+			
+		if(atomic_delivery)
+		{
+			Source ~= "#define USE_ATOMIC_DELIVERY 1\n";
+			Source ~= "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable\n";
+		}
+		else
+		{
+			Source ~= "#define USE_ATOMIC_DELIVERY 0\n";
+		}
+			
 		Source ~= FloatMemsetKernelTemplate;
 		Source ~= IntMemsetKernelTemplate;
 		foreach(group; NeuronGroups)
@@ -277,7 +288,7 @@ class CCLModel(float_t)
 		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
 		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
 		
-		assert(dest_slot >= 0 && dest_slot < (dest.NumDestSynapses / dest.Count), "Invalid event source slot index.");
+		assert(dest_slot >= 0 && dest_slot < dest.NumDestSynapses, "Invalid event source slot index.");
 		
 		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest_slot);
 	}

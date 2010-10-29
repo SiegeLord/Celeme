@@ -87,7 +87,7 @@ void main()
 		RecordRate = 0;
 	}
 	
-	auto core = new CCLCore(false);
+	auto core = new CCLCore(true);
 	
 	auto model = new CCLModel!(float)(core);
 	
@@ -96,13 +96,13 @@ void main()
 	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(regular, 16);
-	model.AddNeuronGroup(burster, 16);
+	model.AddNeuronGroup(regular, 2000);
+	model.AddNeuronGroup(burster, 2000);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
-	model.Generate(false);
+	model.Generate(true, true);
 	
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;

@@ -173,10 +173,12 @@ void main()
 			
 			Hold = true;
 			Color([0,0,0]);
-			//Style = "points";
+			Style("linespoints");
+			PointType(6);
+			Thickness(1);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
-			//Style = "points";
+			//Style("points");
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 			Hold = false;
 		}

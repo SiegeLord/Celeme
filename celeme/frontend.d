@@ -25,12 +25,14 @@ class CValue
 
 		ret.Name = Name.dup;
 		ret.Value = Value;
+		ret.ReadOnly = ReadOnly;
 		
 		return ret;
 	}
 	
 	char[] Name;
 	double Value = 0;
+	bool ReadOnly = false;
 }
 
 bool IsValidName(char[] name)
@@ -167,6 +169,18 @@ class CMechanism
 		Init = source;
 	}
 	
+	CValue opIndex(char[] name)
+	{
+		/* TODO: LOL OPTIMIZE */
+		foreach(val; &AllValues)
+		{
+			if(val.Name == name)
+				return val;
+		}
+		
+		throw new Exception("'" ~ Name ~ "' does not have a '" ~ name ~ "' value.");
+	}
+	
 	CMechanism dup(CMechanism ret = null)
 	{
 		if(ret is null)
@@ -244,6 +258,19 @@ class CSynapse : CMechanism
 	
 	mixin(AddMechFunc!("SynGlobal"));
 	
+	bool IsDuplicateName(char[] name)
+	{
+		auto ret = super.IsDuplicateName(name);
+		if(ret)
+			return true;
+		foreach(val; &AllSynGlobals)
+		{
+			if(val.Name == name)
+				return true;
+		}
+		return false;
+	}
+	
 	void SetSynCode(char[] code)
 	{
 		SynCode = code;
@@ -257,6 +284,24 @@ class CSynapse : CMechanism
 				return ret;
 		}
 		return 0;
+	}
+	
+	CValue opIndex(char[] name)
+	{
+		/* TODO: LOL OPTIMIZE */
+		foreach(val; &AllValues)
+		{
+			if(val.Name == name)
+				return val;
+		}
+		
+		foreach(val; &AllSynGlobals)
+		{
+			if(val.Name == name)
+				return val;
+		}
+		
+		throw new Exception("'" ~ Name ~ "' does not have a '" ~ name ~ "' value.");
 	}
 	
 	CSynapse dup(CSynapse ret = null)

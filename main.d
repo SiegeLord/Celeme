@@ -63,6 +63,7 @@ void main()
 		SetStage(2, "s' = -s / tau;");
 		SetSynCode("s += gsyn * weight;");
 	}
+	exp_syn["weight"].ReadOnly = true;
 	
 	auto regular = new CNeuronType("Regular");
 	with(regular)

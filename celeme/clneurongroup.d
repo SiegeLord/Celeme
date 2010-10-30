@@ -640,8 +640,11 @@ if(syn_table_end != $syn_offset$)
 				
 				foreach(val; &syn_type.Synapse.AllSynGlobals)
 				{
-					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
-					source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+					if(!val.ReadOnly)
+					{
+						auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+						source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+					}
 				}
 				
 				source.DeTab();
@@ -855,7 +858,8 @@ else //It is full, error
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= name ~ "_buf[i] = " ~ name ~ ";";
+			if(!state.ReadOnly)
+				source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		apply("$save_vals$");
 		

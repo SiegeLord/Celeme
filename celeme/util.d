@@ -36,6 +36,15 @@ char[] c_substitute(char[] text, char[] pattern, char[] what)
 	return ret;
 }
 
+T[] deep_dup(T)(T[] arr)
+{
+	T[] ret;
+	ret.length = arr.length;
+	foreach(ii, el; arr)
+		ret[ii] = el.dup;
+	return ret;
+}
+
 char[] GetGitRevisionHash()
 {
 	char[] ret;

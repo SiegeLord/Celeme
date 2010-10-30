@@ -18,6 +18,17 @@ class CValue
 		return Value = val;
 	}
 	
+	CValue dup(CValue ret = null)
+	{
+		if(ret is null)
+			ret = new CValue(Name.dup);
+
+		ret.Name = Name.dup;
+		ret.Value = Value;
+		
+		return ret;
+	}
+	
 	char[] Name;
 	double Value = 0;
 }
@@ -39,6 +50,11 @@ struct SThreshold
 	char[] Source;
 	bool IsEventSource = false;
 	bool ResetTime = false;
+	
+	SThreshold dup()
+	{
+		return SThreshold(State.dup, Condition.dup, Source.dup, IsEventSource, ResetTime);
+	}
 }
 
 char[] AddMechFunc(char[] name)()
@@ -151,6 +167,30 @@ class CMechanism
 		Init = source;
 	}
 	
+	CMechanism dup(CMechanism ret = null)
+	{
+		if(ret is null)
+			ret = new CMechanism(Name);
+		
+		ret.Name = Name.dup;
+		foreach(ii, stage; Stages)
+			ret.Stages[ii] = stage.dup;
+		
+		ret.Externals = Externals.deep_dup();
+			
+		ret.Init = Init.dup;
+		
+		ret.States = States.deep_dup();
+		ret.Globals = Globals.deep_dup();
+		ret.Locals = Locals.deep_dup();
+		ret.Constants = Constants.deep_dup();
+		ret.Thresholds = Thresholds.deep_dup();
+		
+		ret.NumEventSources = NumEventSources;
+		
+		return ret;
+	}
+	
 	/* Mechanism evaluation proceeds in stages. Each mechanism's stage N is run at the same time,
 	 * and before stage N + 1. The suggested nature of operations that go in each stage is as follows:
 	 * 0 - Initialize local variables
@@ -219,6 +259,19 @@ class CSynapse : CMechanism
 		return 0;
 	}
 	
+	CSynapse dup(CSynapse ret = null)
+	{
+		if(ret is null)
+			ret = new CSynapse(Name);
+		
+		super.dup(ret);
+		
+		ret.SynGlobals = SynGlobals.deep_dup();
+		ret.SynCode = SynCode.dup;
+		
+		return ret;
+	}
+	
 	/* A value that every synapse has (like synaptic weight).
 	 */
 	CValue[] SynGlobals;
@@ -254,9 +307,11 @@ class CNeuronType
 		return null;
 	}
 	
-	void AddMechanism(CMechanism mech, char[] prefix = "")
+	void AddMechanism(CMechanism mech, char[] prefix = "", bool no_dup = false)
 	{
 		assert(mech);
+		if(!no_dup)
+			mech = mech.dup;
 		foreach(val; &mech.AllValues)
 		{
 			auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
@@ -275,9 +330,11 @@ class CNeuronType
 		MechanismPrefixes ~= prefix;
 	}
 	
-	void AddSynapse(CSynapse syn, int num_slots, char[] prefix = "")
+	void AddSynapse(CSynapse syn, int num_slots, char[] prefix = "", bool no_dup = false)
 	{
-		AddMechanism(syn, prefix);
+		if(!no_dup)
+			syn = syn.dup;
+		AddMechanism(syn, prefix, true);
 		foreach(val; &syn.AllSynGlobals)
 		{
 			auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;

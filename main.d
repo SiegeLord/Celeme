@@ -87,7 +87,7 @@ void main()
 		RecordRate = 0;
 	}
 	
-	auto model = new CCLModel!(float)(true);
+	auto model = new CCLModel!(float)(false);
 	
 	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;

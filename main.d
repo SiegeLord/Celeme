@@ -87,9 +87,7 @@ void main()
 		RecordRate = 0;
 	}
 	
-	auto core = new CCLCore(true);
-	
-	auto model = new CCLModel!(float)(core);
+	auto model = new CCLModel!(float)(true);
 	
 	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;
@@ -157,7 +155,6 @@ void main()
 	Stdout.formatln("Run time: {}", timer.stop);
 	
 	model.Shutdown();
-	core.Shutdown();
 	
 	timer.start;
 	

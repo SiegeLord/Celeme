@@ -51,13 +51,14 @@ class CCLModel(float_t)
 		static assert(0);
 	}
 	
-	this(CCLCore core)
+	this(bool gpu)
 	{
-		Core = core;
+		Core = new CCLCore(gpu);
 	}
 	
 	void AddNeuronGroup(CNeuronType type, int number, char[] name = null)
 	{
+		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
 		
 		type.VerifyExternals();
@@ -235,6 +236,8 @@ class CCLModel(float_t)
 		
 		FiredSynBuffer.Release();
 		FiredSynIdxBuffer.Release();
+		
+		Core.Shutdown();
 		
 		Generated = false;
 		Initialized = false;

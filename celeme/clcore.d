@@ -26,7 +26,7 @@ class CCLKernel
 		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, arg);
 		if(err != CL_SUCCESS)
 		{
-			throw new Exception("Failed to set a global argument " ~ to!(char[])(argnum) ~ "of kernel '" ~ Name ~ "'.");
+			throw new Exception("Failed to set a global argument " ~ to!(char[])(argnum) ~ " of kernel '" ~ Name ~ "'.");
 		}
 	}
 
@@ -35,7 +35,7 @@ class CCLKernel
 		auto err = clSetKernelArg(Kernel, argnum, size, null);
 		if(err != CL_SUCCESS)
 		{
-			throw new Exception("Failed to set a local argument " ~ to!(char[])(argnum) ~ "of kernel '" ~ Name ~ "'.");
+			throw new Exception("Failed to set a local argument " ~ to!(char[])(argnum) ~ " of kernel '" ~ Name ~ "'.");
 		}
 	}
 	

@@ -788,7 +788,7 @@ if(syn_table_end != $syn_offset$)
 			source ~= "{";
 			source.Tab;
 			
-			if(NeedSrcSynCode && thresh.IsEventSource)
+			if(thresh.IsEventSource)
 				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime)

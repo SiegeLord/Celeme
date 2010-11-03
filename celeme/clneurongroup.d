@@ -106,7 +106,11 @@ $reset_state$
 			/* Advance and compute the new step size*/
 			cur_time += dt;
 			
-			dt *= 0.8f * .46415888f * rootn(error + 0.00001f, -6);
+			if(error == 0)
+				dt = timestep;
+			else
+				dt *= 0.9f * rootn(error, -3.0f);
+				
 			
 			/* Handle thresholds */
 $thresholds$
@@ -425,7 +429,7 @@ class CNeuronGroup(float_t)
 		}
 		
 		/* Initialize the buffers */
-		Model.MemsetFloatBuffer(DtBuffer, Count, 0.001f);
+		Model.MemsetFloatBuffer(DtBuffer, Count, 0.01f);
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		RecordIdxBuffer.WriteOne(0, 0);
 		
@@ -653,7 +657,7 @@ if(syn_table_end != $syn_offset$)
 			source.DeTab(2);
 			source.AddBlock(
 "	}
-	dt = 0.001f;
+	dt = 0.01f;
 	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
 }");
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
@@ -762,7 +766,7 @@ if(syn_table_end != $syn_offset$)
 		foreach(name, state; &type.AllStates)
 		{
 			source ~= name ~ " -= " ~ name ~ "_0;";
-			source ~= "error += " ~ name ~ " * " ~ name ~ ";";
+			source ~= "error = max(error, fabs(" ~ name ~ ") / 0.05f);";
 		}
 		apply("$compute_error$");
 		
@@ -788,7 +792,7 @@ if(syn_table_end != $syn_offset$)
 				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime)
-				source ~= "dt = 0.001f;";
+				source ~= "dt = 0.01f;";
 			
 			source.AddBlock(
 `if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)

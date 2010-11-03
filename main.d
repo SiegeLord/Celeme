@@ -192,7 +192,7 @@ void main()
 			t_old = t;
 			v_old = v;
 		}+/
-		
+		// 361 680
 		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}

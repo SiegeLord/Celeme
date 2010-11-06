@@ -41,6 +41,7 @@ $synapse_globals$
 		const $num_type$ timestep = 1;
 		int record_flags = record_flags_buffer[i];
 		
+		$num_type$ dt_residual = 0;
 		$num_type$ dt = dt_buf[i];
 $load_vals$
 
@@ -118,9 +119,15 @@ $thresholds$
 			/* Clamp the dt not too overshoot the timestep */
 			if(cur_time < timestep && cur_time + dt >= timestep)
 			{
+				dt_residual = dt;
 				dt = timestep - cur_time + 0.0001f;
+				dt_residual -= dt;
 			}
 		}
+		if(dt_residual > $min_dt$f)
+			dt = dt_residual;
+		if(dt > 1.0f)
+			dt = 1.0f;
 		dt_buf[i] = dt;
 $save_vals$
 	}
@@ -429,7 +436,7 @@ class CNeuronGroup(float_t)
 		}
 		
 		/* Initialize the buffers */
-		Model.MemsetFloatBuffer(DtBuffer, Count, 0.01f);
+		Model.MemsetFloatBuffer(DtBuffer, Count, MinDt);
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		RecordIdxBuffer.WriteOne(0, 0);
 		
@@ -657,7 +664,7 @@ if(syn_table_end != $syn_offset$)
 			source.DeTab(2);
 			source.AddBlock(
 "	}
-	dt = 0.01f;
+	dt = $min_dt$f;
 	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
 }");
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
@@ -792,7 +799,7 @@ if(syn_table_end != $syn_offset$)
 				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime)
-				source ~= "dt = 0.01f;";
+				source ~= "dt = $min_dt$f;";
 			
 			source.AddBlock(
 `if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)
@@ -868,6 +875,7 @@ else //It is full, error
 		apply("$save_vals$");
 		
 		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
+		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		
 		ThreshRecordOffset = non_local_idx;
 		
@@ -1300,6 +1308,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		DestSynBuffer.WriteOne(dest_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
+	
+	double MinDt = 0.01;
 	
 	CRecorder[int] Recorders;
 	

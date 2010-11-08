@@ -244,6 +244,47 @@ $event_source_code$
 }
 ";
 
+class CValueBuffer(T)
+{
+	this(CValue val, CCLCore core, size_t count)
+	{
+		DefaultValue = val.Value;
+		Tolerance = val.Tolerance;
+		Buffer = core.CreateBufferEx!(T)(count);
+	}
+	
+	double opAssign(double val)
+	{
+		return DefaultValue = val;
+	}
+	
+	void Release()
+	{
+		Buffer.Release();
+	}
+		
+	CCLBuffer!(T) Buffer;	
+	double DefaultValue;
+	double Tolerance;
+}
+
+class CSynGlobalBuffer(T)
+{
+	this(CValue val, CCLCore core, size_t num_syn)
+	{
+		DefaultValue = val.Value;
+		Buffer = core.CreateBufferEx!(T)(num_syn);
+	}
+	
+	void Release()
+	{
+		Buffer.Release();
+	}
+	
+	CCLBuffer!(T) Buffer;
+	double DefaultValue;
+}
+
 class CNeuronGroup(float_t)
 {
 	static if(is(float_t == float))
@@ -269,11 +310,7 @@ class CNeuronGroup(float_t)
 		foreach(name, state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
-			
-			auto buff = Model.Core.CreateBufferEx!(float_t)(Count);
-			
-			DefaultValues ~= state.Value;			
-			ValueBuffers ~= buff;
+			ValueBuffers ~= new CValueBuffer!(float_t)(state, Model.Core, Count);
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -283,12 +320,8 @@ class CNeuronGroup(float_t)
 			{
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
-				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
-				
-				auto buff = Model.Core.CreateBufferEx!(float_t)(Count * syn_type.NumSynapses);
-				
-				DefaultSynGlobals ~= val.Value;			
-				SynGlobalBuffers ~= buff;
+				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;			
+				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Model.Core, Count * syn_type.NumSynapses);			
 			}
 		}
 		
@@ -343,7 +376,7 @@ class CNeuronGroup(float_t)
 			SetGlobalArg(arg_id++, &RecordLength);
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, &buffer.Buffer);
+				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
@@ -359,7 +392,7 @@ class CNeuronGroup(float_t)
 				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
 				foreach(buffer; SynGlobalBuffers)
 				{
-					SetGlobalArg(arg_id++, &buffer.Buffer);
+					SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 				}
 			}
 			SetGlobalArg(arg_id++, &Count);
@@ -373,7 +406,7 @@ class CNeuronGroup(float_t)
 			arg_id = 0;
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, &buffer.Buffer);
+				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
@@ -447,18 +480,18 @@ class CNeuronGroup(float_t)
 		}
 		
 		/* Write the default values to the global buffers*/
-		foreach(ii, buffer; ValueBuffers)
+		foreach(buffer; ValueBuffers)
 		{
-			auto arr = buffer.Map(CL_MAP_WRITE);
-			arr[] = DefaultValues[ii];
-			buffer.UnMap(arr);
+			auto arr = buffer.Buffer.Map(CL_MAP_WRITE);
+			arr[] = buffer.DefaultValue;
+			buffer.Buffer.UnMap(arr);
 		}
 		
 		foreach(ii, buffer; SynGlobalBuffers)
 		{
-			auto arr = buffer.Map(CL_MAP_WRITE);
-			arr[] = DefaultSynGlobals[ii];
-			buffer.UnMap(arr);
+			auto arr = buffer.Buffer.Map(CL_MAP_WRITE);
+			arr[] = buffer.DefaultValue;
+			buffer.Buffer.UnMap(arr);
 		}
 		Model.Core.Finish();
 		
@@ -1056,13 +1089,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return DefaultValues[*idx_ptr];
+			return ValueBuffers[*idx_ptr].DefaultValue;
 		}
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return DefaultSynGlobals[*idx_ptr];
+			return SynGlobalBuffers[*idx_ptr].DefaultValue;
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1082,14 +1115,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			DefaultValues[*idx_ptr] = val;
+			ValueBuffers[*idx_ptr].DefaultValue = val;
 			return val;
 		}
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			DefaultSynGlobals[*idx_ptr] = val;
+			SynGlobalBuffers[*idx_ptr].DefaultValue = val;
 			return val;
 		}
 		
@@ -1107,7 +1140,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return ValueBuffers[*idx_ptr].ReadOne(idx);
+			return ValueBuffers[*idx_ptr].Buffer.ReadOne(idx);
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1122,7 +1155,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			ValueBuffers[*idx_ptr].WriteOne(idx, val);
+			ValueBuffers[*idx_ptr].Buffer.WriteOne(idx, val);
 			return val;
 		}
 		
@@ -1141,7 +1174,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			auto buffer = SynGlobalBuffers[*idx_ptr];
+			auto buffer = SynGlobalBuffers[*idx_ptr].Buffer;
 			auto num_syns_per_nrn = buffer.Length / Count;
 			assert(syn_idx < num_syns_per_nrn, "Synapse index needs to be less than the number of synapses for this synapse type.");
 			
@@ -1163,7 +1196,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			auto buffer = SynGlobalBuffers[*idx_ptr];
+			auto buffer = SynGlobalBuffers[*idx_ptr].Buffer;
 			auto num_syns_per_nrn = buffer.Length / Count;
 			assert(syn_idx < num_syns_per_nrn, "Synapse index needs to be less than the number of synapses for this synapse type.");
 			
@@ -1316,13 +1349,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
-	float_t[] DefaultValues;
-	CCLBuffer!(float_t)[] ValueBuffers;
-	
-	float_t[] DefaultSynGlobals;
-	CCLBuffer!(float_t)[] SynGlobalBuffers;
-	
+	CValueBuffer!(float_t)[] ValueBuffers;
 	int[char[]] ValueBufferRegistry;
+	
+	CSynGlobalBuffer!(float_t)[] SynGlobalBuffers;
 	int[char[]] SynGlobalBufferRegistry;
 	
 	char[] Name;

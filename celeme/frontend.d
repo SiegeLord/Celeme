@@ -26,6 +26,7 @@ class CValue
 		ret.Name = Name.dup;
 		ret.Value = Value;
 		ret.ReadOnly = ReadOnly;
+		ret.Tolerance = Tolerance;
 		
 		return ret;
 	}
@@ -33,6 +34,7 @@ class CValue
 	char[] Name;
 	double Value = 0;
 	bool ReadOnly = false;
+	double Tolerance = 0.1;
 }
 
 bool IsValidName(char[] name)

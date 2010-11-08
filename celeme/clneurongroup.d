@@ -27,6 +27,7 @@ __kernel void $type_name$_step
 		const int record_buffer_size,
 $val_args$
 $constant_args$
+$tolerance_args$
 $event_source_args$
 $synapse_args$
 $synapse_globals$
@@ -249,7 +250,6 @@ class CValueBuffer(T)
 	this(CValue val, CCLCore core, size_t count)
 	{
 		DefaultValue = val.Value;
-		Tolerance = val.Tolerance;
 		Buffer = core.CreateBufferEx!(T)(count);
 	}
 	
@@ -265,7 +265,6 @@ class CValueBuffer(T)
 		
 	CCLBuffer!(T) Buffer;	
 	double DefaultValue;
-	double Tolerance;
 }
 
 class CSynGlobalBuffer(T)
@@ -311,6 +310,13 @@ class CNeuronGroup(float_t)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
 			ValueBuffers ~= new CValueBuffer!(float_t)(state, Model.Core, Count);
+		}
+		
+		/* Copy tolerances */
+		foreach(name, state; &type.AllStates)
+		{
+			ToleranceRegistry[name] = ToleranceRegistry.length;
+			Tolerances ~= state.Tolerance;
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -379,6 +385,11 @@ class CNeuronGroup(float_t)
 				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
+			foreach(tol; Tolerances)
+			{
+				float_t tolerance = tol;
+				SetGlobalArg(arg_id++, &tolerance);
+			}
 			if(NeedSrcSynCode)
 			{
 				/* Set the event source args */
@@ -595,6 +606,14 @@ class CNeuronGroup(float_t)
 		}
 		apply("$constant_args$");
 		
+		/* Tolerance arguments */
+		source.Tab(2);
+		foreach(name, state; &type.AllStates)
+		{
+			source ~= "const $num_type$ " ~ name ~ "_tol,";
+		}
+		apply("$tolerance_args$");
+		
 		/* Event source args */
 		source.Tab(2);
 		if(NeedSrcSynCode)
@@ -806,7 +825,7 @@ if(syn_table_end != $syn_offset$)
 		foreach(name, state; &type.AllStates)
 		{
 			source ~= name ~ " -= " ~ name ~ "_0;";
-			source ~= "error = max(error, fabs(" ~ name ~ ") / 0.05f);";
+			source ~= "error = max(error, fabs(" ~ name ~ ") / " ~ name ~ "_tol);";
 		}
 		apply("$compute_error$");
 		
@@ -1348,6 +1367,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	double[] Constants;
 	int[char[]] ConstantRegistry;
+	
+	double[] Tolerances;
+	int[char[]] ToleranceRegistry;
 	
 	CValueBuffer!(float_t)[] ValueBuffers;
 	int[char[]] ValueBufferRegistry;

@@ -30,6 +30,8 @@ void main()
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
 		AddThreshold("V", "> 0", "V = -65; u += 8; delay = 5;", true, true);
 	}
+	iz_mech["V"].Tolerance = 0.1;
+	iz_mech["u"].Tolerance = 0.01;
 	
 	auto iz_mech2 = new CMechanism("IzMech2");
 	with(iz_mech2)
@@ -41,6 +43,8 @@ void main()
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
 		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true, true);
 	}
+	iz_mech2["V"].Tolerance = 0.1;
+	iz_mech2["u"].Tolerance = 0.01;
 
 	auto i_clamp = new CMechanism("IClamp");
 	with(i_clamp)

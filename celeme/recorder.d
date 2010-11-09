@@ -4,9 +4,8 @@ import tango.io.Stdout;
 
 class CRecorder
 {
-	this(int neuron_id, char[] name)
+	this(char[] name = "")
 	{
-		NeuronId = neuron_id;
 		Name = name;
 	}
 	
@@ -22,7 +21,6 @@ class CRecorder
 		{
 			TArray.length = cast(int)((Length + 1) * 1.5);
 			DataArray.length = TArray.length;
-			//Stdout(NeuronId, TArray.length).nl;
 		}
 		TArray[Length] = t;
 		DataArray[Length] = data;
@@ -42,7 +40,6 @@ class CRecorder
 	double[] TArray;
 	double[] DataArray;
 	
-	int NeuronId;
 	char[] Name;
 	size_t Length = 0;
 }

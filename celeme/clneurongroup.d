@@ -13,6 +13,7 @@ import opencl.cl;
 import tango.io.Stdout;
 import tango.text.Util;
 import tango.util.Convert;
+import tango.core.Array;
 
 const ArgOffsetStep = 7;
 char[] StepKernelTemplate = "
@@ -63,6 +64,7 @@ $synapse_code$
 				$num_type$4 record;
 				record.s0 = i;
 				record.s1 = cur_time + t;
+				record.s3 = 0;
 				switch(record_flags)
 				{
 $record_vals$
@@ -356,6 +358,8 @@ class CNeuronGroup(float_t)
 			Constants ~= state.Value;
 		}
 		
+		EventRecorder = new CRecorder();
+		
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
@@ -508,6 +512,8 @@ class CNeuronGroup(float_t)
 		
 		foreach(recorder; Recorders)
 			recorder.Length = 0;
+			
+		EventRecorder.Length = 0;
 	}
 	
 	void SetConstant(int idx)
@@ -863,10 +869,12 @@ if(syn_table_end != $syn_offset$)
 		idx--;
 		atom_xchg(&record_idx[0], idx);
 	}
+
 	$num_type$4 record;
 	record.s0 = i;
 	record.s1 = cur_time + t;
 	record.s2 = $thresh_idx$;
+	record.s3 = 1;
 	record_buffer[idx] = record;
 }`);
 			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
@@ -1258,7 +1266,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		assert(Model.Initialized);
 		
-		if(Recorders.length)
+		if(Recorders.length || EventRecorderIds.length)
 		{
 			if((RecordRate && ((t + 1) % RecordRate == 0)) || last)
 			{
@@ -1271,7 +1279,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 					{
 						int id = cast(int)quad[0];
 						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-						Recorders[id].AddDatapoint(quad[1], quad[2]);
+						if(quad[3] > 0)
+							EventRecorder.AddDatapoint(quad[1], id * NumEventSources + quad[2]);
+						else
+							Recorders[id].AddDatapoint(quad[1], quad[2]);
 					}
 					RecordBuffer.UnMap(output);
 				}
@@ -1287,6 +1298,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		
+		/* TODO: This relies on states being first in the valuebuffer registry... */
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr is null)
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1294,24 +1306,21 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		/* Offset the index by 1 */
 		RecordFlagsBuffer.WriteOne(neuron_id, 1 + *idx_ptr);
 		
-		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
+		auto rec = new CRecorder(Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
 		Recorders[neuron_id] = rec;
 		return rec;
 	}
 	
-	CRecorder Record(int neuron_id, int thresh_id)
+	void RecordEvents(int neuron_id, int thresh_id)
 	{
 		assert(Model.Initialized);
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		assert(thresh_id >= 0);
 		
+		EventRecorderIds ~= neuron_id;
 		/* Offset the index by 1 */
 		RecordFlagsBuffer.WriteOne(neuron_id, thresh_id + ThreshRecordOffset);
-		
-		auto rec = new CRecorder(neuron_id, Name ~ "[" ~ to!(char[])(neuron_id) ~ "]" ~ " events from source " ~ to!(char[])(thresh_id));
-		Recorders[neuron_id] = rec;
-		return rec;
 	}
 	
 	void StopRecording(int neuron_id)
@@ -1325,8 +1334,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			idx_ptr.Detach();
 			Recorders.remove(neuron_id);
-			RecordFlagsBuffer.WriteOne(neuron_id, 0);
 		}
+		
+		EventRecorderIds.length = EventRecorderIds.remove(neuron_id);
+		
+		RecordFlagsBuffer.WriteOne(neuron_id, 0);
 	}
 	
 	void CheckErrors()
@@ -1364,6 +1376,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double MinDt = 0.01;
 	
 	CRecorder[int] Recorders;
+	CRecorder EventRecorder;
+	
+	/* Holds the id's where we are recording events */
+	int[] EventRecorderIds;
 	
 	double[] Constants;
 	int[char[]] ConstantRegistry;

@@ -143,8 +143,8 @@ void main()
 	{
 		v_rec1 = model["Regular"].Record(0, "V");
 		v_rec2 = model["Burster"].Record(0, "V");
-		//v_rec1 = model["Regular"].Record(0, 0);
-		//v_rec2 = model["Burster"].Record(0, 0);
+		//model["Burster"].RecordEvents(0, 1);
+		//v_rec2 = model["Burster"].EventRecorder;
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);

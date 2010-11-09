@@ -462,9 +462,9 @@ class CNeuronGroup(float_t)
 	
 	bool NeedSrcSynCode()
 	{
-		/* Don't need it if the model has no synapses to receive events, or the type
-		 * of this neuron group has no event sources. Obviously we need src slots too */
-		return Model.NumDestSynapses && NumEventSources && NumSrcSynapses;
+		/* Don't need it if the type of this neuron group has no event sources. 
+		 * Obviously we need src slots too */
+		return NumEventSources && NumSrcSynapses;
 	}
 	
 	void ResetBuffers()
@@ -969,7 +969,7 @@ else //It is full, error
 		int event_src_idx = 0;
 		foreach(thresh; &type.AllEventSources)
 		{
-			if(Model.NumDestSynapses)
+			if(NeedSrcSynCode)
 			{
 				source ~= "{";
 				source.Tab;

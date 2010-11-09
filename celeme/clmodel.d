@@ -90,6 +90,14 @@ class CCLModel(float_t)
 			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(NumNeurons);
 			FiredSynBuffer = Core.CreateBufferEx!(int)(NumDestSynapses);
 		}
+		else
+		{
+			/*
+			 * Dummies for parameters
+			 */
+			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(1);
+			FiredSynBuffer = Core.CreateBufferEx!(int)(1);
+		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
 		//Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";

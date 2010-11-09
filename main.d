@@ -93,6 +93,7 @@ void main()
 	}
 	
 	auto model = new CCLModel!(float)(false);
+	scope(exit) model.Shutdown();
 	
 	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;
@@ -158,8 +159,6 @@ void main()
 	model.RunUntil(101);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
-	
-	model.Shutdown();
 	
 	timer.start;
 	

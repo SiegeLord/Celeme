@@ -317,7 +317,7 @@ class CNeuronGroup(float_t)
 		/* Copy tolerances */
 		foreach(name, state; &type.AllStates)
 		{
-			ToleranceRegistry[name] = ToleranceRegistry.length;
+			ToleranceRegistry[name] = Tolerances.length;
 			Tolerances ~= state.Tolerance;
 		}
 		
@@ -523,6 +523,24 @@ class CNeuronGroup(float_t)
 		float_t val = Constants[idx];
 		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
 		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
+	}
+	
+	void SetTolerance(char[] state, double tolerance)
+	{
+		assert(tolerance > 0);
+		
+		auto idx_ptr = state in ToleranceRegistry;
+		if(idx_ptr !is null)
+		{	
+			Tolerances[*idx_ptr] = tolerance;
+			if(Model.Initialized)
+			{
+				float_t val = tolerance;
+				StepKernel.SetGlobalArg(*idx_ptr + ValueBuffers.length + Constants.length + ArgOffsetStep, &val);
+			}
+		}
+		else
+			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ state ~ "' state.");
 	}
 	
 	void CallInitKernel(size_t workgroup_size)

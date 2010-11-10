@@ -62,7 +62,7 @@ void main()
 		AddConstant("tau") = 5;
 		AddConstant("E") = 0;
 		AddExternal("V");
-		AddSynGlobal("weight");
+		AddSynGlobal("weight") = 1;
 		AddState("s");
 		SetStage(1, "I += s * (E - V);");
 		SetStage(2, "s' = -s / tau;");
@@ -78,7 +78,7 @@ void main()
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
 		RecordLength = 1000;
-		RecordRate = 0;
+		RecordRate = 100;
 	}
 	
 	auto burster = new CNeuronType("Burster");
@@ -90,7 +90,7 @@ void main()
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
 		RecordLength = 1000;
-		RecordRate = 0;
+		RecordRate = 100;
 	}
 	
 	auto model = new CCLModel!(float)(false);
@@ -134,9 +134,6 @@ void main()
 	model["Burster"]["glu_gsyn"] = 0.04;
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
-	model["Regular"]["glu_weight"] = 1;
-	model["Burster"]["glu_weight"] = 1;
-	
 	model.Connect("Burster", 0, 0, 0, "Regular", 0, 0);
 	model.Connect("Regular", 0, 0, 0, "Burster", 0, 0);
 	
@@ -160,7 +157,7 @@ void main()
 	
 	model.InitRun();
 	model.RunUntil(50);
-	model.RunUntil(101);
+	model.RunUntil(tstop + 1);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
 	

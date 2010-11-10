@@ -1,14 +1,20 @@
-module main;
+module celeme.capi;
 
 import celeme.celeme;
-import celeme.capi;
 import gnuplot;
 import celeme.util;
 
 import tango.time.StopWatch;
 import tango.io.Stdout;
 
-void main()
+extern(C)
+void celeme_init()
+{
+	
+}
+
+extern(C)
+void celeme_test()
 {
 	StopWatch timer;
 	

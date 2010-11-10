@@ -309,7 +309,7 @@ class CCLModel(float_t)
 		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
 		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
 		
-		assert(dest_slot >= 0 && dest_slot < dest.NumDestSynapses, "Invalid event source slot index.");
+		assert(dest_slot >= 0 && dest_slot < dest.NumDestSynapses, "Invalid destination synapse index.");
 		
 		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest_slot);
 	}

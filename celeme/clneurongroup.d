@@ -336,7 +336,7 @@ class CNeuronGroup(float_t)
 			{
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
-				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;			
+				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
 				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Model.Core, Count * syn_type.NumSynapses);			
 			}
 		}
@@ -510,7 +510,7 @@ class CNeuronGroup(float_t)
 			buffer.Buffer.UnMap(arr);
 		}
 		
-		foreach(ii, buffer; SynGlobalBuffers)
+		foreach(buffer; SynGlobalBuffers)
 		{
 			auto arr = buffer.Buffer.Map(CL_MAP_WRITE);
 			arr[] = buffer.DefaultValue;
@@ -689,17 +689,17 @@ class CNeuronGroup(float_t)
 		if(NumDestSynapses)
 		{
 			source.AddBlock(
-"
+`
 int syn_table_end = fired_syn_idx_buffer[i + $nrn_offset$];
 if(syn_table_end != $syn_offset$)
 {
 	for(int syn_table_idx = $syn_offset$; syn_table_idx < syn_table_end; syn_table_idx++)
 	{
 		int syn_i = fired_syn_buffer[syn_table_idx];
-		int g_syn_i = syn_i + i * " ~ to!(char[])(NumDestSynapses) ~ ";
-");
+`);
 			source.Tab(2);
 			int syn_type_offset = 0;
+			int syn_type_start = 0;
 			foreach(ii, syn_type; type.SynapseTypes)
 			{
 				syn_type_offset += syn_type.NumSynapses;
@@ -710,6 +710,7 @@ if(syn_table_end != $syn_offset$)
 				source ~= cond;
 				source ~= "{";
 				source.Tab();
+				source ~= "int g_syn_i = syn_i - " ~ to!(char[])(syn_type_start) ~ " + i * " ~ to!(char[])(syn_type.NumSynapses) ~ ";";
 				auto prefix = syn_type.Prefix;
 				
 				foreach(val; &syn_type.Synapse.AllSynGlobals)
@@ -744,6 +745,8 @@ if(syn_table_end != $syn_offset$)
 				
 				source.DeTab();
 				source ~= "}";
+				
+				syn_type_start = syn_type_offset;
 			}
 			source.DeTab(2);
 			source.AddBlock(
@@ -1216,6 +1219,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	/* These two functions can be used to modify synglobals after the model has been created.
+	 * syn_idx refers to the synapse index in this type (i.e. each successive type has indices starting from 0)
 	 */
 	double opIndex(char[] name, int nrn_idx, int syn_idx)
 	{
@@ -1394,9 +1398,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(event_source >= 0 && event_source < NumEventSources);
 		assert(src_slot >= 0 && src_slot < NumSrcSynapses);
 		
-		int dest_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
+		int src_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
-		DestSynBuffer.WriteOne(dest_syn_id, cl_int2(dest_neuron_id, dest_slot));
+		DestSynBuffer.WriteOne(src_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
 	
 	double MinDt = 0.01;

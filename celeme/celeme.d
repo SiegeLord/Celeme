@@ -5,4 +5,5 @@ public import
 	celeme.clmodel,
 	celeme.clneurongroup,
 	celeme.recorder,
-	celeme.clcore;
+	celeme.clcore,
+	celeme.capi;

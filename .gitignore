@@ -1,3 +1,5 @@
 .objs/*
+.objs_celeme/*
 main
 .deps
+.deps_celeme

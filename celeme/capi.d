@@ -1,11 +1,11 @@
 module celeme.capi;
 
-import celeme.celeme;
+/+import celeme.celeme;
 import gnuplot;
 import celeme.util;
 
 import tango.time.StopWatch;
-import tango.io.Stdout;
+import tango.io.Stdout;+/
 
 extern(C)
 void celeme_init()
@@ -16,7 +16,7 @@ void celeme_init()
 extern(C)
 void celeme_test()
 {
-	StopWatch timer;
+	/+StopWatch timer;
 	
 	timer.start;
 	
@@ -209,5 +209,5 @@ void celeme_test()
 		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}
-	Stdout.formatln("Plotting time: {}", timer.stop);
+	Stdout.formatln("Plotting time: {}", timer.stop);+/
 }

@@ -166,7 +166,7 @@ const ArgOffsetDeliver = 4;
 const char[] DeliverKernelTemplate = "
 __kernel void $type_name$_deliver
 	(
-		const float t,
+		const $num_type$ t,
 		__global int* error_buffer,
 		__global int* record_idx,
 		const int record_rate,
@@ -291,6 +291,14 @@ class CNeuronGroup(float_t)
 	static if(is(float_t == float))
 	{
 		alias cl_float4 float_t4;
+	}
+	else static if(is(float_t == double))
+	{
+		alias cl_double4 float_t4;
+	}
+	else
+	{
+		static assert(0);
 	}
 	
 	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)

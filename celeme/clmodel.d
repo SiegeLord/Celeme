@@ -46,6 +46,10 @@ class CCLModel(float_t)
 	{
 		char[] NumStr = "float";
 	}
+	else static if(is(float_t == double))
+	{
+		char[] NumStr = "double";
+	}
 	else
 	{
 		static assert(0);
@@ -97,6 +101,12 @@ class CCLModel(float_t)
 			 */
 			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(1);
 			FiredSynBuffer = Core.CreateBufferEx!(int)(1);
+		}
+		
+		static if(is(float_t == double))
+		{
+			//Source ~= "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n";
+			Source ~= "#pragma OPENCL EXTENSION cl_amd_fp64 : enable\n";
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";

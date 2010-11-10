@@ -167,6 +167,9 @@ struct cl_vec(T, int N)
 alias cl_vec!(float, 2) cl_float2;
 alias cl_vec!(float, 4) cl_float4;
 
+alias cl_vec!(double, 2) cl_double2;
+alias cl_vec!(double, 4) cl_double4;
+
 alias cl_vec!(int, 2) cl_int2;
 alias cl_vec!(int, 4) cl_int4;
 

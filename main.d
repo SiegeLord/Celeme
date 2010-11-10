@@ -134,8 +134,8 @@ void main()
 	model["Burster"]["glu_gsyn"] = 0.04;
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
-	model.Connect("Burster", 0, 0, 0, "Regular", 0, 0);
-	model.Connect("Regular", 0, 0, 0, "Burster", 0, 0);
+	model.Connect("Burster", 0, 0, 0, "Regular", 0, 1, 0);
+	model.Connect("Regular", 0, 0, 0, "Burster", 0, 1, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;

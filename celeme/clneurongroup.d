@@ -341,6 +341,13 @@ class CNeuronGroup(float_t)
 			}
 		}
 		
+		int syn_type_offset = 0;
+		foreach(syn_type; type.SynapseTypes)
+		{
+			SynapseTypeOffsets ~= syn_type_offset;
+			syn_type_offset += syn_type.NumSynapses;
+		}
+		
 		if(NeedSrcSynCode)
 		{
 			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
@@ -1403,6 +1410,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		DestSynBuffer.WriteOne(src_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
 	
+	int GetSynapseTypeOffset(int type)
+	{
+		assert(type >= 0 && type < SynapseTypeOffsets.length, "Invalid synapse type.");
+		return SynapseTypeOffsets[type];
+	}
+	
 	double MinDt = 0.01;
 	
 	CRecorder[int] Recorders;
@@ -1460,4 +1473,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int NrnOffset;
 	
 	int ThreshRecordOffset = 0;
+	
+	/* A helper for the model's connect function. It stores the offsets for each synapse type */
+	int[] SynapseTypeOffsets;
 }

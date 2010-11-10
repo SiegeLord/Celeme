@@ -296,7 +296,7 @@ class CCLModel(float_t)
 	 * Connect a neuron at index src_nrn_id from src_group using its src_event_source and src_slot
 	 * to a neuron at index dest_nrn_id from dest_group.
 	 */
-	void Connect(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_slot)
+	void Connect(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
 	{
 		assert(Initialized);
 		
@@ -311,7 +311,7 @@ class CCLModel(float_t)
 		
 		assert(dest_slot >= 0 && dest_slot < dest.NumDestSynapses, "Invalid destination synapse index.");
 		
-		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest_slot);
+		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
 	
 	cl_program Program;

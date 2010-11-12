@@ -28,8 +28,8 @@ void main()
 		AddState("u") = -5;
 		AddLocal("I");
 		SetStage(0, "I = 0;");
-		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -65; u += 8; delay = 5;", true, true);
+		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.01f * (0.2f * V - u);");
+		AddThreshold("V", "> 0", "V = -65; u += 2; delay = 2;", true, true);
 	}
 	iz_mech["V"].Tolerance = 0.2;
 	iz_mech["u"].Tolerance = 0.02;
@@ -42,7 +42,7 @@ void main()
 		AddLocal("I");
 		SetStage(0, "I = 0;");
 		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 5;", true, true);
+		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 2;", true, true);
 	}
 	iz_mech2["V"].Tolerance = 0.2;
 	iz_mech2["u"].Tolerance = 0.02;
@@ -52,7 +52,7 @@ void main()
 	{
 		AddExternal("I");
 		AddConstant("amp");
-		SetStage(1, "if(i == 1) { I += amp + 5; } else { I += amp; }");
+		SetStage(1, "if(i == 1) { I += amp + 3; } else { I += amp; }");
 	}
 	
 	auto exp_syn = new CSynapse("ExpSyn");
@@ -125,7 +125,7 @@ void main()
 	model["Burster"]["gaba_E"] = -80;
 	model["Regular"]["gaba_E"] = -80;
 	
-	model["Regular"]["amp"] = 0;
+	model["Regular"]["amp"] = 10;
 	model["Burster"]["amp"] = 10;
 	
 	model["Regular"]["glu_gsyn"] = 0.04;
@@ -134,16 +134,20 @@ void main()
 	model["Burster"]["glu_gsyn"] = 0.04;
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
-	model.Connect("Burster", 0, 0, 0, "Regular", 0, 1, 0);
-	model.Connect("Regular", 0, 0, 0, "Burster", 0, 1, 0);
+	//model.Connect("Burster", 0, 0, 0, "Burster", 1, 0, 0);
+	//model.Connect("Burster", 1, 0, 0, "Regular", 0, 1, 0);
+	//model.Connect("Regular", 0, 0, 0, "Burster", 0, 1, 0);
+	//model.Connect("Regular", 0, 0, 1, "Burster", 1, 1, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
 	CRecorder v_rec2;
+	CRecorder v_rec3;
 	if(record)
 	{
-		v_rec1 = model["Regular"].Record(0, "V");
-		v_rec2 = model["Burster"].Record(0, "V");
+		v_rec1 = model["Burster"].Record(0, "V");
+		v_rec2 = model["Burster"].Record(1, "V");
+		v_rec3 = model["Regular"].Record(0, "V");
 		//model["Burster"].RecordEvents(0, 1);
 		//v_rec2 = model["Burster"].EventRecorder;
 	}
@@ -151,7 +155,7 @@ void main()
 	Stdout.formatln("Init time: {}", timer.stop);
 	timer.start;
 	
-	int tstop = 100;
+	int tstop = 200;
 	//model.Run(tstop);
 	model.ResetRun();
 	
@@ -166,7 +170,7 @@ void main()
 	if(record)
 	//if(false)
 	{
-		auto plot = new CGNUPlot;
+		auto plot = new C2DPlot;
 		with(plot)
 		{
 			Title(GetGitRevisionHash());
@@ -176,16 +180,54 @@ void main()
 			XRange([0, tstop]);
 			
 			Hold = true;
-			Color([0,0,0]);
-			Style("linespoints");
+			Style("lines");
 			PointType(6);
 			Thickness(1);
+			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
-			//Style("points");
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
+			Color([0,0,255]);
+			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}
+		
+		/+auto plot1 = new C2DPlot;
+		with(plot1)
+		{
+			Title("Neuron A");
+			XLabel("Time (ms)");
+			YLabel("Voltage (mV)");
+			YRange([-80, 10]);
+			XRange([650, 900]);
+			Color([0,0,0]);
+			Plot(v_rec1.T, v_rec1.Data, "");
+		}
+		
+		auto plot2 = new C2DPlot;
+		with(plot2)
+		{
+			Title("Neuron B");
+			XLabel("Time (ms)");
+			YLabel("Voltage (mV)");
+			YRange([-80, 10]);
+			XRange([650, 900]);
+			Color([0,0,0]);
+			Plot(v_rec2.T, v_rec2.Data, "");
+		}
+		
+		auto plot3 = new C2DPlot;
+		with(plot3)
+		{
+			Title("Neuron C");
+			XLabel("Time (ms)");
+			YLabel("Voltage (mV)");
+			YRange([-80, 10]);
+			XRange([650, 900]);
+			Color([0,0,0]);
+			Plot(v_rec3.T, v_rec3.Data, "");
+		}+/
+		
 		
 		/+auto t_old = v_rec1.T[0];
 		auto v_old = v_rec1.Data[0];
@@ -201,4 +243,16 @@ void main()
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
+	
+	/+auto plot3d = new C3DPlot;
+	with(plot3d)
+	{
+		XRange([-0.5, 2.5]);
+		YRange([-0.5, 2.5]);
+		View = null;
+		Palette("color");
+		Plot([0, 1, 2,
+		      1, 2, 3,
+		      2, 3, 4], 3, 3);
+	}+/
 }

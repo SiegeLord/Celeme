@@ -77,7 +77,7 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 1000;
+		RecordLength = 2000;
 		RecordRate = 100;
 	}
 	
@@ -89,12 +89,16 @@ void main()
 		AddMechanism(i_clamp);
 		AddSynapse(exp_syn, 10, "glu");
 		AddSynapse(exp_syn, 10, "gaba");
-		RecordLength = 1000;
+		RecordLength = 2000;
 		RecordRate = 100;
 	}
 	
 	auto model = new CCLModel!(float)(false);
 	scope(exit) model.Shutdown();
+	
+	auto t_scale = 1;
+	
+	model.TimeStepSize = 1.0 / t_scale;
 	
 	regular.CircBufferSize = 10;
 	regular.NumSrcSynapses = 10;
@@ -125,7 +129,7 @@ void main()
 	model["Burster"]["gaba_E"] = -80;
 	model["Regular"]["gaba_E"] = -80;
 	
-	model["Regular"]["amp"] = 10;
+	model["Regular"]["amp"] = 0;
 	model["Burster"]["amp"] = 10;
 	
 	model["Regular"]["glu_gsyn"] = 0.04;
@@ -135,7 +139,7 @@ void main()
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
 	//model.Connect("Burster", 0, 0, 0, "Burster", 1, 0, 0);
-	//model.Connect("Burster", 1, 0, 0, "Regular", 0, 1, 0);
+	model.Connect("Burster", 0, 0, 0, "Regular", 0, 0, 0);
 	//model.Connect("Regular", 0, 0, 0, "Burster", 0, 1, 0);
 	//model.Connect("Regular", 0, 0, 1, "Burster", 1, 1, 0);
 	
@@ -155,12 +159,12 @@ void main()
 	Stdout.formatln("Init time: {}", timer.stop);
 	timer.start;
 	
-	int tstop = 200;
+	int tstop = cast(int)(200 * t_scale);
 	//model.Run(tstop);
 	model.ResetRun();
 	
 	model.InitRun();
-	model.RunUntil(50);
+	//model.RunUntil(cast(int)(50 * t_scale));
 	model.RunUntil(tstop + 1);
 	
 	Stdout.formatln("Run time: {}", timer.stop);
@@ -177,17 +181,17 @@ void main()
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);
-			XRange([0, tstop]);
+			XRange([0, cast(int)(tstop/t_scale)]);
 			
 			Hold = true;
-			Style("lines");
+			Style("linespoints");
 			PointType(6);
 			Thickness(1);
 			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
-			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
-			Color([0,0,255]);
+			//Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
+			//Color([0,0,255]);
 			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}
@@ -243,6 +247,9 @@ void main()
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
+	
+	//foreach(t; v_rec1.T)
+	//	Stdout(t).nl;
 	
 	/+auto plot3d = new C3DPlot;
 	with(plot3d)

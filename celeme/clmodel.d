@@ -180,18 +180,18 @@ class CCLModel(float_t)
 		return float_t.sizeof;
 	}
 	
-	void Run(int tstop)
+	void Run(int num_timesteps)
 	{
 		ResetRun();
 		InitRun();
-		RunUntil(tstop);
+		RunUntil(num_timesteps);
 	}
 	
 	void ResetRun()
 	{
 		assert(Initialized);
 		
-		T = 0;
+		CurStep = 0;
 		foreach(group; NeuronGroups)
 		{
 			group.ResetBuffers();
@@ -209,30 +209,31 @@ class CCLModel(float_t)
 		}
 	}
 	
-	void RunUntil(int tstop)
+	void RunUntil(int num_timesteps)
 	{
 		assert(Initialized);
 		
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
-		int t = T;
+		int t = CurStep;
 		/* Run the model */
-		while(t < tstop)
+		while(t < num_timesteps)
 		{
+			double time = TimeStepSize * t;
 			/* Called first because it resets the record index to 0,
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
 			foreach(group; groups)
-				group.CallDeliverKernel(t, DeliverWorkgroupSize);
+				group.CallDeliverKernel(time, DeliverWorkgroupSize);
 			foreach(group; groups)
-				group.CallStepKernel(t, StepWorkgroupSize);
+				group.CallStepKernel(time, StepWorkgroupSize);
 			foreach(group; groups)
-				group.UpdateRecorders(t, t == tstop - 1);
+				group.UpdateRecorders(t, t == num_timesteps - 1);
 			t++;
 		}
 			
-		T = t;
+		CurStep = t;
 
 		Core.Finish();
 		/* Check for errors */
@@ -328,7 +329,9 @@ class CCLModel(float_t)
 	int StepWorkgroupSize = 64;
 	int DeliverWorkgroupSize = 64;
 	
-	int T = 0;
+	int CurStep = 0;
+	
+	double TimeStepSize = 1.0;
 	
 	CCLCore Core;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;

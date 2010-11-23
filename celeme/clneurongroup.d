@@ -40,7 +40,7 @@ $synapse_globals$
 	if(i < count)
 	{
 		$num_type$ cur_time = 0;
-		const $num_type$ timestep = 1;
+		const $num_type$ timestep = $time_step$;
 		int record_flags = record_flags_buffer[i];
 		
 		$num_type$ dt_residual = 0;
@@ -129,8 +129,8 @@ $thresholds$
 		}
 		if(dt_residual > $min_dt$f)
 			dt = dt_residual;
-		if(dt > 1.0f)
-			dt = 1.0f;
+		if(dt > timestep)
+			dt = timestep;
 		dt_buf[i] = dt;
 $save_vals$
 	}
@@ -176,7 +176,7 @@ $event_source_args$
 {
 	int i = get_global_id(0);
 	
-	if(i == 0 && record_rate && ((int)t % record_rate == 0))
+	if(i == 0 && record_rate && ((int)(t / $time_step$) % record_rate == 0))
 	{
 		record_idx[0] = 0;
 	}
@@ -569,7 +569,7 @@ class CNeuronGroup(float_t)
 		assert(err == CL_SUCCESS);
 	}
 	
-	void CallStepKernel(double t, size_t workgroup_size)
+	void CallStepKernel(double sim_time, size_t workgroup_size)
 	{
 		assert(Model.Initialized);
 		
@@ -579,7 +579,7 @@ class CNeuronGroup(float_t)
 		
 		with(StepKernel)
 		{
-			float_t t_val = t;
+			float_t t_val = sim_time;
 			SetGlobalArg(0, &t_val);
 
 			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
@@ -587,7 +587,7 @@ class CNeuronGroup(float_t)
 		}
 	}
 	
-	void CallDeliverKernel(double t, size_t workgroup_size)
+	void CallDeliverKernel(double sim_time, size_t workgroup_size)
 	{
 		assert(Model.Initialized);
 		
@@ -597,7 +597,7 @@ class CNeuronGroup(float_t)
 		
 		with(DeliverKernel)
 		{
-			float_t t_val = t;
+			float_t t_val = sim_time;
 			SetGlobalArg(0, &t_val);
 			
 			if(NeedSrcSynCode)
@@ -972,6 +972,7 @@ else //It is full, error
 		
 		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
+		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
 		
 		ThreshRecordOffset = non_local_idx;
 		
@@ -1072,6 +1073,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		kernel_source = kernel_source.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 		kernel_source = kernel_source.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
 		kernel_source = kernel_source.substitute("$num_synapses$", to!(char[])(NumSrcSynapses));
+		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
 		
 		DeliverKernelSource = kernel_source;
 	}
@@ -1299,13 +1301,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		DeliverKernel.Release();
 	}
 	
-	void UpdateRecorders(int t, bool last = false)
+	void UpdateRecorders(int timestep, bool last = false)
 	{
 		assert(Model.Initialized);
 		
 		if(Recorders.length || EventRecorderIds.length)
 		{
-			if((RecordRate && ((t + 1) % RecordRate == 0)) || last)
+			if((RecordRate && ((timestep + 1) % RecordRate == 0)) || last)
 			{
 				int num_written = RecordIdxBuffer.ReadOne(0);
 				if(num_written)
@@ -1324,6 +1326,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 					RecordBuffer.UnMap(output);
 				}
 			}
+			/* The one for the normal RecordRate triggers is done inside the deliver kernel */
 			if(last)
 				RecordIdxBuffer.WriteOne(0, 0);
 		}

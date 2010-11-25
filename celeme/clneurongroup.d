@@ -9,6 +9,7 @@ import celeme.sourceconstructor;
 import celeme.util;
 import celeme.integrator;
 import celeme.adaptiveheun;
+import celeme.heun;
 
 import opencl.cl;
 
@@ -87,13 +88,8 @@ $integrator_code$
 			/* Handle thresholds */
 $thresholds$
 			
-			/* Clamp the dt not too overshoot the timestep */
-			if(cur_time < timestep && cur_time + dt >= timestep)
-			{
-				dt_residual = dt;
-				dt = timestep - cur_time + 0.0001f;
-				dt_residual -= dt;
-			}
+			/* Post-thresh integrator code */
+$integrator_post_thresh_code$
 		}
 $integrator_save$
 $save_vals$
@@ -265,7 +261,7 @@ class CNeuronGroup(float_t)
 		static assert(0);
 	}
 	
-	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset)
+	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true)
 	{
 		Model = model;
 		Count = count;
@@ -329,7 +325,10 @@ class CNeuronGroup(float_t)
 			Constants ~= state.Value;
 		}
 		
-		Integrator = new CAdaptiveHeun!(float_t)(this, type);
+		if(adaptive_dt)
+			Integrator = new CAdaptiveHeun!(float_t)(this, type);
+		else
+			Integrator = new CHeun!(float_t)(this, type);
 		
 		EventRecorder = new CRecorder();
 		
@@ -832,6 +831,12 @@ else //It is full, error
 		source.Inject(kernel_source, "$thresholds$");
 		
 		/* Integrator save */
+		source.Tab(3);
+		source.AddBlock(Integrator.GetPostThreshCode(type));
+		source.Inject(kernel_source, "$integrator_post_thresh_code$");
+		
+		
+		/* Integrator save */
 		source.Tab(2);
 		source.AddBlock(Integrator.GetSaveCode(type));
 		source.Inject(kernel_source, "$integrator_save$");
@@ -1141,9 +1146,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	void Shutdown()
-	{
-		assert(Model.Initialized);
-		
+	{		
 		foreach(buffer; ValueBuffers)
 			buffer.Release();
 			
@@ -1284,7 +1287,21 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return SynapseTypeOffsets[type];
 	}
 	
-	double MinDt = 0.01;
+	double MinDtVal = 0.1;
+	
+	double MinDt()
+	{
+		return MinDtVal;
+	}
+	
+	void MinDt(double min_dt)
+	{
+		if(Model.Initialized && FixedStep)
+		{
+			Integrator.SetDt(min_dt);
+		}
+		MinDtVal = min_dt;
+	}
 	
 	CRecorder[int] Recorders;
 	CRecorder EventRecorder;

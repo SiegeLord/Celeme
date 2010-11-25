@@ -1,4 +1,4 @@
-module celeme.adaptiveheun;
+module celeme.heun;
 
 import celeme.clneurongroup;
 import celeme.frontend;
@@ -10,72 +10,46 @@ import opencl.cl;
 
 import tango.io.Stdout;
 
-class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
+class CHeun(float_t) : CIntegrator!(float_t)
 {
 	this(CNeuronGroup!(float_t) group, CNeuronType type)
 	{
 		super(group, type);
-		
-		/* Copy tolerances */
-		foreach(name, state; &type.AllStates)
-		{
-			ToleranceRegistry[name] = Tolerances.length;
-			Tolerances ~= state.Tolerance;
-		}
-		
-		DtBuffer = Group.Model.Core.CreateBuffer(Group.Count * Group.Model.NumSize);
-	}
-	
-	override
-	void Reset()
-	{
-		Group.Model.MemsetFloatBuffer(DtBuffer, Group.Count, Group.MinDt);
 	}
 	
 	override
 	char[] GetLoadCode(CNeuronType type)
 	{
-		return 
-"$num_type$ dt_residual = 0;
-dt = dt_buf[i];";
+		return "dt = dt_const;";
 	}
 	
 	override
 	char[] GetSaveCode(CNeuronType type)
 	{
-		return 
-"if(dt_residual > $min_dt$f)
-	dt = dt_residual;
-if(dt > timestep)
-	dt = timestep;
-
-dt_buf[i] = dt;";
+		return "";
 	}
 	
 	override
 	int SetArgs(int arg_id)
 	{
-		Group.StepKernel.SetGlobalArg(arg_id++, &DtBuffer);
-		foreach(tol; Tolerances)
-		{
-			float_t tolerance = tol;
-			Group.StepKernel.SetGlobalArg(arg_id++, &tolerance);
-		}
+		SetDt(Group.MinDt);		
+		return arg_id + 1;
+	}
+	
+	void SetDt(double dt)
+	{
+		int parts = cast(int)(Group.Model.TimeStepSize / dt + 0.5);
+		if(parts == 0)
+			parts++;
 		
-		return arg_id;
+		float_t val = cast(float_t)(Group.Model.TimeStepSize / parts);
+		Group.StepKernel.SetGlobalArg(Group.ValueBuffers.length + Group.Constants.length + ArgOffsetStep, &val);
 	}
 	
 	override
 	char[] GetArgsCode(CNeuronType type)
 	{
-		char[] ret = "__global $num_type$* dt_buf,\n";
-		foreach(name, state; &type.AllStates)
-		{
-			ret ~= "const $num_type$ " ~ name ~ "_tol," ~ "\n";
-		}
-		if(ret.length)
-			ret = ret[0..$-1];
-		return ret;
+		return "const $num_type$ dt_const,";
 	}
 	
 	override
@@ -108,19 +82,11 @@ $compute_derivs_2$
 /* Compute the final state estimate */
 $apply_derivs_2$
 
-/* Compute the error in this step */
-$compute_error$
-
 /* Transfer the state from the temporary storage to the real storage */
 $reset_state$
 
-/* Advance and compute the new step size*/
+/* Advance time*/
 cur_time += dt;
-
-if(error == 0)
-	dt = timestep;
-else
-	dt *= 0.9f * rootn(error, -3.0f);
 ".dup;
 		/* Declare temp states */
 		foreach(name, state; &type.AllStates)
@@ -175,14 +141,6 @@ else
 		}
 		source.Inject(kernel_source, "$apply_derivs_2$");
 		
-		/* Compute error */
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " -= " ~ name ~ "_0;";
-			source ~= "error = max(error, fabs(" ~ name ~ ") / " ~ name ~ "_tol);";
-		}
-		source.Inject(kernel_source, "$compute_error$");
-		
 		/* Reset state */
 		foreach(name, state; &type.AllStates)
 		{
@@ -192,46 +150,4 @@ else
 		
 		return kernel_source;
 	}
-	
-	override
-	void SetTolerance(char[] state, double tolerance)
-	{
-		assert(tolerance > 0);
-		
-		auto idx_ptr = state in ToleranceRegistry;
-		if(idx_ptr !is null)
-		{	
-			Tolerances[*idx_ptr] = tolerance;
-			if(Group.Model.Initialized)
-			{
-				float_t val = tolerance;
-				Group.StepKernel.SetGlobalArg(*idx_ptr + Group.ValueBuffers.length + Group.Constants.length + ArgOffsetStep, &val);
-			}
-		}
-		else
-			throw new Exception("Neuron group '" ~ Group.Name ~ "' does not have a '" ~ state ~ "' state.");
-	}
-	
-	override
-	char[] GetPostThreshCode(CNeuronType type)
-	{
-		return 
-"/* Clamp the dt not too overshoot the timestep */
-if(cur_time < timestep && cur_time + dt >= timestep)
-{
-	dt_residual = dt;
-	dt = timestep - cur_time + 0.0001f;
-	dt_residual -= dt;
-}";
-	}
-	
-	override
-	void Shutdown()
-	{
-		clReleaseMemObject(DtBuffer);
-	}
-	
-	cl_mem DtBuffer;
-	double[] Tolerances;
-	int[char[]] ToleranceRegistry;
 }

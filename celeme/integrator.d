@@ -42,6 +42,16 @@ class CIntegrator(float_t)
 		return "";
 	}
 	
+	char[] GetPostThreshCode(CNeuronType type)
+	{
+		return "";
+	}
+	
+	void SetDt(double dt)
+	{
+		
+	}
+	
 	void Shutdown()
 	{
 		

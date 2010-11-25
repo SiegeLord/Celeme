@@ -60,7 +60,7 @@ class CCLModel(float_t)
 		Core = new CCLCore(gpu);
 	}
 	
-	void AddNeuronGroup(CNeuronType type, int number, char[] name = null)
+	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
@@ -78,7 +78,7 @@ class CCLModel(float_t)
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
 		
-		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset);
+		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt);
 		
 		NeuronGroups[type.Name] = group;
 	}

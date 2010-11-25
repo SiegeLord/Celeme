@@ -105,13 +105,16 @@ void main()
 	burster.CircBufferSize = 10;
 	burster.NumSrcSynapses = 10;
 	
-	model.AddNeuronGroup(regular, 2000);
-	model.AddNeuronGroup(burster, 2000);
+	model.AddNeuronGroup(regular, 2000, null, true);
+	model.AddNeuronGroup(burster, 2000, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
 	model.Generate(true, true);
+	
+	model["Regular"].MinDt = 0.1;
+	model["Burster"].MinDt = 0.1;
 	
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;

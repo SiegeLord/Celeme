@@ -7,6 +7,8 @@ import celeme.recorder;
 import celeme.alignedarray;
 import celeme.sourceconstructor;
 import celeme.util;
+import celeme.integrator;
+import celeme.adaptiveheun;
 
 import opencl.cl;
 
@@ -15,12 +17,11 @@ import tango.text.Util;
 import tango.util.Convert;
 import tango.core.Array;
 
-const ArgOffsetStep = 7;
+const ArgOffsetStep = 6;
 char[] StepKernelTemplate = "
 __kernel void $type_name$_step
 	(
 		const $num_type$ t,
-		__global $num_type$* dt_buf,
 		__global int* error_buffer,
 		__global int* record_flags_buffer,
 		__global int* record_idx,
@@ -28,7 +29,7 @@ __kernel void $type_name$_step
 		const int record_buffer_size,
 $val_args$
 $constant_args$
-$tolerance_args$
+$integrator_args$
 $event_source_args$
 $synapse_args$
 $synapse_globals$
@@ -43,8 +44,8 @@ $synapse_globals$
 		const $num_type$ timestep = $time_step$;
 		int record_flags = record_flags_buffer[i];
 		
-		$num_type$ dt_residual = 0;
-		$num_type$ dt = dt_buf[i];
+		$num_type$ dt;
+$integrator_load$
 $load_vals$
 
 $synapse_code$
@@ -80,41 +81,8 @@ $threshold_pre_check$
 			/* Declare local variables */
 $declare_locals$
 
-			/* Declare temporary storage for state*/
-$declare_temp_states$
-
-			/* First derivative stage */
-$declare_derivs_1$
-
-			/* Second derivative stage */
-$declare_derivs_2$
-
-			/* Compute the first derivatives */
-$compute_derivs_1$
-
-			/* Compute the first state estimate */
-$apply_derivs_1$
-
-			/* Compute the derivatives again */
-$compute_derivs_2$
-
-			/* Compute the final state estimate */
-$apply_derivs_2$
-
-			/* Compute the error in this step */
-$compute_error$
-
-			/* Transfer the state from the temporary storage to the real storage */
-$reset_state$
-
-			/* Advance and compute the new step size*/
-			cur_time += dt;
-			
-			if(error == 0)
-				dt = timestep;
-			else
-				dt *= 0.9f * rootn(error, -3.0f);
-				
+			/* Integrator code */
+$integrator_code$
 			
 			/* Handle thresholds */
 $thresholds$
@@ -127,11 +95,7 @@ $thresholds$
 				dt_residual -= dt;
 			}
 		}
-		if(dt_residual > $min_dt$f)
-			dt = dt_residual;
-		if(dt > timestep)
-			dt = timestep;
-		dt_buf[i] = dt;
+$integrator_save$
 $save_vals$
 	}
 }
@@ -322,13 +286,6 @@ class CNeuronGroup(float_t)
 			ValueBuffers ~= new CValueBuffer!(float_t)(state, Model.Core, Count);
 		}
 		
-		/* Copy tolerances */
-		foreach(name, state; &type.AllStates)
-		{
-			ToleranceRegistry[name] = Tolerances.length;
-			Tolerances ~= state.Tolerance;
-		}
-		
 		/* Syn globals are special, so they get treated separately */
 		foreach(syn_type; type.SynapseTypes)
 		{
@@ -355,7 +312,6 @@ class CNeuronGroup(float_t)
 			CircBuffer = Model.Core.CreateBuffer(CircBufferSize * NumEventSources * Count * Model.NumSize);
 		}
 		
-		DtBuffer = Model.Core.CreateBuffer(Count * Model.NumSize);
 		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
 		RecordFlagsBuffer = Model.Core.CreateBufferEx!(int)(Count);
 		RecordBuffer = Model.Core.CreateBufferEx!(float_t4)(RecordLength);
@@ -372,6 +328,8 @@ class CNeuronGroup(float_t)
 			
 			Constants ~= state.Value;
 		}
+		
+		Integrator = new CAdaptiveHeun!(float_t)(this, type);
 		
 		EventRecorder = new CRecorder();
 		
@@ -393,7 +351,6 @@ class CNeuronGroup(float_t)
 		{
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
-			SetGlobalArg(arg_id++, &DtBuffer);
 			SetGlobalArg(arg_id++, &ErrorBuffer);
 			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
@@ -404,11 +361,7 @@ class CNeuronGroup(float_t)
 				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
-			foreach(tol; Tolerances)
-			{
-				float_t tolerance = tol;
-				SetGlobalArg(arg_id++, &tolerance);
-			}
+			arg_id = Integrator.SetArgs(arg_id);
 			if(NeedSrcSynCode)
 			{
 				/* Set the event source args */
@@ -498,8 +451,9 @@ class CNeuronGroup(float_t)
 			SetConstant(ii);
 		}
 		
+		Integrator.Reset();
+		
 		/* Initialize the buffers */
-		Model.MemsetFloatBuffer(DtBuffer, Count, MinDt);
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
 		RecordIdxBuffer.WriteOne(0, 0);
 		
@@ -542,20 +496,15 @@ class CNeuronGroup(float_t)
 	
 	void SetTolerance(char[] state, double tolerance)
 	{
-		assert(tolerance > 0);
-		
-		auto idx_ptr = state in ToleranceRegistry;
-		if(idx_ptr !is null)
-		{	
-			Tolerances[*idx_ptr] = tolerance;
-			if(Model.Initialized)
-			{
-				float_t val = tolerance;
-				StepKernel.SetGlobalArg(*idx_ptr + ValueBuffers.length + Constants.length + ArgOffsetStep, &val);
-			}
+		auto adaptive = cast(CAdaptiveIntegrator!(float_t))Integrator;
+		if(adaptive !is null)
+		{
+			adaptive.SetTolerance(state, tolerance);
 		}
 		else
-			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ state ~ "' state.");
+		{
+			throw new Exception("Can only set tolerances for adaptive integrators.");
+		}
 	}
 	
 	void CallInitKernel(size_t workgroup_size)
@@ -617,16 +566,6 @@ class CNeuronGroup(float_t)
 		
 		auto kernel_source = StepKernelTemplate.dup;
 		
-		auto eval_source = type.GetEvalSource();
-		
-		void apply(char[] dest)
-		{
-			if(source.Source.length)
-				source.Retreat(1); /* Chomp the newline */
-			kernel_source = kernel_source.substitute(dest, source.toString);
-			source.Clear();
-		}
-		
 		kernel_source = kernel_source.substitute("$type_name$", Name);
 		
 		/* Value arguments */
@@ -635,7 +574,7 @@ class CNeuronGroup(float_t)
 		{
 			source ~= "__global $num_type$* " ~ name ~ "_buf,";
 		}
-		apply("$val_args$");
+		source.Inject(kernel_source, "$val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
@@ -643,15 +582,12 @@ class CNeuronGroup(float_t)
 		{
 			source ~= "const $num_type$ " ~ name ~ ",";
 		}
-		apply("$constant_args$");
+		source.Inject(kernel_source, "$constant_args$");
 		
 		/* Tolerance arguments */
 		source.Tab(2);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= "const $num_type$ " ~ name ~ "_tol,";
-		}
-		apply("$tolerance_args$");
+		source.AddBlock(Integrator.GetArgsCode(type));
+		source.Inject(kernel_source, "$integrator_args$");
 		
 		/* Event source args */
 		source.Tab(2);
@@ -661,7 +597,7 @@ class CNeuronGroup(float_t)
 			source ~= "__global int* circ_buffer_end,";
 			source ~= "__global $num_type$* circ_buffer,";
 		}
-		apply("$event_source_args$");
+		source.Inject(kernel_source, "$event_source_args$");
 		
 		/* Synapse args */
 		source.Tab(2);
@@ -670,7 +606,7 @@ class CNeuronGroup(float_t)
 			source ~= "__global int* fired_syn_idx_buffer,";
 			source ~= "__global int* fired_syn_buffer,";
 		}
-		apply("$synapse_args$");
+		source.Inject(kernel_source, "$synapse_args$");
 		
 		/* Synapse globals */
 		source.Tab(2);
@@ -681,7 +617,12 @@ class CNeuronGroup(float_t)
 				source ~= "__global $num_type$* " ~ name ~ "_buf,";
 			}
 		}
-		apply("$synapse_globals$");
+		source.Inject(kernel_source, "$synapse_globals$");
+		
+		/* Integrator load */
+		source.Tab(2);
+		source.AddBlock(Integrator.GetLoadCode(type));
+		source.Inject(kernel_source, "$integrator_load$");
 		
 		/* Load vals */
 		source.Tab(2);
@@ -689,7 +630,7 @@ class CNeuronGroup(float_t)
 		{
 			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
 		}
-		apply("$load_vals$");
+		source.Inject(kernel_source, "$load_vals$");
 		
 		/* Synapse code */
 		source.Tab(2);
@@ -755,17 +696,19 @@ if(syn_table_end != $syn_offset$)
 				
 				syn_type_start = syn_type_offset;
 			}
-			source.DeTab(2);
-			source.AddBlock(
-"	}
-	dt = $min_dt$f;
-	fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;
-}");
+			source.DeTab;
+			source ~= "}";
+			if(!FixedStep)
+				source ~= "dt = $min_dt$f;";
+			source ~= "fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;";
+			source.DeTab;
+			source ~= "}";
+			
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
 			source.Source = source.Source.substitute("$syn_offset$", to!(char[])(SynOffset));
 			source.DeTab(2);
 		}
-		apply("$synapse_code$");
+		source.Inject(kernel_source, "$synapse_code$");
 		
 		/* Record vals */
 		source.Tab(5);
@@ -781,7 +724,7 @@ if(syn_table_end != $syn_offset$)
 			source ~= "break;";
 			non_local_idx++;
 		}
-		apply("$record_vals$");
+		source.Inject(kernel_source, "$record_vals$");
 		
 		/* Threshold pre-check */
 		source.Tab(3);
@@ -792,7 +735,7 @@ if(syn_table_end != $syn_offset$)
 			
 			thresh_idx++;
 		}
-		apply("$threshold_pre_check$");
+		source.Inject(kernel_source, "$threshold_pre_check$");
 		
 		/* Declare locals */
 		source.Tab(3);
@@ -800,84 +743,12 @@ if(syn_table_end != $syn_offset$)
 		{
 			source ~= "$num_type$ " ~ name ~ ";";
 		}
-		apply("$declare_locals$");
+		source.Inject(kernel_source, "$declare_locals$");
 		
-		/* Declare temp states */
+		/* Integrator code */
 		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= "$num_type$ " ~ name ~ "_0 = " ~ name ~ ";";
-		}
-		apply("$declare_temp_states$");
-		
-		/* Declare derivs 1 */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= "$num_type$ d" ~ name ~ "_dt_1;";
-		}
-		apply("$declare_derivs_1$");
-		
-		/* Declare derivs 2 */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= "$num_type$ d" ~ name ~ "_dt_2;";
-		}
-		apply("$declare_derivs_2$");
-		
-		/* Compute derivs 1 */
-		auto first_source = eval_source.dup;
-		foreach(name, state; &type.AllStates)
-		{
-			first_source = first_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_1");
-		}
-		source.Tab(3);
-		source.AddBlock(first_source);
-		apply("$compute_derivs_1$");
-		
-		/* Apply derivs 1 */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " += dt * d" ~ name ~ "_dt_1;";
-		}
-		apply("$apply_derivs_1$");
-		
-		/* Compute derivs 2 */
-		auto second_source = eval_source.dup;
-		foreach(name, state; &type.AllStates)
-		{
-			second_source = second_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_2");
-		}
-		source.Tab(3);
-		source.AddBlock(second_source);
-		apply("$compute_derivs_2$");
-		
-		/* Apply derivs 2 */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ "_0 += dt / 2 * (d" ~ name ~ "_dt_1 + d" ~ name ~ "_dt_2);";
-		}
-		apply("$apply_derivs_2$");
-		
-		/* Compute error */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " -= " ~ name ~ "_0;";
-			source ~= "error = max(error, fabs(" ~ name ~ ") / " ~ name ~ "_tol);";
-		}
-		apply("$compute_error$");
-		
-		/* Reset state */
-		source.Tab(3);
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " = " ~ name ~ "_0;";
-		}
-		apply("$reset_state$");
+		source.AddBlock(Integrator.GetIntegrateCode(type));
+		source.Inject(kernel_source, "$integrator_code$");
 		
 		/* Thresholds */
 		source.Tab(3);
@@ -892,7 +763,7 @@ if(syn_table_end != $syn_offset$)
 			if(thresh.IsEventSource)
 				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
-			if(thresh.ResetTime)
+			if(thresh.ResetTime && !FixedStep)
 				source ~= "dt = $min_dt$f;";
 			
 			source.AddBlock(
@@ -952,14 +823,18 @@ else //It is full, error
 				
 				event_src_idx++;
 /* TODO: Better error reporting */
-/* TODO: Check that the darn thing works */
 			}
 			
 			source.DeTab;
 			source ~= "}";
 			thresh_idx++;
 		}
-		apply("$thresholds$");
+		source.Inject(kernel_source, "$thresholds$");
+		
+		/* Integrator save */
+		source.Tab(2);
+		source.AddBlock(Integrator.GetSaveCode(type));
+		source.Inject(kernel_source, "$integrator_save$");
 		
 		/* Save values */
 		source.Tab(2);
@@ -968,7 +843,7 @@ else //It is full, error
 			if(!state.ReadOnly)
 				source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
-		apply("$save_vals$");
+		source.Inject(kernel_source, "$save_vals$");
 		
 		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
@@ -985,14 +860,6 @@ else //It is full, error
 		
 		auto kernel_source = DeliverKernelTemplate.dup;
 		
-		void apply(char[] dest)
-		{
-			if(source.Source.length)
-				source.Retreat(1); /* Chomp the newline */
-			kernel_source = kernel_source.substitute(dest, source.toString);
-			source.Clear();
-		}
-		
 		kernel_source = kernel_source.substitute("$type_name$", Name);
 		
 		/* Event source args */
@@ -1007,7 +874,7 @@ else //It is full, error
 			source ~= "__global int* fired_syn_idx_buffer,";
 			source ~= "__global int* fired_syn_buffer,";
 		}
-		apply("$event_source_args$");
+		source.Inject(kernel_source, "$event_source_args$");
 		
 		/* Thresholds */
 		source.Tab(2);
@@ -1068,7 +935,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 				event_src_idx++;
 			}
 		}
-		apply("$event_source_code$");
+		source.Inject(kernel_source, "$event_source_code$");
 		
 		kernel_source = kernel_source.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 		kernel_source = kernel_source.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
@@ -1086,14 +953,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		auto kernel_source = InitKernelTemplate.dup;
 		
-		void apply(char[] dest)
-		{
-			if(source.Source.length)
-				source.Retreat(1); /* Chomp the newline */
-			kernel_source = kernel_source.substitute(dest, source.toString);
-			source.Clear();
-		}
-		
 		kernel_source = kernel_source.substitute("$type_name$", Name);
 		
 		/* Value arguments */
@@ -1102,7 +961,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			source ~= "__global $num_type$* " ~ name ~ "_buf,";
 		}
-		apply("$val_args$");
+		source.Inject(kernel_source, "$val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
@@ -1110,14 +969,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			source ~= "const $num_type$ " ~ name ~ ",";
 		}
-		apply("$constant_args$");
+		source.Inject(kernel_source, "$constant_args$");
 		
 		source.Tab(2);
 		if(NeedSrcSynCode)
 		{
 			source ~= "__global int2* dest_syn_buffer,";
 		}
-		apply("$event_source_args$");
+		source.Inject(kernel_source, "$event_source_args$");
 		
 		/* Load vals */
 		source.Tab(2);
@@ -1125,12 +984,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
 		}
-		apply("$load_vals$");
+		source.Inject(kernel_source, "$load_vals$");
 		
 		/* Perform initialization */
 		source.Tab(2);
 		source.AddBlock(init_source);
-		apply("$init_vals$");
+		source.Inject(kernel_source, "$init_vals$");
 		
 		/* Save values */
 		source.Tab(2);
@@ -1138,9 +997,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			source ~= name ~ "_buf[i] = " ~ name ~ ";";
 		}
-		apply("$save_vals$");
+		source.Inject(kernel_source, "$save_vals$");
 		
 		InitKernelSource = kernel_source;
+	}
+	
+	bool FixedStep()
+	{
+		return cast(CAdaptiveIntegrator!(float_t))Integrator is null;
 	}
 	
 	double opIndex(char[] name)
@@ -1286,7 +1150,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		foreach(buffer; SynGlobalBuffers)
 			buffer.Release();
 
-		clReleaseMemObject(DtBuffer);
 		clReleaseMemObject(CircBufferStart);
 		clReleaseMemObject(CircBufferEnd);
 		clReleaseMemObject(CircBuffer);
@@ -1299,6 +1162,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		InitKernel.Release();
 		StepKernel.Release();
 		DeliverKernel.Release();
+		
+		Integrator.Shutdown();
 	}
 	
 	void UpdateRecorders(int timestep, bool last = false)
@@ -1430,9 +1295,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
-	double[] Tolerances;
-	int[char[]] ToleranceRegistry;
-	
 	CValueBuffer!(float_t)[] ValueBuffers;
 	int[char[]] ValueBufferRegistry;
 	
@@ -1452,7 +1314,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLKernel DeliverKernel;
 	
 	/* TODO: Convert these to CCLBuffers */
-	cl_mem DtBuffer;
 	cl_mem CircBufferStart;
 	cl_mem CircBufferEnd;
 	cl_mem CircBuffer;
@@ -1479,4 +1340,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	/* A helper for the model's connect function. It stores the offsets for each synapse type */
 	int[] SynapseTypeOffsets;
+	
+	CIntegrator!(float_t) Integrator;
 }

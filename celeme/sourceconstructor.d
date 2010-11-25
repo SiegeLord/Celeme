@@ -59,6 +59,16 @@ class CSourceConstructor
 		return Source;
 	}
 	
+	void Inject(ref char[] dest_string, char[] label)
+	{
+		/* Chomp the newline */
+		if(Source.length)
+			Retreat(1);
+			
+		dest_string = dest_string.substitute(label, Source);
+		Clear();
+	}
+	
 	int TabLevel = 0;
 	char[] Source;
 }

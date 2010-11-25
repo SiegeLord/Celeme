@@ -137,7 +137,6 @@ class CCLModel(float_t)
 		Source = Source.substitute("$num_type$", NumStr);
 		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
-		
 		Generated = true;
 		
 		if(initialize)

@@ -21,9 +21,11 @@ void FillMechanism(CMechanism mech, Node mech_node)
 		if(stage_code !is null)
 		{
 			//println("{}: {}", stage_name, stage_code);
+			mech.SetStage(ii, stage_code);
 		}
-		mech.SetStage(ii, stage_code);
 	}
+	
+	mech.SetInitCode(GetAttribute!(char[])(mech_node, "init", ""));
 	
 	foreach(val_node; GetChildren(mech_node, "state"))
 	{
@@ -173,6 +175,63 @@ CSynapse[char[]] LoadSynapses(Node root)
 			val.ReadOnly = GetAttribute!(bool)(val_node, "readonly", false);
 			
 			//println("SynGlobal: {} = {} readonly: {}", val_name, val.Value, val.ReadOnly);
+		}
+	}
+	
+	return ret;
+}
+
+CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CSynapse[char[]] synapses)
+{
+	CNeuronType[char[]] ret;
+	
+	foreach(nrn_node; GetChildren(root, "neuron"))
+	{
+		auto nrn_name = GetAttribute!(char[])(nrn_node, "name", null);
+		if(nrn_name is null)
+			throw new Exception("All neuron types need a name.");
+		
+		auto nrn_ptr = nrn_name in ret;
+		if(nrn_ptr !is null)
+			throw new Exception("Duplicate neuron type name: '" ~ nrn_name ~ "'.");
+		
+		auto nrn_type = new CNeuronType(nrn_name);
+		ret[nrn_name.dup] = nrn_type;
+		
+		nrn_type.RecordLength = GetAttribute!(int)(nrn_node, "record_length", 0);
+		nrn_type.RecordRate = GetAttribute!(int)(nrn_node, "record_rate", 0);
+		nrn_type.CircBufferSize = GetAttribute!(int)(nrn_node, "circ_buffer_size", 0);
+		nrn_type.NumSrcSynapses = GetAttribute!(int)(nrn_node, "num_src_synapses", 0);
+		
+		foreach(mech_node; GetChildren(nrn_node, "mechanism"))
+		{
+			auto mech_name = GetAttribute!(char[])(mech_node, "name", null);
+			if(mech_name is null)
+				throw new Exception("All mechanisms need a name.");
+			
+			auto mech_ptr = mech_name in mechanisms;
+			if(mech_ptr is null)
+				throw new Exception("No mechanism named '" ~ mech_name ~ "' exists.");
+			
+			auto prefix = GetAttribute!(char[])(mech_node, "prefix", "");
+			
+			nrn_type.AddMechanism(*mech_ptr, prefix);
+		}
+		
+		foreach(syn_node; GetChildren(nrn_node, "synapse"))
+		{
+			auto syn_name = GetAttribute!(char[])(syn_node, "name", null);
+			if(syn_name is null)
+				throw new Exception("All synapses need a name.");
+			
+			auto syn_ptr = syn_name in synapses;
+			if(syn_ptr is null)
+				throw new Exception("No synapse named '" ~ syn_name ~ "' exists.");
+			
+			auto prefix = GetAttribute!(char[])(syn_node, "prefix", "");
+			auto number = GetAttribute!(int)(syn_node, "number", 0);
+			
+			nrn_type.AddSynapse(*syn_ptr, number, prefix);
 		}
 	}
 	

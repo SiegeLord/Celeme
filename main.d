@@ -18,44 +18,16 @@ void main()
 	auto xml_root = GetRoot("stuff.xml");
 	auto mechs = LoadMechanisms(xml_root);
 	auto syns = LoadSynapses(xml_root);
-	
-	auto regular = new CNeuronType("Regular");
-	with(regular)
-	{
-		AddMechanism(mechs["IzhMech"]);
-		AddMechanism(mechs["IClamp"]);
-		AddSynapse(syns["ExpSyn"], 10, "glu");
-		AddSynapse(syns["ExpSyn"], 10, "gaba");
-		RecordLength = 2000;
-		RecordRate = 100;
-	}
-	
-	auto burster = new CNeuronType("Burster");
-	with(burster)
-	{
-		AddMechanism(mechs["DummyThresh"], "hl");
-		AddMechanism(mechs["IzhMech2"]);
-		AddMechanism(mechs["IClamp"]);
-		AddSynapse(syns["ExpSyn"], 10, "glu");
-		AddSynapse(syns["ExpSyn"], 10, "gaba");
-		RecordLength = 2000;
-		RecordRate = 100;
-	}
+	auto types = LoadNeuronTypes(xml_root, mechs, syns);
 	
 	auto model = new CCLModel!(float)(false);
 	scope(exit) model.Shutdown();
 	
 	auto t_scale = 1;
 	
-	model.TimeStepSize = 1.0 / t_scale;
-	
-	regular.CircBufferSize = 10;
-	regular.NumSrcSynapses = 10;
-	burster.CircBufferSize = 10;
-	burster.NumSrcSynapses = 10;
-	
-	model.AddNeuronGroup(regular, 2000, null, true);
-	model.AddNeuronGroup(burster, 2000, null, true);
+	model.TimeStepSize = 1.0 / t_scale;	
+	model.AddNeuronGroup(types["Regular"], 2000, null, true);
+	model.AddNeuronGroup(types["Burster"], 2000, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;

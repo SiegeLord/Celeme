@@ -246,6 +246,47 @@ class CSynGlobalBuffer(T)
 	double DefaultValue;
 }
 
+class CEventSourceBuffer
+{
+	this(CCLCore core, int nrn_count)
+	{
+		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
+		auto buff = FreeIdx.Map(CL_MAP_WRITE);
+		buff[] = 0;
+		FreeIdx.UnMap(buff);
+	}
+	
+	void Release()
+	{
+		FreeIdx.Release();
+	}
+	
+	/* Last free index */
+	CCLBuffer!(int) FreeIdx;
+}
+
+class CSynapseBuffer
+{
+	this(CCLCore core, int offset, int count, int nrn_count)
+	{
+		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
+		auto buff = FreeIdx.Map(CL_MAP_WRITE);
+		buff[] = 0;
+		FreeIdx.UnMap(buff);
+		SlotOffset = offset;
+		Count = count;
+	}
+	
+	void Release()
+	{
+		FreeIdx.Release();
+	}
+	/* Last free index */
+	CCLBuffer!(int) FreeIdx;
+	int SlotOffset;
+	int Count;
+}
+
 class CNeuronGroup(float_t)
 {
 	static if(is(float_t == float))
@@ -297,8 +338,15 @@ class CNeuronGroup(float_t)
 		int syn_type_offset = 0;
 		foreach(syn_type; type.SynapseTypes)
 		{
-			SynapseTypeOffsets ~= syn_type_offset;
+			auto syn_buff = new CSynapseBuffer(Model.Core, syn_type_offset, syn_type.NumSynapses, Count);
+			SynapseBuffers ~= syn_buff;
+			
 			syn_type_offset += syn_type.NumSynapses;
+		}
+		
+		for(int ii = 0; ii < NumEventSources; ii++)
+		{
+			EventSourceBuffers ~= new CEventSourceBuffer(Model.Core, Count);
 		}
 		
 		if(NeedSrcSynCode)
@@ -637,10 +685,11 @@ class CNeuronGroup(float_t)
 		{
 			source.AddBlock(
 `
+const int syn_offset = $syn_offset$ + i * ` ~ to!(char[])(NumDestSynapses) ~ `;
 int syn_table_end = fired_syn_idx_buffer[i + $nrn_offset$];
-if(syn_table_end != $syn_offset$)
+if(syn_table_end != syn_offset)
 {
-	for(int syn_table_idx = $syn_offset$; syn_table_idx < syn_table_end; syn_table_idx++)
+	for(int syn_table_idx = syn_offset; syn_table_idx < syn_table_end; syn_table_idx++)
 	{
 		int syn_i = fired_syn_buffer[syn_table_idx];
 `);
@@ -699,7 +748,7 @@ if(syn_table_end != $syn_offset$)
 			source ~= "}";
 			if(!FixedStep)
 				source ~= "dt = $min_dt$f;";
-			source ~= "fired_syn_idx_buffer[i + $nrn_offset$] = $syn_offset$;";
+			source ~= "fired_syn_idx_buffer[i + $nrn_offset$] = syn_offset;";
 			source.DeTab;
 			source ~= "}";
 			
@@ -918,7 +967,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			{
 				/* Get the index into the global syn buffer */
 				int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
-				
 				fired_syn_buffer[dest_syn] = dest.s1;
 			}
 		}
@@ -1152,6 +1200,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			
 		foreach(buffer; SynGlobalBuffers)
 			buffer.Release();
+			
+		foreach(buffer; SynapseBuffers)
+			buffer.Release();
+			
+		foreach(buffer; EventSourceBuffers)
+			buffer.Release();
 
 		clReleaseMemObject(CircBufferStart);
 		clReleaseMemObject(CircBufferEnd);
@@ -1268,7 +1322,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		}
 	}
 	
-	void ConnectTo(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
+	void SetConnection(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
 	{
 		assert(Model.Initialized);
 		
@@ -1281,10 +1335,44 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		DestSynBuffer.WriteOne(src_syn_id, cl_int2(dest_neuron_id, dest_slot));
 	}
 	
+	int GetSrcSlot(int src_nrn_id, int event_source)
+	{
+		assert(src_nrn_id >= 0 && src_nrn_id < Count);
+		assert(event_source >= 0 && event_source < NumEventSources);
+		
+		auto idx = EventSourceBuffers[event_source].FreeIdx.ReadOne(src_nrn_id);
+		
+		if(idx == NumSrcSynapses)
+			return -1;
+		
+		idx++;
+		
+		EventSourceBuffers[event_source].FreeIdx.WriteOne(src_nrn_id, idx);
+		
+		return idx - 1;
+	}
+	
+	int GetDestSlot(int dest_nrn_id, int dest_syn_type)
+	{
+		assert(dest_nrn_id >= 0 && dest_nrn_id < Count);
+		assert(dest_syn_type >= 0 && dest_syn_type < SynapseBuffers.length);
+		
+		auto idx = SynapseBuffers[dest_syn_type].FreeIdx.ReadOne(dest_nrn_id);
+		
+		if(idx == SynapseBuffers[dest_syn_type].Count)
+			return -1;
+		
+		idx++;
+		
+		SynapseBuffers[dest_syn_type].FreeIdx.WriteOne(dest_nrn_id, idx);
+		
+		return idx - 1;
+	}
+	
 	int GetSynapseTypeOffset(int type)
 	{
-		assert(type >= 0 && type < SynapseTypeOffsets.length, "Invalid synapse type.");
-		return SynapseTypeOffsets[type];
+		assert(type >= 0 && type < SynapseBuffers.length, "Invalid synapse type.");
+		return SynapseBuffers[type].SlotOffset;
 	}
 	
 	double MinDtVal = 0.1;
@@ -1355,8 +1443,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	int ThreshRecordOffset = 0;
 	
-	/* A helper for the model's connect function. It stores the offsets for each synapse type */
-	int[] SynapseTypeOffsets;
+	CSynapseBuffer[] SynapseBuffers;
+	CEventSourceBuffer[] EventSourceBuffers;
 	
 	CIntegrator!(float_t) Integrator;
 }

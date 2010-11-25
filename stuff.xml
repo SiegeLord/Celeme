@@ -30,7 +30,7 @@
 		code = "
 			V = -65;
 			u += 2;
-			delay = 2;"
+			delay = 5;"
 		event_source="true"
 		reset_dt="true"
 	/>
@@ -53,7 +53,7 @@
 		code = "
 			V = -50;
 			u += 2;
-			delay = 2;"
+			delay = 5;"
 		event_source="true"
 		reset_dt="true"
 	/>

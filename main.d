@@ -26,8 +26,8 @@ void main()
 	auto t_scale = 1;
 	
 	model.TimeStepSize = 1.0 / t_scale;	
-	model.AddNeuronGroup(types["Regular"], 2000, null, true);
-	model.AddNeuronGroup(types["Burster"], 2000, null, true);
+	model.AddNeuronGroup(types["Regular"], 5, null, true);
+	model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
@@ -53,7 +53,7 @@ void main()
 	model["Burster"]["gaba_E"] = -80;
 	model["Regular"]["gaba_E"] = -80;
 	
-	model["Regular"]["amp"] = 0;
+	model["Regular"]["amp"] = 3;
 	model["Burster"]["amp"] = 10;
 	
 	model["Regular"]["glu_gsyn"] = 0.04;
@@ -62,10 +62,16 @@ void main()
 	model["Burster"]["glu_gsyn"] = 0.04;
 	model["Burster"]["gaba_gsyn"] = 0.5;
 	
-	//model.Connect("Burster", 0, 0, 0, "Burster", 1, 0, 0);
-	model.Connect("Burster", 0, 0, 0, "Regular", 0, 0, 0);
-	//model.Connect("Regular", 0, 0, 0, "Burster", 0, 1, 0);
-	//model.Connect("Regular", 0, 0, 1, "Burster", 1, 1, 0);
+	model.Connect("Burster", 0, 0, "Regular", 0, 0);
+	model.Connect("Burster", 0, 0, "Regular", 1, 1);
+	model.Connect("Regular", 1, 0, "Burster", 0, 0);
+	
+	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
+	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);
+	//model.SetConnection("Burster", 0, 0, 0, "Burster", 1, 0, 0);
+	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
+	//model.SetConnection("Regular", 0, 0, 0, "Burster", 0, 1, 0);
+	//model.SetConnection("Regular", 0, 0, 1, "Burster", 1, 1, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
@@ -74,8 +80,8 @@ void main()
 	if(record)
 	{
 		v_rec1 = model["Burster"].Record(0, "V");
-		v_rec2 = model["Burster"].Record(1, "V");
-		v_rec3 = model["Regular"].Record(0, "V");
+		v_rec2 = model["Regular"].Record(0, "V");
+		v_rec3 = model["Regular"].Record(1, "V");
 		//model["Burster"].RecordEvents(0, 1);
 		//v_rec2 = model["Burster"].EventRecorder;
 	}
@@ -114,8 +120,8 @@ void main()
 			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
-			//Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
-			//Color([0,0,255]);
+			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
+			Color([0,0,255]);
 			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}

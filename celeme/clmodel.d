@@ -296,7 +296,7 @@ class CCLModel(float_t)
 	 * Connect a neuron at index src_nrn_id from src_group using its src_event_source and src_slot
 	 * to a neuron at index dest_nrn_id from dest_group.
 	 */
-	void Connect(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
+	void SetConnection(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
 	{
 		assert(Initialized);
 		
@@ -309,9 +309,33 @@ class CCLModel(float_t)
 		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
 		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
 		
-		assert(dest_slot >= 0 && dest_slot < dest.NumDestSynapses, "Invalid destination synapse index.");
+		assert(dest_syn_type >= 0 && dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
+		assert(dest_slot >= 0 && dest_slot < dest.SynapseBuffers[dest_syn_type].Count, "Invalid destination synapse index.");
 		
-		src.ConnectTo(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
+		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
+	}
+	
+	void Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
+	{
+		assert(Initialized);
+		
+		auto src = opIndex(src_group);
+		auto dest = opIndex(dest_group);
+		
+		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
+		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid source index.");
+		
+		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
+		
+		assert(dest_syn_type >= 0 && dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
+		
+		auto src_slot = src.GetSrcSlot(src_nrn_id, src_event_source);
+		auto dest_slot = dest.GetDestSlot(dest_nrn_id, dest_syn_type);
+		
+		assert(src_slot >= 0);
+		assert(dest_slot >= 0);
+		
+		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
 	
 	cl_program Program;

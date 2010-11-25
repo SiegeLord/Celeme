@@ -5,6 +5,11 @@ import tango.sys.Process;
 import tango.io.stream.Text;
 import tango.io.Stdout;
 
+void println(T...)(char[] fmt, T args)
+{
+	Stdout.formatln(fmt, args);
+}
+
 /*
  * Like substitute, but using proper delimeters
  */
@@ -36,6 +41,29 @@ char[] c_substitute(char[] text, char[] pattern, char[] what)
 	return ret;
 }
 
+unittest
+{
+	char[] a = "Alpha beta gamma zeta".dup;
+	
+	a = a.c_substitute("Alpha", "Kappa");
+	assert(a == "Kappa beta gamma zeta", a);
+	
+	a = a.c_substitute("eta", "gddd");
+	assert(a == "Kappa beta gamma zeta", a);
+	
+	a = a.c_substitute("gam", "gddd");
+	assert(a == "Kappa beta gamma zeta", a);
+	
+	a = a.c_substitute("gam", "gddd");
+	assert(a == "Kappa beta gamma zeta", a);
+	
+	a = a.c_substitute("zeta", "eta");
+	assert(a == "Kappa beta gamma eta", a);
+	
+	a = a.c_substitute("eta", "gddd");
+	assert(a == "Kappa beta gamma gddd", a);
+}
+
 T[] deep_dup(T)(T[] arr)
 {
 	T[] ret;
@@ -61,27 +89,4 @@ char[] GetGitRevisionHash()
 		Stdout(e).nl;
 	}
 	return ret;
-}
-
-unittest
-{
-	char[] a = "Alpha beta gamma zeta".dup;
-	
-	a = a.c_substitute("Alpha", "Kappa");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("eta", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("gam", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("gam", "gddd");
-	assert(a == "Kappa beta gamma zeta", a);
-	
-	a = a.c_substitute("zeta", "eta");
-	assert(a == "Kappa beta gamma eta", a);
-	
-	a = a.c_substitute("eta", "gddd");
-	assert(a == "Kappa beta gamma gddd", a);
 }

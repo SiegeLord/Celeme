@@ -2,6 +2,7 @@ module main;
 
 import celeme.celeme;
 import celeme.capi;
+import celeme.xmlutil;
 import gnuplot;
 import celeme.util;
 
@@ -14,69 +15,17 @@ void main()
 	
 	timer.start;
 	
-	auto dummy = new CMechanism("DummyThresh");
-	with(dummy)
-	{
-		AddThreshold("V", "> -10", "delay = 5;", true);
-		AddExternal("V");
-	}
-	
-	auto iz_mech = new CMechanism("IzMech");
-	with(iz_mech)
-	{
-		AddState("V") = -65;
-		AddState("u") = -5;
-		AddLocal("I");
-		SetStage(0, "I = 0;");
-		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.01f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -65; u += 2; delay = 2;", true, true);
-	}
-	iz_mech["V"].Tolerance = 0.2;
-	iz_mech["u"].Tolerance = 0.02;
-	
-	auto iz_mech2 = new CMechanism("IzMech2");
-	with(iz_mech2)
-	{
-		AddState("V") = -65;
-		AddState("u") = -5;
-		AddLocal("I");
-		SetStage(0, "I = 0;");
-		SetStage(2, "V' = (0.04f * V + 5) * V + 140 - u + I; u' = 0.02f * (0.2f * V - u);");
-		AddThreshold("V", "> 0", "V = -50; u += 2; delay = 2;", true, true);
-	}
-	iz_mech2["V"].Tolerance = 0.2;
-	iz_mech2["u"].Tolerance = 0.02;
-
-	auto i_clamp = new CMechanism("IClamp");
-	with(i_clamp)
-	{
-		AddExternal("I");
-		AddConstant("amp");
-		SetStage(1, "if(i == 1) { I += amp + 3; } else { I += amp; }");
-	}
-	
-	auto exp_syn = new CSynapse("ExpSyn");
-	with(exp_syn)
-	{
-		AddConstant("gsyn") = 0.1;
-		AddConstant("tau") = 5;
-		AddConstant("E") = 0;
-		AddExternal("V");
-		AddSynGlobal("weight") = 1;
-		AddState("s");
-		SetStage(1, "I += s * (E - V);");
-		SetStage(2, "s' = -s / tau;");
-		SetSynCode("s += gsyn * weight;");
-	}
-	exp_syn["weight"].ReadOnly = true;
+	auto xml_root = GetRoot("stuff.xml");
+	auto mechs = LoadMechanisms(xml_root);
+	auto syns = LoadSynapses(xml_root);
 	
 	auto regular = new CNeuronType("Regular");
 	with(regular)
 	{
-		AddMechanism(iz_mech);
-		AddMechanism(i_clamp);
-		AddSynapse(exp_syn, 10, "glu");
-		AddSynapse(exp_syn, 10, "gaba");
+		AddMechanism(mechs["IzhMech"]);
+		AddMechanism(mechs["IClamp"]);
+		AddSynapse(syns["ExpSyn"], 10, "glu");
+		AddSynapse(syns["ExpSyn"], 10, "gaba");
 		RecordLength = 2000;
 		RecordRate = 100;
 	}
@@ -84,11 +33,11 @@ void main()
 	auto burster = new CNeuronType("Burster");
 	with(burster)
 	{
-		AddMechanism(dummy, "hl");
-		AddMechanism(iz_mech2);
-		AddMechanism(i_clamp);
-		AddSynapse(exp_syn, 10, "glu");
-		AddSynapse(exp_syn, 10, "gaba");
+		AddMechanism(mechs["DummyThresh"], "hl");
+		AddMechanism(mechs["IzhMech2"]);
+		AddMechanism(mechs["IClamp"]);
+		AddSynapse(syns["ExpSyn"], 10, "glu");
+		AddSynapse(syns["ExpSyn"], 10, "gaba");
 		RecordLength = 2000;
 		RecordRate = 100;
 	}

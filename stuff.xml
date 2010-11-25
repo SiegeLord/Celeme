@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mechanism 
+	name = "DummyThresh"
+>
+	<external name = "V" />
+	<threshold 
+		state = "V"
+		condition = "> 0"
+		code = "delay = 5;"
+		event_source="true"
+		reset_dt="false"
+	/>
+</mechanism>
+
+<mechanism
+	name = "IzhMech"
+	stage0 =
+		"I = 0;"
+	stage2 = "
+		V' = (0.04f * V + 5) * V + 140 - u + I;
+		u' = 0.01f * (0.2f * V - u);"
+>
+	<state name = "V" init = "-65" tolerance = "0.2" />
+	<state name = "u" init = "-5" tolerance = "0.02" />
+	<local name = "I" />
+	<threshold 
+		state = "V"
+		condition = "> 0"
+		code = "
+			V = -65;
+			u += 2;
+			delay = 2;"
+		event_source="true"
+		reset_dt="true"
+	/>
+</mechanism>
+
+<mechanism
+	name = "IzhMech2"
+	stage0 =
+		"I = 0;"
+	stage2 = "
+		V' = (0.04f * V + 5) * V + 140 - u + I;
+		u' = 0.02f * (0.2f * V - u);"
+>
+	<state name = "V" init = "-65" tolerance = "0.2" />
+	<state name = "u" init = "-5" tolerance = "0.02" />
+	<local name = "I" />
+	<threshold 
+		state = "V"
+		condition = "> 0"
+		code = "
+			V = -50;
+			u += 2;
+			delay = 2;"
+		event_source="true"
+		reset_dt="true"
+	/>
+</mechanism>
+
+<mechanism
+	name = "IClamp"
+	stage1 = "
+		if(i == 1)
+			I += amp + 3;
+		else
+			I += amp;"
+>
+	<external name = "I" />
+	<constant name = "amp" />
+</mechanism>
+
+<synapse
+	name = "ExpSyn"
+	stage1 = "
+		I += s * (E - V);"
+	stage2 = "
+		s' = -s / tau;"
+	syn_code = "
+		s += gsyn * weight;"
+>
+	<constant name = "gsyn" init = "0.1" />
+	<constant name = "tau" init = "5" />
+	<constant name = "E" init = "0" />
+	<external name = "V" />
+	<state name = "s" tolerance = "0.01" />
+	<syn_global name = "weight" init = "1" readonly = "true" />
+</synapse>

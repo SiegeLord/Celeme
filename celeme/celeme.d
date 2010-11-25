@@ -6,4 +6,5 @@ public import
 	celeme.clneurongroup,
 	celeme.recorder,
 	celeme.clcore,
-	celeme.capi;
+	celeme.capi,
+	celeme.xmlloader;

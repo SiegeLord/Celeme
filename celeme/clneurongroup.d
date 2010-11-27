@@ -50,6 +50,7 @@ $synapse_globals$
 		$num_type$ dt;
 $integrator_load$
 $load_vals$
+$load_rand_state$
 
 $synapse_code$
 
@@ -84,6 +85,9 @@ $threshold_pre_check$
 			/* Declare local variables */
 $declare_locals$
 
+			/* Pre-stage code */
+$pre_stage_code$
+
 			/* Integrator code */
 $integrator_code$
 			
@@ -95,6 +99,7 @@ $integrator_post_thresh_code$
 		}
 $integrator_save$
 $save_vals$
+$save_rand_state$
 	}
 }
 ";
@@ -710,6 +715,12 @@ class CNeuronGroup(float_t)
 		}
 		source.Inject(kernel_source, "$load_vals$");
 		
+		/* Load rand state */
+		source.Tab(2);
+		if(RandLen)
+			source ~= Rand.GetLoadCode();
+		source.Inject(kernel_source, "$load_rand_state$");
+		
 		/* Synapse code */
 		source.Tab(2);
 		if(NumDestSynapses)
@@ -824,6 +835,11 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$declare_locals$");
 		
+		/* Pre-stage code */
+		source.Tab(3);
+		source.AddBlock(type.GetPreStageSource());
+		source.Inject(kernel_source, "$pre_stage_code$");
+		
 		/* Integrator code */
 		source.Tab(3);
 		source.AddBlock(Integrator.GetIntegrateCode(type));
@@ -930,14 +946,23 @@ else //It is full, error
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
+		/* Save rand state */
+		source.Tab(2);
+		if(RandLen)
+			source ~= Rand.GetSaveCode();
+		source.Inject(kernel_source, "$save_rand_state$");
+		
+		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "dt = $min_dt$f");
 		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
 		
 		if(RandLen)
-			kernel_source = kernel_source.substitute("rand()", "rand ~ " ~ to!(char[])(RandLen) ~ "(&rand_state)");
+			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
 		else if(kernel_source.containsPattern("rand()"))
 			throw new Exception("Found rand() but neuron type does not have random_state_len > 0.");
+		
+		kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
 		
 		ThreshRecordOffset = non_local_idx;
 		

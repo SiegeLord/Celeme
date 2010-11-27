@@ -121,8 +121,8 @@ void main()
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
-			Color([0,0,255]);
-			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
+			//Color([0,0,255]);
+			//Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}
 		

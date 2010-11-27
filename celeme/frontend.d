@@ -171,6 +171,11 @@ class CMechanism
 		Init = source;
 	}
 	
+	void SetPreStage(char[] pre_stage)
+	{
+		PreStage = pre_stage;
+	}
+	
 	CValue opIndex(char[] name)
 	{
 		/* TODO: LOL OPTIMIZE */
@@ -196,6 +201,7 @@ class CMechanism
 			
 		ret.Init = Init.dup;
 		
+		ret.PreStage = PreStage.dup;
 		ret.States = States.deep_dup();
 		ret.Globals = Globals.deep_dup();
 		ret.Locals = Locals.deep_dup();
@@ -206,6 +212,10 @@ class CMechanism
 		
 		return ret;
 	}
+	
+	/* Pre-stage is called only once per dt, before any of the stages are called.
+	 */
+	char[] PreStage;
 	
 	/* Mechanism evaluation proceeds in stages. Each mechanism's stage N is run at the same time,
 	 * and before stage N + 1. The suggested nature of operations that go in each stage is as follows:
@@ -596,6 +606,29 @@ class CNeuronType
 						ret ~= "\n}\n";
 					}
 				}
+			}
+		}
+		return ret;
+	}
+	
+	char[] GetPreStageSource()
+	{
+		char[] ret;
+		foreach(ii, mech; Mechanisms)
+		{
+			if(mech.PreStage.length)
+			{
+				auto prefix = MechanismPrefixes[ii];
+				auto pre_stage_src = mech.PreStage.dup;
+				if(prefix != "")
+				{
+					foreach(val; &mech.AllValues)
+					{
+						auto name = val.Name;
+						pre_stage_src = pre_stage_src.c_substitute(name, prefix ~ "_" ~ name);
+					}
+				}
+				ret ~= "{\n" ~ pre_stage_src ~ "\n}\n";
 			}
 		}
 		return ret;

@@ -26,6 +26,7 @@ void FillMechanism(CMechanism mech, Node mech_node)
 	}
 	
 	mech.SetInitCode(GetAttribute!(char[])(mech_node, "init", ""));
+	mech.SetPreStage(GetAttribute!(char[])(mech_node, "pre_stage", ""));
 	
 	foreach(val_node; GetChildren(mech_node, "state"))
 	{

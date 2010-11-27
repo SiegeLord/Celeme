@@ -71,6 +71,24 @@
 	<constant name = "amp" />
 </mechanism>
 
+<mechanism
+	name = "RandSyn"
+	pre_stage = '
+		if(cur_time == 0 && rand() > 0.7)
+		{
+			r += 0.02;
+			reset_dt();
+		}'
+	stage1 = "
+		I += r * (0 - V);"
+	stage2 = "
+		r' = -r / 2.0;"
+>
+	<external name = "I" />
+	<external name = "V" />
+	<state name = "r" tolerance = "0.01" />
+</mechanism>
+
 <synapse
 	name = "ExpSyn"
 	stage1 = "
@@ -98,6 +116,7 @@
 >
 	<mechanism name = "IzhMech" />
 	<mechanism name = "IClamp" />
+	<mechanism name = "RandSyn" />
 	<synapse name = "ExpSyn" prefix = "glu" number = "10" />
 	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
 </neuron>

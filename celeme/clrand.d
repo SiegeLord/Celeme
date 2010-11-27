@@ -9,6 +9,10 @@ import tango.util.Convert;
 
 import opencl.cl;
 
+/*
+ * Taken from NVidia's GPU gems 3.37
+ */
+
 const char[] RandComponents = 
 `
 uint TausStep(uint* z, int S1, int S2, int S3, uint M)  
@@ -50,6 +54,16 @@ $num_type$ rand2(uint2* zp)
 
 class CCLRand
 {
+	char[] GetLoadCode()
+	{
+		return "";
+	}
+	
+	char[] GetSaveCode()
+	{
+		return "";
+	}
+	
 	char[] GetArgsCode()
 	{
 		return "";
@@ -96,14 +110,28 @@ class CCLRandImpl(uint N) : CCLRand
 		State = new CCLBuffer!(state_t)(core, 1);
 	}
 	
-	char[] GetArgsCode()
+	char[] GetTypeString()
 	{
-		char[] ret = "__global uint";
+		char[] ret = "uint";
 		static if (N > 1)
 			ret ~= to!(char[])(N);
 		
-		ret ~= "* rand_state,";
 		return ret;
+	}
+	
+	char[] GetLoadCode()
+	{
+		return GetTypeString() ~ " rand_state = rand_state_buf[i];";
+	}
+	
+	char[] GetSaveCode()
+	{
+		return "rand_state_buf[i] = rand_state;";
+	}
+	
+	char[] GetArgsCode()
+	{
+		return "__global " ~ GetTypeString() ~ "* rand_state_buf,";
 	}
 	
 	int SetArgs(CCLKernel kernel, int arg_id)

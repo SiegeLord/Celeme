@@ -1,5 +1,7 @@
 module celeme.clcore;
 
+import celeme.util;
+
 import opencl.cl;
 
 import tango.io.Stdout;
@@ -23,6 +25,22 @@ class CCLKernel
 	
 	void SetGlobalArg(T)(uint argnum, T* arg)
 	{
+		static if(!is(T == int) 
+		       && !is(T == uint)
+		       && !is(T == float)
+		       && !is(T == double)
+		       && !is(T == cl_int2)
+		       && !is(T == cl_uint2)
+		       && !is(T == cl_float2)
+		       && !is(T == cl_double2)
+		       && !is(T == cl_int4)
+		       && !is(T == cl_uint4)
+		       && !is(T == cl_float4)
+		       && !is(T == cl_double4)
+		       && !is(T == cl_mem)
+		       )
+			static assert(0);
+
 		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, arg);
 		if(err != CL_SUCCESS)
 		{

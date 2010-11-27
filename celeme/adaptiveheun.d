@@ -205,7 +205,7 @@ else
 			if(Group.Model.Initialized)
 			{
 				float_t val = tolerance;
-				Group.StepKernel.SetGlobalArg(*idx_ptr + Group.ValueBuffers.length + Group.Constants.length + ArgOffsetStep, &val);
+				Group.StepKernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, &val);
 			}
 		}
 		else

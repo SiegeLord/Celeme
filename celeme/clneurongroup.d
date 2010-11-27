@@ -10,6 +10,7 @@ import celeme.util;
 import celeme.integrator;
 import celeme.adaptiveheun;
 import celeme.heun;
+import celeme.clrand;
 
 import opencl.cl;
 
@@ -30,6 +31,7 @@ __kernel void $type_name$_step
 		const int record_buffer_size,
 $val_args$
 $constant_args$
+$random_state_args$
 $integrator_args$
 $event_source_args$
 $synapse_args$
@@ -316,6 +318,25 @@ class CNeuronGroup(float_t)
 		NumDestSynapses = type.NumDestSynapses;
 		NumSrcSynapses = type.NumSrcSynapses;
 		
+		RandLen = type.RandLen;
+		switch(RandLen)
+		{
+			case 1:
+				Rand = new CCLRandImpl!(1)(Model.Core, Count);
+				break;
+			case 2:
+				Rand = new CCLRandImpl!(2)(Model.Core, Count);
+				break;
+			case 3:
+				assert(0, "Unsupported rand length");
+				break;
+			case 4:
+				assert(0, "Unsupported rand length");
+				//Rand = new CCLRandImpl!(4)(Model.Core, Count);
+				break;
+			default:
+		}
+		
 		/* Copy the non-locals and constants from the type */
 		foreach(name, state; &type.AllNonLocals)
 		{
@@ -408,6 +429,8 @@ class CNeuronGroup(float_t)
 				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
+			if(RandLen)
+				arg_id = Rand.SetArgs(StepKernel, arg_id);
 			arg_id = Integrator.SetArgs(arg_id);
 			if(NeedSrcSynCode)
 			{
@@ -499,6 +522,8 @@ class CNeuronGroup(float_t)
 		}
 		
 		Integrator.Reset();
+		if(RandLen)
+			Rand.Seed();
 		
 		/* Initialize the buffers */
 		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
@@ -631,7 +656,13 @@ class CNeuronGroup(float_t)
 		}
 		source.Inject(kernel_source, "$constant_args$");
 		
-		/* Tolerance arguments */
+		/* Random state arguments */
+		source.Tab(2);
+		if(RandLen)
+			source.AddBlock(Rand.GetArgsCode());
+		source.Inject(kernel_source, "$random_state_args$");
+		
+		/* Integrator arguments */
 		source.Tab(2);
 		source.AddBlock(Integrator.GetArgsCode(type));
 		source.Inject(kernel_source, "$integrator_args$");
@@ -902,6 +933,11 @@ else //It is full, error
 		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
+		
+		if(RandLen)
+			kernel_source = kernel_source.substitute("rand()", "rand ~ " ~ to!(char[])(RandLen) ~ "(&rand_state)");
+		else if(kernel_source.containsPattern("rand()"))
+			throw new Exception("Found rand() but neuron type does not have random_state_len > 0.");
 		
 		ThreshRecordOffset = non_local_idx;
 		
@@ -1391,6 +1427,16 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		MinDtVal = min_dt;
 	}
 	
+	int IntegratorArgOffset()
+	{
+		int rand_offset = 0;
+		if(RandLen)
+		{
+			rand_offset = Rand.NumArgs;
+		}
+		return ValueBuffers.length + Constants.length + ArgOffsetStep + rand_offset;
+	}
+	
 	CRecorder[int] Recorders;
 	CRecorder EventRecorder;
 	
@@ -1426,6 +1472,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLBuffer!(int) RecordFlagsBuffer;
 	CCLBuffer!(float_t4) RecordBuffer;
 	CCLBuffer!(int) RecordIdxBuffer;
+	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
 	CCLBuffer!(cl_int2) DestSynBuffer;
 	
 	int RecordLength;
@@ -1445,6 +1492,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	CSynapseBuffer[] SynapseBuffers;
 	CEventSourceBuffer[] EventSourceBuffers;
+	
+	int RandLen = 0;
+	CCLRand Rand;
 	
 	CIntegrator!(float_t) Integrator;
 }

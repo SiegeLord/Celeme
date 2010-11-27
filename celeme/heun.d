@@ -43,7 +43,7 @@ class CHeun(float_t) : CIntegrator!(float_t)
 			parts++;
 		
 		float_t val = cast(float_t)(Group.Model.TimeStepSize / parts);
-		Group.StepKernel.SetGlobalArg(Group.ValueBuffers.length + Group.Constants.length + ArgOffsetStep, &val);
+		Group.StepKernel.SetGlobalArg(Group.IntegratorArgOffset, &val);
 	}
 	
 	override

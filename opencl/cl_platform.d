@@ -173,6 +173,9 @@ alias cl_vec!(double, 4) cl_double4;
 alias cl_vec!(int, 2) cl_int2;
 alias cl_vec!(int, 4) cl_int4;
 
+alias cl_vec!(uint, 2) cl_uint2;
+alias cl_vec!(uint, 4) cl_uint4;
+
 /+
 import tango.util.Convert;
 

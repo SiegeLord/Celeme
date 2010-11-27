@@ -1,8 +1,10 @@
 module celeme.clmodel;
 
 import celeme.clcore;
+import celeme.clrand;
 import celeme.frontend;
 import celeme.clneurongroup;
+import celeme.util;
 
 import tango.text.Util;
 import tango.io.Stdout;
@@ -58,6 +60,7 @@ class CCLModel(float_t)
 	this(bool gpu)
 	{
 		Core = new CCLCore(gpu);
+		RandsUsed[] = false;
 	}
 	
 	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true)
@@ -77,6 +80,8 @@ class CCLModel(float_t)
 		NumNeurons += number;
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
+		
+		RandsUsed[type.RandLen] = true;
 		
 		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt);
 		
@@ -124,6 +129,20 @@ class CCLModel(float_t)
 		else
 		{
 			Source ~= "#define USE_ATOMIC_DELIVERY 0\n";
+		}
+		
+		/* RNG */
+		bool need_rand = false;
+		foreach(have_rand; RandsUsed[1..$])
+			need_rand |= have_rand;
+			
+		if(need_rand)
+			Source ~= RandComponents;
+			
+		foreach(ii, have_rand; RandsUsed[1..$])
+		{
+			if(have_rand)
+				Source ~= RandCode[ii];
 		}
 			
 		Source ~= FloatMemsetKernelTemplate;
@@ -337,6 +356,8 @@ class CCLModel(float_t)
 		
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
+	
+	bool[5] RandsUsed;
 	
 	cl_program Program;
 	CCLKernel FloatMemsetKernel;

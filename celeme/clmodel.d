@@ -334,7 +334,7 @@ class CCLModel(float_t)
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
 	
-	void Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
+	bool Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
 	{
 		assert(Initialized);
 		
@@ -351,10 +351,11 @@ class CCLModel(float_t)
 		auto src_slot = src.GetSrcSlot(src_nrn_id, src_event_source);
 		auto dest_slot = dest.GetDestSlot(dest_nrn_id, dest_syn_type);
 		
-		assert(src_slot >= 0);
-		assert(dest_slot >= 0);
+		if(src_slot < 0 || dest_slot < 0)
+			return false;
 		
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
+		return true;
 	}
 	
 	bool[5] RandsUsed;

@@ -107,7 +107,7 @@ class CCLRandImpl(uint N) : CCLRand
 	
 	this(CCLCore core, int count)
 	{
-		State = new CCLBuffer!(state_t)(core, 1);
+		State = new CCLBuffer!(state_t)(core, count);
 	}
 	
 	char[] GetTypeString()

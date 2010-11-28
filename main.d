@@ -8,6 +8,7 @@ import celeme.util;
 
 import tango.time.StopWatch;
 import tango.io.Stdout;
+import tango.math.random.Random;
 
 void main()
 {
@@ -18,7 +19,8 @@ void main()
 	auto xml_root = GetRoot("stuff.xml");
 	auto mechs = LoadMechanisms(xml_root);
 	auto syns = LoadSynapses(xml_root);
-	auto types = LoadNeuronTypes(xml_root, mechs, syns);
+	auto conns = LoadConnectors(xml_root);
+	auto types = LoadNeuronTypes(xml_root, mechs, syns, conns);
 	
 	auto model = new CCLModel!(float)(false);
 	scope(exit) model.Shutdown();
@@ -26,17 +28,16 @@ void main()
 	auto t_scale = 1;
 	
 	model.TimeStepSize = 1.0 / t_scale;	
-	model.AddNeuronGroup(types["Regular"], 5, null, true);
-	model.AddNeuronGroup(types["Burster"], 5, null, true);
+	const N = 100;
+	model.AddNeuronGroup(types["Regular"], N, null, true);
+	///model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
 	model.Generate(true, true);
-	
 	model["Regular"].MinDt = 0.1;
-	model["Burster"].MinDt = 0.1;
-	
+	///model["Burster"].MinDt = 0.1;
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;
 	
@@ -48,23 +49,32 @@ void main()
 	//model["Burster"].SetTolerance("V", 0.1);
 	//model["Burster"].SetTolerance("u", 0.01);
 
-	model["Burster"]["glu_E"] = 0;
+	///model["Burster"]["glu_E"] = 0;
 	model["Regular"]["glu_E"] = 0;
-	model["Burster"]["gaba_E"] = -80;
-	model["Regular"]["gaba_E"] = -80;
+	///model["Burster"]["gaba_E"] = -80;
+	///model["Regular"]["gaba_E"] = -80;
 	
-	model["Regular"]["amp"] = 3;
-	model["Burster"]["amp"] = 10;
+	model["Regular"]["amp"] = 2;
+	///model["Burster"]["amp"] = 10;
 	
-	model["Regular"]["glu_gsyn"] = 0.04;
-	model["Regular"]["gaba_gsyn"] = 0.5;
+	model["Regular"]["glu_gsyn"] = 0.005;
+	///model["Regular"]["gaba_gsyn"] = 0.5;
 	
-	model["Burster"]["glu_gsyn"] = 0.04;
-	model["Burster"]["gaba_gsyn"] = 0.5;
+	///model["Burster"]["glu_gsyn"] = 0.04;
+	///model["Burster"]["gaba_gsyn"] = 0.5;
 	
-	model.Connect("Burster", 0, 0, "Regular", 0, 0);
-	model.Connect("Burster", 0, 0, "Regular", 1, 1);
-	model.Connect("Regular", 1, 0, "Burster", 0, 0);
+	///model.Connect("Burster", 0, 0, "Regular", 0, 0);
+	///model.Connect("Burster", 0, 0, "Regular", 1, 1);
+	///model.Connect("Regular", 1, 0, "Burster", 0, 0);
+	
+	for(int ii = 0; ii < N; ii++)
+	{
+		for(int jj = 0; jj < N; jj++)
+		{
+			if(ii != jj && rand.uniform!(float) > 0.96)
+				model.Connect("Regular", ii, 0, "Regular", jj, 0);
+		}
+	}
 	
 	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
 	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);
@@ -79,9 +89,9 @@ void main()
 	CRecorder v_rec3;
 	if(record)
 	{
-		v_rec1 = model["Burster"].Record(0, "V");
-		v_rec2 = model["Regular"].Record(0, "V");
-		v_rec3 = model["Regular"].Record(1, "V");
+		v_rec1 = model["Regular"].Record(0, "V");
+		v_rec2 = model["Regular"].Record(1, "V");
+		v_rec3 = model["Regular"].Record(N - 1, "V");
 		//model["Burster"].RecordEvents(0, 1);
 		//v_rec2 = model["Burster"].EventRecorder;
 	}
@@ -89,14 +99,12 @@ void main()
 	Stdout.formatln("Init time: {}", timer.stop);
 	timer.start;
 	
-	int tstop = cast(int)(200 * t_scale);
+	int tstop = cast(int)(1000 * t_scale);
 	//model.Run(tstop);
 	model.ResetRun();
-	
 	model.InitRun();
 	//model.RunUntil(cast(int)(50 * t_scale));
 	model.RunUntil(tstop + 1);
-	
 	Stdout.formatln("Run time: {}", timer.stop);
 	
 	timer.start;
@@ -114,15 +122,15 @@ void main()
 			XRange([0, cast(int)(tstop/t_scale)]);
 			
 			Hold = true;
-			Style("linespoints");
+			Style("lines");
 			PointType(6);
 			Thickness(1);
 			Color([0,0,0]);
 			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
 			Color([255,0,0]);
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
-			//Color([0,0,255]);
-			//Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
+			Color([0,0,255]);
+			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}
 		

@@ -364,6 +364,21 @@ class CNeuronType
 		return null;
 	}
 	
+	void AddConnector(CConnector conn, bool no_dup = false)
+	{
+		assert(conn);
+		if(!no_dup)
+			conn = conn.dup;
+		
+		foreach(c; Connectors)
+		{
+			if(c.Name == conn.Name)
+				throw new Exception("Connector '" ~ c.Name ~ "' already exists in this neuron type.");
+		}
+		
+		Connectors ~= conn;
+	}
+	
 	void AddMechanism(CMechanism mech, char[] prefix = "", bool no_dup = false)
 	{
 		assert(mech);
@@ -666,6 +681,7 @@ class CNeuronType
 		InitCode = code;
 	}
 	
+	CConnector[] Connectors;
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
 	char[][] MechanismPrefixes;
@@ -683,4 +699,54 @@ class CNeuronType
 	int NumEventSources = 0;
 	
 	int NumSrcSynapses = 0;
+}
+
+class CConnector
+{
+	this(char[] name)
+	{
+		Name = name;
+	}
+	
+	CConnector dup(CConnector ret = null)
+	{
+		if(ret is null)
+			ret = new CConnector(Name);
+		
+		ret.Code = Code.dup;
+		ret.Name = Name.dup;
+		ret.Constants = Constants.deep_dup();
+		
+		return ret;
+	}
+	
+	CValue AddConstant(char[] name)
+	{
+		if(!IsValidName(name))
+			throw new Exception("The name '" ~ name ~ "' is reserved.");
+		if(IsDuplicateName(name))
+			throw new Exception("'" ~ name ~ "' already exists in connector '" ~ Name ~ "'.");
+		auto val = new CValue(name);				
+		Constants ~= val;
+		return val;
+	}
+	
+	bool IsDuplicateName(char[] name)
+	{
+		foreach(val; Constants)
+		{
+			if(val.Name == name)
+				return true;
+		}
+		return false;
+	}
+	
+	void SetCode(char[] code)
+	{
+		Code = code;
+	}
+	
+	CValue[] Constants;
+	char[] Code;
+	char[] Name;
 }

@@ -111,14 +111,15 @@
 	record_length = "2000"
 	record_rate = "100"
 	circ_buffer_size = "10"
-	num_src_synapses = "10"
+	num_src_synapses = "100"
 	rand_state_len = "2"
 >
 	<mechanism name = "IzhMech" />
 	<mechanism name = "IClamp" />
 	<mechanism name = "RandSyn" />
-	<synapse name = "ExpSyn" prefix = "glu" number = "10" />
-	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
+	<synapse name = "ExpSyn" prefix = "glu" number = "100" />
+	<connector name = "RandConn" />
+	<!-- synapse name = "ExpSyn" prefix = "gaba" number = "10" /> -->
 </neuron>
 
 <neuron
@@ -131,6 +132,13 @@
 	<mechanism name = "DummyThresh" prefix = "hl" />
 	<mechanism name = "IzhMech2" />
 	<mechanism name = "IClamp" />
-	<synapse name = "ExpSyn" prefix = "glu" number = "10" />
+	<synapse name = "ExpSyn" prefix = "glu" number = "100" />
 	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
 </neuron>
+
+<connector
+	name = "RandConn"
+	code = ""
+>
+	<constant name = "prob" init="1" />
+</connector>

@@ -182,7 +182,44 @@ CSynapse[char[]] LoadSynapses(Node root)
 	return ret;
 }
 
-CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CSynapse[char[]] synapses)
+CConnector[char[]] LoadConnectors(Node root)
+{
+	CConnector[char[]] ret;
+	
+	foreach(conn_node; GetChildren(root, "connector"))
+	{
+		auto conn_name = GetAttribute!(char[])(conn_node, "name", null);
+		if(conn_name is null)
+			throw new Exception("All neuron types need a name.");
+		
+		auto conn_ptr = conn_name in ret;
+		if(conn_ptr !is null)
+			throw new Exception("Duplicate neuron type name: '" ~ conn_name ~ "'.");
+		
+		auto conn = new CConnector(conn_name);
+		ret[conn_name.dup] = conn;
+		
+		println("Connector: {}", conn_name);
+		
+		conn.SetCode(GetAttribute!(char[])(conn_node, "code", ""));
+		
+		foreach(val_node; GetChildren(conn_node, "constant"))
+		{
+			auto val_name = GetAttribute!(char[])(val_node, "name", null);
+			if(val_name is null)
+				throw new Exception("All constants need a name.");
+			
+			auto val = conn.AddConstant(val_name);
+			val = GetAttribute!(double)(val_node, "init", 0.0);
+			
+			//println("Constant: {} = {}", val_name, val.Value);
+		}
+	}
+	
+	return ret;
+}
+
+CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CSynapse[char[]] synapses, CConnector[char[]] connectors)
 {
 	CNeuronType[char[]] ret;
 	
@@ -234,6 +271,21 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 			auto number = GetAttribute!(int)(syn_node, "number", 0);
 			
 			nrn_type.AddSynapse(*syn_ptr, number, prefix);
+		}
+		
+		foreach(conn_node; GetChildren(nrn_node, "connector"))
+		{
+			auto conn_name = GetAttribute!(char[])(conn_node, "name", null);
+			if(conn_name is null)
+				throw new Exception("All connectors need a name.");
+			
+			auto conn_ptr = conn_name in connectors;
+			if(conn_ptr is null)
+				throw new Exception("No connector named '" ~ conn_name ~ "' exists.");
+			
+			println("Added {}", conn_name);
+			
+			nrn_type.AddConnector(*conn_ptr);
 		}
 	}
 	

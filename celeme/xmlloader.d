@@ -14,7 +14,7 @@ CMechanism[char[]] LoadMechanisms(char[] file)
 
 void FillMechanism(CMechanism mech, Node mech_node)
 {
-	for(int ii = 0; ii < 3; ii++)
+	foreach(ii; range(3))
 	{
 		auto stage_name = Format("stage{}", ii);
 		auto stage_code = GetAttribute!(char[])(mech_node, stage_name);

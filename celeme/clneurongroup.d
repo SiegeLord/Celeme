@@ -376,7 +376,7 @@ class CNeuronGroup(float_t)
 			syn_type_offset += syn_type.NumSynapses;
 		}
 		
-		for(int ii = 0; ii < NumEventSources; ii++)
+		foreach(ii; range(NumEventSources))
 		{
 			EventSourceBuffers ~= new CEventSourceBuffer(Core, Count);
 		}

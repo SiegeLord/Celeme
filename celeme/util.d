@@ -73,6 +73,47 @@ T[] deep_dup(T)(T[] arr)
 	return ret;
 }
 
+range_fruct!(T) range(T)(T end)
+{
+	range_fruct!(T) ret;
+	ret.end = end;
+	return ret;
+}
+
+range_fruct!(T) range(T)(T start, T end)
+{
+	range_fruct!(T) ret;
+	ret.start = start;
+	ret.end = end;
+	return ret;
+}
+
+range_fruct!(T) range(T)(T start, T end, T step)
+{
+	range_fruct!(T) ret;
+	ret.start = start;
+	ret.end = end;
+	ret.step = step;
+	return ret;
+}
+
+struct range_fruct(T)
+{	
+	int opApply(int delegate(ref T ii) dg)
+	{
+		for(int ii = start; ii < end; ii += step)
+		{
+			if(int ret = dg(ii))
+				return ret;
+		}
+		return 0;
+	}
+	
+	T start = 0;
+	T end = 0;
+	T step = 1;
+}
+
 char[] GetGitRevisionHash()
 {
 	char[] ret;

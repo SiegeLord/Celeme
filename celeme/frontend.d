@@ -588,7 +588,7 @@ class CNeuronType
 	char[] GetEvalSource()
 	{
 		char[] ret;
-		for(int ii = 0; ii < 3; ii++)
+		foreach(ii; range(3))
 		{
 			foreach(jj, mech; Mechanisms)
 			{

@@ -1384,17 +1384,24 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		auto errors = new int[](Count + 1);
 		clEnqueueReadBuffer(Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
+		
+		bool found_errors = false;
 		if(errors[0])
 		{
 			Stdout.formatln("Error: {}", errors[0]);
+			found_errors = true;
 		}
 		foreach(ii, error; errors[1..$])
 		{
 			if(error)
 			{
 				Stdout.formatln("Error: {} : {}", ii, error);
+				found_errors = true;
 			}
 		}
+		
+		if(found_errors)
+			throw new Exception("Found errors during model execution.");
 	}
 	
 	void SetConnection(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
@@ -1460,6 +1467,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto conn = *conn_ptr;
 		
 		conn.Connect(multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type);
+		
+		CheckErrors();
 	}
 	
 	double MinDtVal = 0.1;

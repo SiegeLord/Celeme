@@ -52,13 +52,13 @@ void main()
 	///model["Burster"]["glu_E"] = 0;
 	model["Regular"]["glu_E"] = 0;
 	///model["Burster"]["gaba_E"] = -80;
-	///model["Regular"]["gaba_E"] = -80;
+	model["Regular"]["gaba_E"] = -80;
 	
 	model["Regular"]["amp"] = 2;
 	///model["Burster"]["amp"] = 10;
 	
-	model["Regular"]["glu_gsyn"] = 0.005;
-	///model["Regular"]["gaba_gsyn"] = 0.5;
+	model["Regular"]["glu_gsyn"] = 0.05;
+	model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	///model["Burster"]["glu_gsyn"] = 0.04;
 	///model["Burster"]["gaba_gsyn"] = 0.5;
@@ -67,14 +67,18 @@ void main()
 	///model.Connect("Burster", 0, 0, "Regular", 1, 1);
 	///model.Connect("Regular", 1, 0, "Burster", 0, 0);
 	
-	for(int ii = 0; ii < N; ii++)
+	/*for(int ii = 0; ii < N; ii++)
 	{
 		for(int jj = 0; jj < N; jj++)
 		{
 			if(ii != jj && rand.uniform!(float) > 0.96)
 				model.Connect("Regular", ii, 0, "Regular", jj, 0);
 		}
-	}
+	}*/
+	
+	//model.Connect("Regular", 1, 0, "Regular", 0, 0);
+	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);
+	model.Connect("RandConn", 2, "Regular", [1, 2], 0, "Regular", [2, 4], 1);
 	
 	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
 	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);
@@ -89,9 +93,9 @@ void main()
 	CRecorder v_rec3;
 	if(record)
 	{
-		v_rec1 = model["Regular"].Record(0, "V");
-		v_rec2 = model["Regular"].Record(1, "V");
-		v_rec3 = model["Regular"].Record(N - 1, "V");
+		v_rec1 = model["Regular"].Record(1, "V");
+		v_rec2 = model["Regular"].Record(2, "V");
+		v_rec3 = model["Regular"].Record(3, "V");
 		//model["Burster"].RecordEvents(0, 1);
 		//v_rec2 = model["Burster"].EventRecorder;
 	}

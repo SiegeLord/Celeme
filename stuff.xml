@@ -95,8 +95,8 @@
 		I += s * (E - V);"
 	stage2 = "
 		s' = -s / tau;"
-	syn_code = "
-		s += gsyn * weight;"
+	syn_code = '
+		s += gsyn * weight;'
 >
 	<constant name = "gsyn" init = "0.1" />
 	<constant name = "tau" init = "5" />
@@ -116,10 +116,10 @@
 >
 	<mechanism name = "IzhMech" />
 	<mechanism name = "IClamp" />
-	<mechanism name = "RandSyn" />
+	<!-- <mechanism name = "RandSyn" /> -->
 	<synapse name = "ExpSyn" prefix = "glu" number = "100" />
 	<connector name = "RandConn" />
-	<!-- synapse name = "ExpSyn" prefix = "gaba" number = "10" /> -->
+	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
 </neuron>
 
 <neuron
@@ -138,7 +138,8 @@
 
 <connector
 	name = "RandConn"
-	code = ""
+	code = "
+	connect(i, cycle + dest_start);"
 >
 	<constant name = "prob" init="1" />
 </connector>

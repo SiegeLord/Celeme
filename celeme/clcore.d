@@ -39,7 +39,7 @@ class CCLKernel
 		       && !is(T == cl_double4)
 		       && !is(T == cl_mem)
 		       )
-			static assert(0);
+			static assert(0, "Invalid argument to SetGlobalArg.");
 
 		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, arg);
 		if(err != CL_SUCCESS)

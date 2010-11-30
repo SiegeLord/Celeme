@@ -115,7 +115,7 @@ class CCLModel(float_t)
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
-		//Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
+		Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
 		if(parallel_delivery)
 			Source ~= "#define PARALLEL_DELIVERY 1\n";
 		else
@@ -152,6 +152,8 @@ class CCLModel(float_t)
 			Source ~= group.StepKernelSource;
 			Source ~= group.InitKernelSource;
 			Source ~= group.DeliverKernelSource;
+			foreach(conn; group.Connectors)
+				Source ~= conn.KernelCode;
 		}
 		Source = Source.substitute("$num_type$", NumStr);
 		//Stdout(Source).nl;
@@ -265,14 +267,18 @@ class CCLModel(float_t)
 	{
 		foreach(group; NeuronGroups)
 			group.Shutdown();
+		
+		/* TODO: Add safe releases to all of these */
+		if(Initialized)
+		{				
+			clReleaseProgram(Program);
 			
-		clReleaseProgram(Program);
-		
-		FloatMemsetKernel.Release();
-		IntMemsetKernel.Release();
-		
-		FiredSynBuffer.Release();
-		FiredSynIdxBuffer.Release();
+			FloatMemsetKernel.Release();
+			IntMemsetKernel.Release();
+			
+			FiredSynBuffer.Release();
+			FiredSynIdxBuffer.Release();
+		}
 		
 		Core.Shutdown();
 		
@@ -323,7 +329,7 @@ class CCLModel(float_t)
 		auto dest = opIndex(dest_group);
 		
 		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
-		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid source index.");
+		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
 		
 		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
 		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
@@ -342,7 +348,7 @@ class CCLModel(float_t)
 		auto dest = opIndex(dest_group);
 		
 		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
-		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid source index.");
+		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
 		
 		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
 		
@@ -356,6 +362,24 @@ class CCLModel(float_t)
 		
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 		return true;
+	}
+	
+	void Connect(char[] connector_name, int multiplier, char[] src_group, int[2] src_nrn_range, int src_event_source, char[] dest_group, int[2] dest_nrn_range, int dest_syn_type)
+	{
+		assert(Initialized);
+		
+		auto src = opIndex(src_group);
+		auto dest = opIndex(dest_group);
+		
+		assert(multiplier > 0, "Multiplier must be positive.");
+		assert(src_nrn_range[0] >= 0 && src_nrn_range[0] < src.Count, "Invalid source range.");
+		assert(src_nrn_range[1] >= 0 && src_nrn_range[1] < src.Count, "Invalid source range.");
+		assert(dest_nrn_range[0] >= 0 && dest_nrn_range[0] < dest.Count, "Invalid destination range.");
+		assert(dest_nrn_range[1] >= 0 && dest_nrn_range[1] < dest.Count, "Invalid destination range.");
+		assert(src_nrn_range[1] > src_nrn_range[0], "Invalid source range.");
+		assert(dest_nrn_range[1] > dest_nrn_range[0], "Invalid source range.");
+		
+		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type);
 	}
 	
 	bool[5] RandsUsed;

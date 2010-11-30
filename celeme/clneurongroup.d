@@ -2,6 +2,7 @@ module celeme.clneurongroup;
 
 import celeme.frontend;
 import celeme.clcore;
+import celeme.clconnector;
 import celeme.clmodel;
 import celeme.recorder;
 import celeme.alignedarray;
@@ -59,12 +60,12 @@ $synapse_code$
 			/* Record if necessary */
 			if(record_flags && record_flags < $thresh_rec_offset$)
 			{
-				int idx = atom_inc(&record_idx[0]);
+				int idx = atomic_inc(&record_idx[0]);
 				if(idx >= record_buffer_size)
 				{
 					error_buffer[i + 1] = 10;
 					idx--;
-					atom_xchg(&record_idx[0], idx);
+					atomic_xchg(&record_idx[0], idx);
 				}
 				$num_type$4 record;
 				record.s0 = i;
@@ -202,7 +203,7 @@ $event_source_code$
 				if(dest.s0 >= 0)
 				{
 					/* Get the index into the global syn buffer */
-					int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+					int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
 					fired_syn_buffer[dest_syn] = dest.s1;
 				}
 			}
@@ -327,26 +328,31 @@ class CNeuronGroup(float_t)
 		switch(RandLen)
 		{
 			case 1:
-				Rand = new CCLRandImpl!(1)(Model.Core, Count);
+				Rand = new CCLRandImpl!(1)(Core, Count);
 				break;
 			case 2:
-				Rand = new CCLRandImpl!(2)(Model.Core, Count);
+				Rand = new CCLRandImpl!(2)(Core, Count);
 				break;
 			case 3:
 				assert(0, "Unsupported rand length");
 				break;
 			case 4:
 				assert(0, "Unsupported rand length");
-				//Rand = new CCLRandImpl!(4)(Model.Core, Count);
+				//Rand = new CCLRandImpl!(4)(Core, Count);
 				break;
 			default:
+		}
+		
+		foreach(conn; type.Connectors)
+		{
+			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
 		/* Copy the non-locals and constants from the type */
 		foreach(name, state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
-			ValueBuffers ~= new CValueBuffer!(float_t)(state, Model.Core, Count);
+			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, Count);
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -357,14 +363,14 @@ class CNeuronGroup(float_t)
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
 				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
-				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Model.Core, Count * syn_type.NumSynapses);			
+				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, Count * syn_type.NumSynapses);			
 			}
 		}
 		
 		int syn_type_offset = 0;
 		foreach(syn_type; type.SynapseTypes)
 		{
-			auto syn_buff = new CSynapseBuffer(Model.Core, syn_type_offset, syn_type.NumSynapses, Count);
+			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count);
 			SynapseBuffers ~= syn_buff;
 			
 			syn_type_offset += syn_type.NumSynapses;
@@ -372,24 +378,24 @@ class CNeuronGroup(float_t)
 		
 		for(int ii = 0; ii < NumEventSources; ii++)
 		{
-			EventSourceBuffers ~= new CEventSourceBuffer(Model.Core, Count);
+			EventSourceBuffers ~= new CEventSourceBuffer(Core, Count);
 		}
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
-			CircBufferEnd = Model.Core.CreateBuffer(NumEventSources * Count * int.sizeof);
-			CircBuffer = Model.Core.CreateBuffer(CircBufferSize * NumEventSources * Count * Model.NumSize);
+			CircBufferStart = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
+			CircBufferEnd = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
+			CircBuffer = Core.CreateBuffer(CircBufferSize * NumEventSources * Count * Model.NumSize);
 		}
 		
-		ErrorBuffer = Model.Core.CreateBuffer((Count + 1) * int.sizeof);
-		RecordFlagsBuffer = Model.Core.CreateBufferEx!(int)(Count);
-		RecordBuffer = Model.Core.CreateBufferEx!(float_t4)(RecordLength);
-		RecordIdxBuffer = Model.Core.CreateBufferEx!(int)(1);
+		ErrorBuffer = Core.CreateBuffer((Count + 1) * int.sizeof);
+		RecordFlagsBuffer = Core.CreateBufferEx!(int)(Count);
+		RecordBuffer = Core.CreateBufferEx!(float_t4)(RecordLength);
+		RecordIdxBuffer = Core.CreateBufferEx!(int)(1);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Model.Core.CreateBufferEx!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
+			DestSynBuffer = Core.CreateBufferEx!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -499,10 +505,13 @@ class CNeuronGroup(float_t)
 			SetGlobalArg(arg_id++, &Count);
 		}
 		
-		Model.Core.Finish();
+		Core.Finish();
 		
 		Model.MemsetIntBuffer(RecordFlagsBuffer.Buffer, Count, 0);
 		Model.MemsetIntBuffer(DestSynBuffer.Buffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
+		
+		foreach(conn; Connectors)
+			conn.Initialize;
 		
 		ResetBuffers();
 	}
@@ -554,7 +563,7 @@ class CNeuronGroup(float_t)
 			arr[] = buffer.DefaultValue;
 			buffer.Buffer.UnMap(arr);
 		}
-		Model.Core.Finish();
+		Core.Finish();
 		
 		foreach(recorder; Recorders)
 			recorder.Length = 0;
@@ -591,7 +600,7 @@ class CNeuronGroup(float_t)
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
-		auto err = clEnqueueNDRangeKernel(Model.Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		auto err = clEnqueueNDRangeKernel(Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -608,7 +617,7 @@ class CNeuronGroup(float_t)
 			float_t t_val = sim_time;
 			SetGlobalArg(0, &t_val);
 
-			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 			assert(err == CL_SUCCESS);
 		}
 	}
@@ -632,7 +641,7 @@ class CNeuronGroup(float_t)
 				SetLocalArg(ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
 			}
 
-			auto err = clEnqueueNDRangeKernel(Model.Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 			assert(err == CL_SUCCESS);
 		}
 	}
@@ -864,12 +873,12 @@ if(syn_table_end != syn_offset)
 			source.AddBlock(
 `if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)
 {
-	int idx = atom_inc(&record_idx[0]);
+	int idx = atomic_inc(&record_idx[0]);
 	if(idx >= record_buffer_size)
 	{
 		error_buffer[i + 1] = 10;
 		idx--;
-		atom_xchg(&record_idx[0], idx);
+		atomic_xchg(&record_idx[0], idx);
 	}
 
 	$num_type$4 record;
@@ -1014,7 +1023,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		int buff_end = circ_buffer_end[idx_idx];
 #if PARALLEL_DELIVERY
 #if USE_ATOMIC_DELIVERY
-		fire_table[atom_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;
+		fire_table[atomic_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;
 #else
 		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
 		need_to_deliver = true;
@@ -1027,7 +1036,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			if(dest.s0 >= 0)
 			{
 				/* Get the index into the global syn buffer */
-				int dest_syn = atom_inc(&fired_syn_idx_buffer[dest.s0]);
+				int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
 				fired_syn_buffer[dest_syn] = dest.s1;
 			}
 		}
@@ -1255,7 +1264,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	void Shutdown()
-	{		
+	{
+		if(!Model.Initialized)
+			return;
+
+		/* TODO: Add safe releases to all of these */
+
 		foreach(buffer; ValueBuffers)
 			buffer.Release();
 			
@@ -1369,7 +1383,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(Model.Initialized);
 		
 		auto errors = new int[](Count + 1);
-		clEnqueueReadBuffer(Model.Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
+		clEnqueueReadBuffer(Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
 		if(errors[0])
 		{
 			Stdout.formatln("Error: {}", errors[0]);
@@ -1394,6 +1408,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		int src_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
 		DestSynBuffer.WriteOne(src_syn_id, cl_int2(dest_neuron_id, dest_slot));
+		//auto arr = DestSynBuffer.Map(CL_MAP_READ);
 	}
 	
 	int GetSrcSlot(int src_nrn_id, int event_source)
@@ -1403,7 +1418,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		auto idx = EventSourceBuffers[event_source].FreeIdx.ReadOne(src_nrn_id);
 		
-		if(idx == NumSrcSynapses)
+		if(idx >= NumSrcSynapses)
 			return -1;
 		
 		idx++;
@@ -1420,7 +1435,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		auto idx = SynapseBuffers[dest_syn_type].FreeIdx.ReadOne(dest_nrn_id);
 		
-		if(idx == SynapseBuffers[dest_syn_type].Count)
+		if(idx >= SynapseBuffers[dest_syn_type].Count)
 			return -1;
 		
 		idx++;
@@ -1434,6 +1449,17 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		assert(type >= 0 && type < SynapseBuffers.length, "Invalid synapse type.");
 		return SynapseBuffers[type].SlotOffset;
+	}
+	
+	void Connect(char[] connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type)
+	{
+		auto conn_ptr = connector_name in Connectors;
+		if(conn_ptr is null)
+			throw new Exception("Neuron group '" ~ Name ~ "' does not have a connector named '" ~ connector_name ~ "'.");
+		
+		auto conn = *conn_ptr;
+		
+		conn.Connect(multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type);
 	}
 	
 	double MinDtVal = 0.1;
@@ -1460,6 +1486,16 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			rand_offset = Rand.NumArgs;
 		}
 		return ValueBuffers.length + Constants.length + ArgOffsetStep + rand_offset;
+	}
+	
+	cl_program* Program()
+	{
+		return &Model.Program;
+	}
+	
+	CCLCore Core()
+	{
+		return Model.Core;
 	}
 	
 	CRecorder[int] Recorders;
@@ -1522,4 +1558,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLRand Rand;
 	
 	CIntegrator!(float_t) Integrator;
+	
+	CCLConnector!(float_t)[char[]] Connectors;
 }

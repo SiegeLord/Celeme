@@ -113,6 +113,7 @@
 	circ_buffer_size = "10"
 	num_src_synapses = "150"
 	rand_state_len = "2"
+	min_dt = "0.1"
 >
 	<mechanism name = "IzhMech" />
 	<mechanism name = "IClamp" />
@@ -128,6 +129,7 @@
 	record_rate = "100"
 	circ_buffer_size = "10"
 	num_src_synapses = "10"
+	min_dt = "0.1"
 >
 	<mechanism name = "DummyThresh" prefix = "hl" />
 	<mechanism name = "IzhMech2" />

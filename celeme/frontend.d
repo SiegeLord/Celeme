@@ -698,6 +698,8 @@ class CNeuronType
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
 	
+	double MinDt = 0.01;
+	
 	int NumSrcSynapses = 0;
 }
 

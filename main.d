@@ -38,8 +38,7 @@ void main()
 	timer.start;
 	
 	model.Generate(true, true);
-	model["Regular"].MinDt = 0.1;
-	//model["Burster"].MinDt = 0.1;
+	
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;
 	
@@ -87,13 +86,6 @@ void main()
 	}
 	
 	return;+/
-	
-	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
-	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);
-	//model.SetConnection("Burster", 0, 0, 0, "Burster", 1, 0, 0);
-	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
-	//model.SetConnection("Regular", 0, 0, 0, "Burster", 0, 1, 0);
-	//model.SetConnection("Regular", 0, 0, 1, "Burster", 1, 1, 0);
 	
 	bool record = true;
 	CRecorder v_rec1;
@@ -145,71 +137,10 @@ void main()
 			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
 			Hold = false;
 		}
-		
-		/+auto plot1 = new C2DPlot;
-		with(plot1)
-		{
-			Title("Neuron A");
-			XLabel("Time (ms)");
-			YLabel("Voltage (mV)");
-			YRange([-80, 10]);
-			XRange([650, 900]);
-			Color([0,0,0]);
-			Plot(v_rec1.T, v_rec1.Data, "");
-		}
-		
-		auto plot2 = new C2DPlot;
-		with(plot2)
-		{
-			Title("Neuron B");
-			XLabel("Time (ms)");
-			YLabel("Voltage (mV)");
-			YRange([-80, 10]);
-			XRange([650, 900]);
-			Color([0,0,0]);
-			Plot(v_rec2.T, v_rec2.Data, "");
-		}
-		
-		auto plot3 = new C2DPlot;
-		with(plot3)
-		{
-			Title("Neuron C");
-			XLabel("Time (ms)");
-			YLabel("Voltage (mV)");
-			YRange([-80, 10]);
-			XRange([650, 900]);
-			Color([0,0,0]);
-			Plot(v_rec3.T, v_rec3.Data, "");
-		}+/
-		
-		
-		/+auto t_old = v_rec1.T[0];
-		auto v_old = v_rec1.Data[0];
-		foreach(ii, t; v_rec1.T[1..$])
-		{
-			auto v = v_rec1.Data[1..$][ii];
-			assert(v != v_old);// || t != t_old);
-			t_old = t;
-			v_old = v;
-		}+/
+
 		// 361 680
 		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
-	
-	//foreach(t; v_rec1.T)
-	//	Stdout(t).nl;
-	
-	/+auto plot3d = new C3DPlot;
-	with(plot3d)
-	{
-		XRange([-0.5, 2.5]);
-		YRange([-0.5, 2.5]);
-		View = null;
-		Palette("color");
-		Plot([0, 1, 2,
-		      1, 2, 3,
-		      2, 3, 4], 3, 3);
-	}+/
 }

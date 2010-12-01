@@ -241,6 +241,7 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 		nrn_type.CircBufferSize = GetAttribute!(int)(nrn_node, "circ_buffer_size", 0);
 		nrn_type.NumSrcSynapses = GetAttribute!(int)(nrn_node, "num_src_synapses", 0);
 		nrn_type.RandLen = GetAttribute!(int)(nrn_node, "rand_state_len", 0);
+		nrn_type.MinDt = GetAttribute!(double)(nrn_node, "min_dt", 0.01);
 		
 		foreach(mech_node; GetChildren(nrn_node, "mechanism"))
 		{

@@ -323,6 +323,7 @@ class CNeuronGroup(float_t)
 		NrnOffset = nrn_offset;
 		NumDestSynapses = type.NumDestSynapses;
 		NumSrcSynapses = type.NumSrcSynapses;
+		MinDt = type.MinDt;
 		
 		RandLen = type.RandLen;
 		switch(RandLen)

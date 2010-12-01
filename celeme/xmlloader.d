@@ -199,7 +199,7 @@ CConnector[char[]] LoadConnectors(Node root)
 		auto conn = new CConnector(conn_name);
 		ret[conn_name.dup] = conn;
 		
-		println("Connector: {}", conn_name);
+		//println("Connector: {}", conn_name);
 		
 		conn.SetCode(GetAttribute!(char[])(conn_node, "code", ""));
 		
@@ -217,6 +217,29 @@ CConnector[char[]] LoadConnectors(Node root)
 	}
 	
 	return ret;
+}
+
+void ApplyMechVals(CMechanism mech, Node mech_node)
+{
+	foreach(val_node; GetChildren(mech_node, "value"))
+	{
+		auto name = GetAttribute!(char[])(val_node, "name", null);
+		if(name is null)
+			throw new Exception("All values need a name.");
+
+		bool is_def = false;
+		auto value = GetAttribute!(double)(val_node, "value", 0.0, &is_def);
+		if(!is_def)
+		{
+			mech[name] = value;
+		}
+		
+		value = GetAttribute!(double)(val_node, "tolerance", 0.0, &is_def);
+		if(!is_def)
+		{
+			mech[name].Tolerance = value;
+		}
+	}
 }
 
 CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CSynapse[char[]] synapses, CConnector[char[]] connectors)
@@ -255,7 +278,11 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 			
 			auto prefix = GetAttribute!(char[])(mech_node, "prefix", "");
 			
-			nrn_type.AddMechanism(*mech_ptr, prefix);
+			auto mech = (*mech_ptr).dup;
+			
+			ApplyMechVals(mech, mech_node);
+			
+			nrn_type.AddMechanism(mech, prefix, true);
 		}
 		
 		foreach(syn_node; GetChildren(nrn_node, "synapse"))
@@ -271,7 +298,11 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 			auto prefix = GetAttribute!(char[])(syn_node, "prefix", "");
 			auto number = GetAttribute!(int)(syn_node, "number", 0);
 			
-			nrn_type.AddSynapse(*syn_ptr, number, prefix);
+			auto syn = (*syn_ptr).dup;
+			
+			ApplyMechVals(syn, syn_node);
+			
+			nrn_type.AddSynapse(syn, number, prefix, true);
 		}
 		
 		foreach(conn_node; GetChildren(nrn_node, "connector"))
@@ -284,7 +315,7 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 			if(conn_ptr is null)
 				throw new Exception("No connector named '" ~ conn_name ~ "' exists.");
 			
-			println("Added {}", conn_name);
+			//println("Added {}", conn_name);
 			
 			nrn_type.AddConnector(*conn_ptr);
 		}

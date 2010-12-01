@@ -49,29 +49,6 @@ void main()
 
 	//model["Burster"].SetTolerance("V", 0.1);
 	//model["Burster"].SetTolerance("u", 0.01);
-
-	///model["Burster"]["glu_E"] = 0;
-	model["Regular"]["glu_E"] = 0;
-	///model["Burster"]["gaba_E"] = -80;
-	model["Regular"]["gaba_E"] = -80;
-	
-	model["Regular"]["amp"] = 3.5;
-	///model["Burster"]["amp"] = 0;
-	
-	model["Regular"]["glu_gsyn"] = 0.006;
-	model["Regular"]["gaba_gsyn"] = 0.5;
-	
-	///model["Burster"]["glu_gsyn"] = 0.04;
-	///model["Burster"]["gaba_gsyn"] = 0.5;
-	
-	/*for(int ii = 0; ii < N; ii++)
-	{
-		for(int jj = 0; jj < N; jj++)
-		{
-			if(ii != jj && rand.uniform!(float) > 0.96)
-				model.Connect("Regular", ii, 0, "Regular", jj, 0);
-		}
-	}*/
 	
 	//model.Connect("Regular", 1, 0, "Regular", 0, 0);
 	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);

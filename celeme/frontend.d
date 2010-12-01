@@ -188,6 +188,14 @@ class CMechanism
 		throw new Exception("'" ~ Name ~ "' does not have a '" ~ name ~ "' value.");
 	}
 	
+	CValue opIndexAssign(double val, char[] name)
+	{
+		auto value = opIndex(name);
+		value = val;
+		
+		return value;
+	}
+	
 	CMechanism dup(CMechanism ret = null)
 	{
 		if(ret is null)

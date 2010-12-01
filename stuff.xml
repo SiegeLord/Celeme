@@ -116,11 +116,23 @@
 	min_dt = "0.1"
 >
 	<mechanism name = "IzhMech" />
-	<mechanism name = "IClamp" />
-	<mechanism name = "RandSyn" />
-	<synapse name = "ExpSyn" prefix = "glu" number = "150" />
+	<mechanism name = "IClamp">
+		<value name = "amp" value = "3.5" />
+	</mechanism>
+
+	<!-- <mechanism name = "RandSyn" /> -->
+	
+	<synapse name = "ExpSyn" prefix = "glu" number = "150">
+		<value name = "E" value = "0" />
+		<value name = "gsyn" value = "0.006" />
+	</synapse>
+	
+	<synapse name = "ExpSyn" prefix = "gaba" number = "10">
+		<value name = "E" value = "-80" />
+		<value name = "gsyn" value = "0.5" />
+	</synapse>
+	
 	<connector name = "RandConn" />
-	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
 </neuron>
 
 <neuron
@@ -134,8 +146,16 @@
 	<mechanism name = "DummyThresh" prefix = "hl" />
 	<mechanism name = "IzhMech2" />
 	<mechanism name = "IClamp" />
-	<synapse name = "ExpSyn" prefix = "glu" number = "100" />
-	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
+	
+	<synapse name = "ExpSyn" prefix = "glu" number = "150">
+		<value name = "E" value = "0" />
+		<value name = "gsyn" value = "0.006" />
+	</synapse>
+	
+	<synapse name = "ExpSyn" prefix = "gaba" number = "10">
+		<value name = "E" value = "-80" />
+		<value name = "gsyn" value = "0.5" />
+	</synapse>
 </neuron>
 
 <connector

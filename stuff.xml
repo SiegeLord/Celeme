@@ -62,7 +62,7 @@
 <mechanism
 	name = "IClamp"
 	stage1 = "
-		if(i == 1)
+		if(i % 2 == 0)
 			I += amp + 3;
 		else
 			I += amp;"
@@ -116,10 +116,10 @@
 >
 	<mechanism name = "IzhMech" />
 	<mechanism name = "IClamp" />
-	<!-- <mechanism name = "RandSyn" /> -->
+	<mechanism name = "RandSyn" />
 	<synapse name = "ExpSyn" prefix = "glu" number = "100" />
 	<connector name = "RandConn" />
-	<synapse name = "ExpSyn" prefix = "gaba" number = "10" />
+	<!-- <synapse name = "ExpSyn" prefix = "gaba" number = "10" /> -->
 </neuron>
 
 <neuron
@@ -139,7 +139,9 @@
 <connector
 	name = "RandConn"
 	code = "
-	connect(i, cycle + dest_start);"
+	int dest = dest_start + cycle % (dest_end - dest_start);
+	if(dest != i && rand() < P)
+		connect(i, dest);"
 >
-	<constant name = "prob" init="1" />
+	<constant name = "P" init="1" />
 </connector>

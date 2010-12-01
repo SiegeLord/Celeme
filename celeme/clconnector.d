@@ -107,11 +107,11 @@ class CCLConnector(float_t)
 		auto code = conn.Code.dup;
 		code = code.substitute("connect(", "$connector_name$_connect_impl(src_event_source, src_slot_max, event_source_idxs, dest_slot_max, dest_syn_idxs, dest_syn_buffer, error_buffer, dest_nrn_offset, dest_slot_offset, ");
 		
-		if(kernel_source.containsPattern("rand()"))
+		if(code.containsPattern("rand()"))
 		{
 			if(!Group.RandLen)
 				throw new Exception("Found rand() but neuron type does not have random_state_len > 0.");
-			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&rand_state)");
+			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&rand_state)");
 			
 			NeedRand = true;
 		}

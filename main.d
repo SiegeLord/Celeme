@@ -52,13 +52,13 @@ void main()
 	///model["Burster"]["glu_E"] = 0;
 	model["Regular"]["glu_E"] = 0;
 	///model["Burster"]["gaba_E"] = -80;
-	model["Regular"]["gaba_E"] = -80;
+	///model["Regular"]["gaba_E"] = -80;
 	
-	model["Regular"]["amp"] = 2;
+	model["Regular"]["amp"] = 3.5;
 	///model["Burster"]["amp"] = 10;
 	
-	model["Regular"]["glu_gsyn"] = 0.05;
-	model["Regular"]["gaba_gsyn"] = 0.5;
+	model["Regular"]["glu_gsyn"] = 0.005;
+	///model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	///model["Burster"]["glu_gsyn"] = 0.04;
 	///model["Burster"]["gaba_gsyn"] = 0.5;
@@ -78,7 +78,7 @@ void main()
 	
 	//model.Connect("Regular", 1, 0, "Regular", 0, 0);
 	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);
-	model.Connect("RandConn", 2, "Regular", [1, 2], 0, "Regular", [2, 4], 1);
+	model.Connect("RandConn", N, "Regular", [0, N], 0, "Regular", [0, N], 0, ["P": 0.05]);
 	
 	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
 	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);
@@ -107,7 +107,7 @@ void main()
 	//model.Run(tstop);
 	model.ResetRun();
 	model.InitRun();
-	//model.RunUntil(cast(int)(50 * t_scale));
+	model.RunUntil(cast(int)(50 * t_scale));
 	model.RunUntil(tstop + 1);
 	Stdout.formatln("Run time: {}", timer.stop);
 	

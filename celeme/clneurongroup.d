@@ -1458,13 +1458,21 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return SynapseBuffers[type].SlotOffset;
 	}
 	
-	void Connect(char[] connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type)
+	void Connect(char[] connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args)
 	{
 		auto conn_ptr = connector_name in Connectors;
 		if(conn_ptr is null)
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a connector named '" ~ connector_name ~ "'.");
 		
 		auto conn = *conn_ptr;
+		
+		if(args !is null)
+		{
+			foreach(arg_name, arg_val; args)
+			{
+				conn[arg_name] = arg_val;
+			}
+		}
 		
 		conn.Connect(multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type);
 		

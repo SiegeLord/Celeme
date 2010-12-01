@@ -17,8 +17,8 @@ const ConnectorTemplate =
 void $connector_name$_connect_impl
 	(
 		int src_event_source, 
-		int src_slot_max, 
-		__global int* event_source_idxs, 
+		int* src_slot,
+		int src_slot_max,
 		int dest_slot_max,
 		__global int* dest_syn_idxs,
 		__global int2* dest_syn_buffer,
@@ -29,25 +29,27 @@ void $connector_name$_connect_impl
 		int dest_nrn_id
 	)
 {
-	int src_slot = atomic_inc(&event_source_idxs[src_nrn_id]);
 	int dest_slot = atomic_inc(&dest_syn_idxs[dest_nrn_id]);
 	
-	if(src_slot >= src_slot_max || dest_slot >= dest_slot_max)
+	if(*src_slot >= src_slot_max || dest_slot >= dest_slot_max)
 	{
 		error_buffer[src_nrn_id + 1] = 99;
 		return;
 	}
 	
-	int src_syn_id = (src_nrn_id * $num_event_sources$ + src_event_source) * src_slot_max + src_slot;
+	int src_syn_id = (src_nrn_id * $num_event_sources$ + src_event_source) * src_slot_max + *src_slot;
 	
 	dest_syn_buffer[src_syn_id].s0 = dest_nrn_offset + dest_nrn_id;
 	dest_syn_buffer[src_syn_id].s1 = dest_slot + dest_slot_offset;
+	
+	(*src_slot)++;
 }
 
 __kernel void $connector_name$_connect
 	(
 $connector_args$
 $random_state_args$
+		const int num_cycles,
 		const int src_start,
 		const int src_end,
 		const int src_event_source,
@@ -63,14 +65,18 @@ $random_state_args$
 		__global int* error_buffer
 	)
 {
-	int gid = get_global_id(0);
-	int i = src_start + gid % (src_end - src_start);
-	int cycle = gid / (src_end - src_start);
-
+	int i = src_start + get_global_id(0);
+	int src_slot = event_source_idxs[i];
+	
 	/* Load random state */
 $load_rand_state$
+	for(int cycle = 0; cycle < num_cycles; cycle++)
+	{
 	/* Connector code */
 $connector_code$
+	}
+	
+	event_source_idxs[i] = src_slot;
 	/* Save random state */
 $save_rand_state$
 }
@@ -105,7 +111,7 @@ class CCLConnector(float_t)
 		auto kernel_source = ConnectorTemplate.dup;		
 		
 		auto code = conn.Code.dup;
-		code = code.substitute("connect(", "$connector_name$_connect_impl(src_event_source, src_slot_max, event_source_idxs, dest_slot_max, dest_syn_idxs, dest_syn_buffer, error_buffer, dest_nrn_offset, dest_slot_offset, ");
+		code = code.substitute("connect(", "$connector_name$_connect_impl(src_event_source, &src_slot, src_slot_max, dest_slot_max, dest_syn_idxs, dest_syn_buffer, error_buffer, dest_nrn_offset, dest_slot_offset, ");
 		
 		if(code.containsPattern("rand()"))
 		{
@@ -137,7 +143,7 @@ class CCLConnector(float_t)
 		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Connector code */
-		source.Tab(1);
+		source.Tab(2);
 		source.AddBlock(code);
 		source.Inject(kernel_source, "$connector_code$");
 		
@@ -153,8 +159,11 @@ class CCLConnector(float_t)
 		KernelCode = kernel_source;
 	}
 	
-	void Connect(int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type)
+	void Connect(int num_cycles, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type)
 	{
+		assert(src_nrn_range[1] > src_nrn_range[0]);
+		assert(num_cycles > 0);
+		
 		int arg_id = 0;
 		
 		with(ConnectKernel)
@@ -171,6 +180,8 @@ class CCLConnector(float_t)
 			{
 				arg_id = Group.Rand.SetArgs(ConnectKernel, arg_id);
 			}
+			//const int num_cycles,
+			SetGlobalArg(arg_id++, &num_cycles);
 			//const int src_start,
 			SetGlobalArg(arg_id++, &src_nrn_range[0]);
 			//const int src_end,
@@ -199,10 +210,7 @@ class CCLConnector(float_t)
 			SetGlobalArg(arg_id++, &Group.ErrorBuffer);
 		}
 		
-		assert(src_nrn_range[1] > src_nrn_range[0]);
-		assert(multiplier > 0);
-		
-		size_t total_num = multiplier * (src_nrn_range[1] - src_nrn_range[0]);
+		size_t total_num = src_nrn_range[1] - src_nrn_range[0];
 		
 		auto err = clEnqueueNDRangeKernel(Group.Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
 		assert(err == CL_SUCCESS);

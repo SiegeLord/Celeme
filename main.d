@@ -3,6 +3,8 @@ module main;
 import celeme.celeme;
 import celeme.capi;
 import celeme.xmlutil;
+
+import opencl.cl;
 import gnuplot;
 import celeme.util;
 
@@ -30,14 +32,14 @@ void main()
 	model.TimeStepSize = 1.0 / t_scale;	
 	const N = 100;
 	model.AddNeuronGroup(types["Regular"], N, null, true);
-	///model.AddNeuronGroup(types["Burster"], 5, null, true);
+	//model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
 	model.Generate(true, true);
 	model["Regular"].MinDt = 0.1;
-	///model["Burster"].MinDt = 0.1;
+	//model["Burster"].MinDt = 0.1;
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;
 	
@@ -52,20 +54,16 @@ void main()
 	///model["Burster"]["glu_E"] = 0;
 	model["Regular"]["glu_E"] = 0;
 	///model["Burster"]["gaba_E"] = -80;
-	///model["Regular"]["gaba_E"] = -80;
+	model["Regular"]["gaba_E"] = -80;
 	
 	model["Regular"]["amp"] = 3.5;
-	///model["Burster"]["amp"] = 10;
+	///model["Burster"]["amp"] = 0;
 	
-	model["Regular"]["glu_gsyn"] = 0.005;
-	///model["Regular"]["gaba_gsyn"] = 0.5;
+	model["Regular"]["glu_gsyn"] = 0.006;
+	model["Regular"]["gaba_gsyn"] = 0.5;
 	
 	///model["Burster"]["glu_gsyn"] = 0.04;
 	///model["Burster"]["gaba_gsyn"] = 0.5;
-	
-	///model.Connect("Burster", 0, 0, "Regular", 0, 0);
-	///model.Connect("Burster", 0, 0, "Regular", 1, 1);
-	///model.Connect("Regular", 1, 0, "Burster", 0, 0);
 	
 	/*for(int ii = 0; ii < N; ii++)
 	{
@@ -79,6 +77,16 @@ void main()
 	//model.Connect("Regular", 1, 0, "Regular", 0, 0);
 	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);
 	model.Connect("RandConn", N, "Regular", [0, N], 0, "Regular", [0, N], 0, ["P": 0.05]);
+	//model.Connect("RandConn", 1, "Regular", [0, 1], 0, "Burster", [1, 2], 0, ["P": 1]);
+	
+	/+auto arr = model["Regular"].DestSynBuffer.Map(CL_MAP_READ);
+	foreach(el; arr)
+	{
+		if(el[0] >= 0)
+			println("{} {}", el[0], el[1]);
+	}
+	
+	return;+/
 	
 	//model.SetConnection("Burster", 0, 0, 0, "Regular", 0, 0, 0);
 	//model.SetConnection("Burster", 0, 0, 1, "Regular", 1, 1, 0);

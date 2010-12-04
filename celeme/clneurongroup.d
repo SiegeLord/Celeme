@@ -12,6 +12,7 @@ import celeme.integrator;
 import celeme.adaptiveheun;
 import celeme.heun;
 import celeme.clrand;
+import celeme.ineurongroup;
 
 import opencl.cl;
 
@@ -295,7 +296,7 @@ class CSynapseBuffer
 	int Count;
 }
 
-class CNeuronGroup(float_t)
+class CNeuronGroup(float_t) : INeuronGroup
 {
 	static if(is(float_t == float))
 	{
@@ -1131,6 +1132,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return cast(CAdaptiveIntegrator!(float_t))Integrator is null;
 	}
 	
+	override
 	double opIndex(char[] name)
 	{
 		auto idx_ptr = name in ConstantRegistry;
@@ -1154,6 +1156,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
+	override
 	double opIndexAssign(double val, char[] name)
 	{	
 		auto idx_ptr = name in ConstantRegistry;
@@ -1184,6 +1187,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	/* These two functions can be used to modify values after the model has been created.
 	 */
+	override
 	double opIndex(char[] name, int idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
@@ -1199,6 +1203,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
+	override
 	double opIndexAssign(double val, char[] name, int idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
@@ -1218,6 +1223,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	/* These two functions can be used to modify synglobals after the model has been created.
 	 * syn_idx refers to the synapse index in this type (i.e. each successive type has indices starting from 0)
 	 */
+	override
 	double opIndex(char[] name, int nrn_idx, int syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
@@ -1240,6 +1246,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
+	override
 	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
@@ -1330,6 +1337,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		}
 	}
 	
+	override
 	CRecorder Record(int neuron_id, char[] name)
 	{
 		assert(Model.Initialized);
@@ -1349,6 +1357,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return rec;
 	}
 	
+	override
 	void RecordEvents(int neuron_id, int thresh_id)
 	{
 		assert(Model.Initialized);
@@ -1361,6 +1370,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		RecordFlagsBuffer.WriteOne(neuron_id, thresh_id + ThreshRecordOffset);
 	}
 	
+	override
 	void StopRecording(int neuron_id)
 	{
 		assert(Model.Initialized);
@@ -1482,11 +1492,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	double MinDtVal = 0.1;
 	
+	override
 	double MinDt()
 	{
 		return MinDtVal;
 	}
 	
+	override
 	void MinDt(double min_dt)
 	{
 		if(Model.Initialized && FixedStep)

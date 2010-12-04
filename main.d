@@ -24,7 +24,7 @@ void main()
 	auto conns = LoadConnectors(xml_root);
 	auto types = LoadNeuronTypes(xml_root, mechs, syns, conns);
 	
-	auto model = new CCLModel!(float)(false);
+	auto model = CreateCLModel!(float)(false);
 	scope(exit) model.Shutdown();
 	
 	auto t_scale = 1;

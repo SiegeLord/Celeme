@@ -5,6 +5,8 @@ import celeme.clrand;
 import celeme.frontend;
 import celeme.clneurongroup;
 import celeme.util;
+import celeme.imodel;
+import celeme.ineurongroup;
 
 import tango.text.Util;
 import tango.io.Stdout;
@@ -41,8 +43,7 @@ __kernel void int_memset(
 }
 ";
 
-
-class CCLModel(float_t)
+class CCLModel(float_t) : ICLModel
 {
 	static if(is(float_t == float))
 	{
@@ -63,6 +64,7 @@ class CCLModel(float_t)
 		RandsUsed[] = false;
 	}
 	
+	override
 	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
@@ -88,6 +90,7 @@ class CCLModel(float_t)
 		NeuronGroups[type.Name] = group;
 	}
 	
+	override
 	void Generate(bool parallel_delivery = true, bool atomic_delivery = true, bool initialize = true)
 	{
 		assert(NumNeurons);
@@ -164,6 +167,7 @@ class CCLModel(float_t)
 			Initialize();
 	}
 	
+	override
 	void Initialize()
 	{
 		assert(Generated);
@@ -187,7 +191,13 @@ class CCLModel(float_t)
 			group.Initialize();
 	}
 	
-	CNeuronGroup!(float_t) opIndex(char[] name)
+	override
+	INeuronGroup opIndex(char[] name)
+	{
+		return GetGroup(name);
+	}
+	
+	CNeuronGroup!(float_t) GetGroup(char[] name)
 	{
 		auto ret_ptr = name in NeuronGroups;
 		if(ret_ptr is null)
@@ -200,6 +210,7 @@ class CCLModel(float_t)
 		return float_t.sizeof;
 	}
 	
+	override
 	void Run(int num_timesteps)
 	{
 		ResetRun();
@@ -207,6 +218,7 @@ class CCLModel(float_t)
 		RunUntil(num_timesteps);
 	}
 	
+	override
 	void ResetRun()
 	{
 		assert(Initialized);
@@ -218,6 +230,7 @@ class CCLModel(float_t)
 		}
 	}
 	
+	override
 	void InitRun()
 	{
 		assert(Initialized);
@@ -229,6 +242,7 @@ class CCLModel(float_t)
 		}
 	}
 	
+	override
 	void RunUntil(int num_timesteps)
 	{
 		assert(Initialized);
@@ -263,6 +277,7 @@ class CCLModel(float_t)
 		}
 	}
 	
+	override
 	void Shutdown()
 	{
 		foreach(group; NeuronGroups)
@@ -321,12 +336,13 @@ class CCLModel(float_t)
 	 * Connect a neuron at index src_nrn_id from src_group using its src_event_source and src_slot
 	 * to a neuron at index dest_nrn_id from dest_group.
 	 */
+	override
 	void SetConnection(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
 	{
 		assert(Initialized);
 		
-		auto src = opIndex(src_group);
-		auto dest = opIndex(dest_group);
+		auto src = GetGroup(src_group);
+		auto dest = GetGroup(dest_group);
 		
 		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
 		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
@@ -340,12 +356,13 @@ class CCLModel(float_t)
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
 	
+	override
 	bool Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
 	{
 		assert(Initialized);
 		
-		auto src = opIndex(src_group);
-		auto dest = opIndex(dest_group);
+		auto src = GetGroup(src_group);
+		auto dest = GetGroup(dest_group);
 		
 		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
 		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
@@ -364,12 +381,13 @@ class CCLModel(float_t)
 		return true;
 	}
 	
+	override
 	void Connect(char[] connector_name, int multiplier, char[] src_group, int[2] src_nrn_range, int src_event_source, char[] dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
 	{
 		assert(Initialized);
 		
-		auto src = opIndex(src_group);
-		auto dest = opIndex(dest_group);
+		auto src = GetGroup(src_group);
+		auto dest = GetGroup(dest_group);
 		
 		assert(multiplier > 0, "Multiplier must be positive.");
 		assert(src_nrn_range[0] >= 0 && src_nrn_range[0] < src.Count, "Invalid source range.");
@@ -380,6 +398,18 @@ class CCLModel(float_t)
 		assert(dest_nrn_range[1] > dest_nrn_range[0], "Invalid source range.");
 		
 		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type, args);
+	}
+	
+	override
+	double TimeStepSize()
+	{
+		return TimeStepSizeVal;
+	}
+	
+	override
+	void TimeStepSize(double val)
+	{
+		TimeStepSizeVal = val;
 	}
 	
 	bool[5] RandsUsed;
@@ -400,7 +430,7 @@ class CCLModel(float_t)
 	
 	int CurStep = 0;
 	
-	double TimeStepSize = 1.0;
+	double TimeStepSizeVal = 1.0;
 	
 	CCLCore Core;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;

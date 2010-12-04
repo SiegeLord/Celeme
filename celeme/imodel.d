@@ -4,12 +4,12 @@ import celeme.clmodel;
 import celeme.frontend;
 import celeme.ineurongroup;
 
-ICLModel CreateCLModel(float_t)(bool gpu = false)
+IModel CreateCLModel(float_t)(bool gpu = false)
 {
 	return new CCLModel!(float_t)(gpu);
 }
 
-interface ICLModel
+interface IModel
 {
 	void Initialize();
 	void Shutdown();

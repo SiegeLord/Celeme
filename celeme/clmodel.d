@@ -43,7 +43,7 @@ __kernel void int_memset(
 }
 ";
 
-class CCLModel(float_t) : ICLModel
+class CCLModel(float_t) : IModel
 {
 	static if(is(float_t == float))
 	{

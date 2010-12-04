@@ -18,11 +18,7 @@ void main()
 	
 	timer.start;
 	
-	auto xml_root = GetRoot("stuff.xml");
-	auto mechs = LoadMechanisms(xml_root);
-	auto syns = LoadSynapses(xml_root);
-	auto conns = LoadConnectors(xml_root);
-	auto types = LoadNeuronTypes(xml_root, mechs, syns, conns);
+	auto types = new CXMLRegistry("stuff.xml");
 	
 	auto model = CreateCLModel!(float)(false);
 	scope(exit) model.Shutdown();

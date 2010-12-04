@@ -323,3 +323,30 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 	
 	return ret;
 }
+
+class CXMLRegistry
+{
+	this(char[] file)
+	{
+		auto root = GetRoot(file);
+		Mechanisms = LoadMechanisms(root);
+		Connectors = LoadConnectors(root);
+		Synapses = LoadSynapses(root);
+		NeuronTypes = LoadNeuronTypes(root, Mechanisms, Synapses, Connectors);
+	}
+	
+	CNeuronType opIndex(char[] name)
+	{
+		auto nrn_ptr = name in NeuronTypes;
+		if(nrn_ptr is null)
+			throw new Exception("Neuron type '" ~ name ~ "' is not loaded");
+		
+		return *nrn_ptr;
+	}
+
+private:
+	CNeuronType[char[]] NeuronTypes;
+	CConnector[char[]] Connectors;
+	CSynapse[char[]] Synapses;
+	CMechanism[char[]] Mechanisms;
+}

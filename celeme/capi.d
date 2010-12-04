@@ -13,7 +13,13 @@ import tango.stdc.stdlib : atexit;
 bool Inited = false;
 bool Registered = false;
 IModel[] Models;
+CXMLRegistry[] Registries;
 char[] ErrorText;
+
+bool iser(T)(T a, T b)
+{
+	return a is b;
+}
 
 extern(C):
 
@@ -38,6 +44,11 @@ void celeme_shutdown()
 	{
 		Inited = false;
 		Runtime.terminate();
+		
+		foreach(model; Models)
+			model.Shutdown();
+		
+		Models.length = 0;
 	}
 }
 
@@ -47,6 +58,53 @@ char* celeme_get_error()
 		return null;
 	else
 		return toStringz(ErrorText);
+}
+
+/*
+ * XML registry bindings
+ */
+ 
+CXMLRegistry celeme_load_xml_registry(char* file)
+{
+	try
+	{
+		auto ret = new CXMLRegistry(fromStringz(file));
+
+		Registries ~= ret;
+		
+		return ret;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+void celeme_destroy_xml_registry(CXMLRegistry registry)
+{
+	try
+	{
+		auto len = Registries.remove(registry, &iser!(CXMLRegistry));
+		Registries.length = len;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+}
+
+CNeuronType celeme_get_neuron_type(CXMLRegistry registry, char* name)
+{
+	try
+	{
+		return registry[fromStringz(name)];
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
 }
 
 /*
@@ -66,8 +124,8 @@ IModel celeme_create_model(int type, bool gpu)
 		IModel ret;
 		if(type == MODEL_FLOAT)
 			ret = CreateCLModel!(float)(gpu);
-		else if(type == MODEL_DOUBLE)
-			ret = CreateCLModel!(double)(gpu);
+		//else if(type == MODEL_DOUBLE)
+//			ret = CreateCLModel!(double)(gpu);
 		else
 		{
 			ErrorText = "Invalid model type.";
@@ -89,12 +147,7 @@ void celeme_destroy_model(IModel model)
 {
 	try
 	{
-		bool iser(IModel a, IModel b)
-		{
-			return a is b;
-		}
-		
-		auto len = Models.remove(model, &iser);
+		auto len = Models.remove(model, &iser!(IModel));
 		if(len < Models.length)
 		{
 			Models[$ - 1].Shutdown();
@@ -107,14 +160,22 @@ void celeme_destroy_model(IModel model)
 	}
 }
 
-template ModelFunc(char[] c_name, char[] ret, char[] d_name, char[] args, char[] call_args, char[] def_ret)
+char[] ModelFunc(char[] c_name, char[] ret, char[] d_name, char[] args, char[] call_args, char[] def_ret)()
 {
-	const ModelFunc = 
+	char[] ret_str = 
 ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 {
 	try
 	{
-		model.` ~ d_name ~ `(` ~ call_args ~ `);
+`;
+	if(ret != "void")
+		ret_str ~= 
+`		return `;
+	else
+		ret_str ~=
+`		`;
+	
+	ret_str ~= `model.` ~ d_name ~ `(` ~ call_args ~ `);
 	}
 	catch(Exception e)
 	{
@@ -123,6 +184,7 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 	return ` ~ def_ret ~ `;
 }
 `;
+	return ret_str;
 }
 
 mixin(ModelFunc!("initialize_model", "void", "Initialize", "", "", ""));
@@ -180,3 +242,134 @@ mixin(ModelFunc!("get_timestep_size", "double", "TimeStepSize",
 mixin(ModelFunc!("set_timestep_size", "void", "TimeStepSize", 
 	", double val", 
 	"val", ""));
+
+/*
+ * Neuron group bindings
+ */
+
+char[] GroupFunc(char[] c_name, char[] ret, char[] d_name, char[] args, char[] call_args, char[] def_ret)()
+{
+	char[] ret_str = 
+ret ~ ` celeme_` ~ c_name ~ `(INeuronGroup group` ~ args ~ `)
+{
+	try
+	{
+`;
+	if(ret != "void")
+		ret_str ~= 
+`		return `;
+	else
+		ret_str ~=
+`		`;
+	
+	ret_str ~= `group.` ~ d_name ~ `(` ~ call_args ~ `);
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return ` ~ def_ret ~ `;
+}
+`;
+	return ret_str;
+}
+
+mixin(GroupFunc!("get_constant", "double", "opIndex", 
+	", char* name", 
+	"fromStringz(name)", "-1.0"));
+	
+mixin(GroupFunc!("set_constant", "double", "opIndexAssign", 
+	", char* name, double val", 
+	"val, fromStringz(name)", "-1.0"));
+	
+mixin(GroupFunc!("get_global", "double", "opIndex", 
+	", char* name, int idx", 
+	"fromStringz(name), idx", "-1.0"));
+	
+mixin(GroupFunc!("set_global", "double", "opIndexAssign", 
+	", char* name, int idx, double val", 
+	"val, fromStringz(name), idx", "-1.0"));
+	
+mixin(GroupFunc!("get_syn_global", "double", "opIndex", 
+	", char* name, int nrn_idx, int syn_idx", 
+	"fromStringz(name), nrn_idx, syn_idx", "-1.0"));
+	
+mixin(GroupFunc!("set_syn_global", "double", "opIndexAssign", 
+	", char* name, int nrn_idx, int syn_idx, double val", 
+	"val, fromStringz(name), nrn_idx, syn_idx", "-1.0"));
+	
+mixin(GroupFunc!("record", "CRecorder", "Record", 
+	", int nrn_idx, char* name", 
+	"nrn_idx, fromStringz(name)", "null"));
+	
+mixin(GroupFunc!("record_events", "CRecorder", "RecordEvents", 
+	", int neuron_id, int thresh_id", 
+	"neuron_id, thresh_id", "null"));
+	
+mixin(GroupFunc!("stop_recording", "void", "StopRecording", 
+	", int neuron_id", 
+	"neuron_id", ""));
+
+mixin(GroupFunc!("get_min_dt", "double", "MinDt", 
+	"", 
+	"", "-1"));
+	
+mixin(GroupFunc!("set_min_dt", "void", "MinDt", 
+	", double min_dt", 
+	"min_dt", ""));
+
+/*
+ * Recorder
+ */
+
+char* celeme_get_recorder_name(CRecorder recorder)
+{
+	try
+	{
+		return toStringz(recorder.Name);
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+size_t celeme_get_recorder_length(CRecorder recorder)
+{
+	try
+	{
+		return recorder.Length;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return 0;
+}
+
+double* celeme_get_recorder_time(CRecorder recorder)
+{
+	try
+	{
+		return recorder.T.ptr;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+double* celeme_get_recorder_data(CRecorder recorder)
+{
+	try
+	{
+		return recorder.Data.ptr;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}

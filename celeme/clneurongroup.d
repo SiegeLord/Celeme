@@ -1358,7 +1358,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
-	void RecordEvents(int neuron_id, int thresh_id)
+	CRecorder RecordEvents(int neuron_id, int thresh_id)
 	{
 		assert(Model.Initialized);
 		assert(neuron_id >= 0);
@@ -1368,6 +1368,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		EventRecorderIds ~= neuron_id;
 		/* Offset the index by 1 */
 		RecordFlagsBuffer.WriteOne(neuron_id, thresh_id + ThreshRecordOffset);
+		
+		return EventRecorder;
 	}
 	
 	override

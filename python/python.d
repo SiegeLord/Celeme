@@ -9,7 +9,7 @@ XXX:
 
 */
 
-module pyceleme.python;
+module python.python;
 
 version (Tango) {
     import tango.stdc.stdio;

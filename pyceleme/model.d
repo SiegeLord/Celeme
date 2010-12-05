@@ -5,7 +5,7 @@ import celeme.imodel;
 import celeme.ineurongroup;
 
 import pyceleme.main;
-import pyceleme.python;
+import python.python;
 
 import tango.stdc.stringz;
 

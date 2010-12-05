@@ -1,6 +1,6 @@
 module pyceleme.main;
 
-import pyceleme.python;
+import python.python;
 import pyceleme.model;
 
 import tango.stdc.stringz;

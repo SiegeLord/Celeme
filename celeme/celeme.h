@@ -18,6 +18,7 @@ typedef void* CELEME_RECORDER;
 void celeme_init(void);
 void celeme_shutdown(void);
 const char* celeme_get_error(void);
+void celeme_set_error(const char* error);
 
 /*
  * Model

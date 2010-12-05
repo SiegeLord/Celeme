@@ -1,5 +1,10 @@
 .objs/*
 .objs_celeme/*
+.objs_pyceleme/*
 main
+libceleme.a
+test
+py_celeme
 .deps
 .deps_celeme
+.deps_pyceleme

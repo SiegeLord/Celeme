@@ -59,6 +59,15 @@ char* celeme_get_error()
 		return toStringz(ErrorText);
 }
 
+
+void celeme_set_error(char* error)
+{
+	if(error is null)
+		ErrorText = null;
+	else
+		ErrorText = fromStringz(error);
+}
+
 /*
  * Model bindings
  */

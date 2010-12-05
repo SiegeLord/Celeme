@@ -167,3 +167,7 @@
 >
 	<constant name = "P" init="1" />
 </connector>
+
+<model float_type = 'float'>
+	<group type = "Regular" number = '100' />
+</model>

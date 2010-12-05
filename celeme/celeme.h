@@ -7,36 +7,28 @@
 typedef void* CELEME_MODEL;
 typedef void* CELEME_NEURON_TYPE;
 typedef void* CELEME_NEURON_GROUP;
-typedef void* CELEME_XML_REGISTRY;
 typedef void* CELEME_RECORDER;
 
-enum
+/*enum
 {
 	CELEME_MODEL_FLOAT,
 	CELEME_MODEL_DOUBLE
-};
+};*/
 
 void celeme_init(void);
 void celeme_shutdown(void);
 const char* celeme_get_error(void);
 
 /*
- * XML Registry
- */
-
-CELEME_XML_REGISTRY celeme_load_xml_registry(const char* file);
-void celeme_destroy_xml_registry(CELEME_XML_REGISTRY registry);
-CELEME_NEURON_TYPE celeme_get_neuron_type(CELEME_XML_REGISTRY registry, const char* name);
-
-/*
  * Model
  */
 
-CELEME_MODEL celeme_create_model(int type, bool gpu);
+/*CELEME_MODEL celeme_create_model(int type, bool gpu);*/
+CELEME_MODEL celeme_load_model(const char* file);
 void celeme_initialize_model(CELEME_MODEL model);
 void celeme_shutdown_model(CELEME_MODEL model);
 
-void celeme_add_neuron_group(CELEME_MODEL model, CELEME_NEURON_TYPE type, int number, const char* name, bool adaptive_dt);
+/*void celeme_add_neuron_group(CELEME_MODEL model, CELEME_NEURON_TYPE type, int number, const char* name, bool adaptive_dt);*/
 void celeme_generate_model(CELEME_MODEL model, bool parallel_delivery, bool atomic_delivery, bool initialize);
 
 CELEME_NEURON_GROUP celeme_get_neuron_group(CELEME_MODEL model, const char* name);
@@ -71,8 +63,9 @@ CELEME_RECORDER celeme_record_events(CELEME_NEURON_GROUP group, int neuron_id, i
 
 void celeme_stop_recording(CELEME_NEURON_GROUP group, int neuron_id);
 
-double celeme_get_min_dt(CELEME_NEURON_GROUP group, double MinDt);
+double celeme_get_min_dt(CELEME_NEURON_GROUP group);
 void celeme_set_min_dt(CELEME_NEURON_GROUP group, double min_dt);
+int celeme_get_count(CELEME_NEURON_GROUP group);
 
 /*
  * Recorder

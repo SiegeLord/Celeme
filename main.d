@@ -18,16 +18,12 @@ void main()
 	
 	timer.start;
 	
-	auto types = new CXMLRegistry("stuff.xml");
-	
-	auto model = CreateCLModel!(float)(false);
+	auto model = LoadModel("stuff.xml");
 	scope(exit) model.Shutdown();
 	
-	auto t_scale = 1;
+	auto N = model["Regular"].Count;
+	auto t_scale = 1.0 / model.TimeStepSize;
 	
-	model.TimeStepSize = 1.0 / t_scale;	
-	const N = 100;
-	model.AddNeuronGroup(types["Regular"], N, null, true);
 	//model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
 	Stdout.formatln("Specify time: {}", timer.stop);

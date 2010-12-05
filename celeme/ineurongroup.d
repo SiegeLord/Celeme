@@ -17,4 +17,5 @@ interface INeuronGroup
 	
 	void MinDt(double min_dt);
 	double MinDt();
+	int Count();
 }

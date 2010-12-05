@@ -9,15 +9,13 @@ int main()
 	
 	celeme_init();
 	
-	CELEME_XML_REGISTRY types = celeme_load_xml_registry("stuff.xml"); CHECK;
+	CELEME_MODEL model = celeme_load_model("stuff.xml"); CHECK;
 	
-	CELEME_NEURON_TYPE regular = celeme_get_neuron_type(types, "Regular"); CHECK;
+	CELEME_NEURON_GROUP group = celeme_get_neuron_group(model, "Regular"); CHECK;
 	
-	CELEME_MODEL model = celeme_create_model(CELEME_MODEL_FLOAT, false); CHECK;
+	printf("%d\n", group);
+	int N = celeme_get_count(group); CHECK;
 	
-	const int N = 100;
-	
-	celeme_add_neuron_group(model, regular, N, NULL, true); CHECK;
 	celeme_generate_model(model, true, true, true); CHECK;
 	
 	char* arg_keys[] = {"P"};

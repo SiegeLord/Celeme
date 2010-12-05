@@ -3,6 +3,7 @@
 import sys
 from subprocess import call
 from string import join
+import glob
 
 #ret = call('xfbuild +D=".deps_celeme" +O=".objs_celeme" +nolink +cldc +xldc +xtango celeme/ -unittest', shell=True)
 #if ret == 0:
@@ -11,7 +12,12 @@ from string import join
 #	ret = call('xfbuild +omain +cldc +xldc +xtango +xceleme +xopencl main.d -L -L/usr/local/atistream/lib/x86_64 -L -lOpenCL -L -lpthread -L -ldl -L -L. -L -lceleme -unittest', shell=True)
 
 if len(sys.argv) > 1 and sys.argv[1] == 'lib':
-	ret = call('ldc -c celeme/*.d opencl/*.d gnuplot.d -od=".objs_celeme"', shell=True)
+	files = glob.glob('celeme/*.d')
+	files.sort()
+	files.reverse()
+	file_str = ' '.join(files);
+	
+	ret = call('ldc -c ' + file_str +  ' opencl/*.d gnuplot.d -od=".objs_celeme"', shell=True)
 	
 	if ret == 0:
 		ret = call('ar -r libceleme.a .objs_celeme/*.o', shell=True)

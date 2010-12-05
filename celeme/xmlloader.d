@@ -3,6 +3,8 @@ module celeme.xmlloader;
 import celeme.xmlutil;
 import celeme.util;
 import celeme.frontend;
+import celeme.imodel;
+import celeme.clmodel;
 
 import tango.text.convert.Format;
 
@@ -324,29 +326,49 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 	return ret;
 }
 
-class CXMLRegistry
+IModel LoadModel(char[] file)
 {
-	this(char[] file)
+	auto root = GetRoot(file);
+	auto mechanisms = LoadMechanisms(root);
+	auto connectors = LoadConnectors(root);
+	auto synapses = LoadSynapses(root);
+	auto types = LoadNeuronTypes(root, mechanisms, synapses, connectors);
+	
+	auto model_node = GetChild(root, "model");
+	if(model_node is null)
+		throw new Exception("No 'model' node in '" ~ file ~ "'.");
+	
+	IModel ret;
+	
+	auto gpu = GetAttribute!(bool)(model_node, "use_gpu", false);
+	auto float_type = GetAttribute!(char[])(model_node, "float_type", "float");
+	auto timestep_size = GetAttribute!(double)(model_node, "timestep_size", 1.0);
+	
+	if(float_type == "float")
+		ret = CreateCLModel!(float)(gpu);
+	//else if(float_type == "double")
+	//	ret = CreateCLModel!(double)(gpu);
+	else
+		throw new Exception("'" ~ float_type ~ "' is not a valid floating point type.");
+		
+	ret.TimeStepSize = timestep_size;
+	
+	foreach(group_node; GetChildren(model_node, "group"))
 	{
-		auto root = GetRoot(file);
-		Mechanisms = LoadMechanisms(root);
-		Connectors = LoadConnectors(root);
-		Synapses = LoadSynapses(root);
-		NeuronTypes = LoadNeuronTypes(root, Mechanisms, Synapses, Connectors);
+		auto type_name = GetAttribute!(char[])(group_node, "type", null);
+		if(type_name is null)
+			throw new Exception("All groups need a type name.");
+		
+		auto type_ptr = type_name in types;
+		if(type_ptr is null)
+			throw new Exception("No type named '" ~ type_name ~ "' exists.");
+		
+		auto number = GetAttribute!(int)(group_node, "number", 1);
+		auto name = GetAttribute!(char[])(group_node, "name", "");
+		auto adaptive_dt = GetAttribute!(bool)(group_node, "adaptive_dt", true);
+		
+		ret.AddNeuronGroup(*type_ptr, number, name, adaptive_dt);
 	}
 	
-	CNeuronType opIndex(char[] name)
-	{
-		auto nrn_ptr = name in NeuronTypes;
-		if(nrn_ptr is null)
-			throw new Exception("Neuron type '" ~ name ~ "' is not loaded");
-		
-		return *nrn_ptr;
-	}
-
-private:
-	CNeuronType[char[]] NeuronTypes;
-	CConnector[char[]] Connectors;
-	CSynapse[char[]] Synapses;
-	CMechanism[char[]] Mechanisms;
+	return ret;
 }

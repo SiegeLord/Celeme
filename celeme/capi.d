@@ -13,7 +13,6 @@ import tango.stdc.stdlib : atexit;
 bool Inited = false;
 bool Registered = false;
 IModel[] Models;
-CXMLRegistry[] Registries;
 char[] ErrorText;
 
 bool iser(T)(T a, T b)
@@ -61,57 +60,23 @@ char* celeme_get_error()
 }
 
 /*
- * XML registry bindings
- */
- 
-CXMLRegistry celeme_load_xml_registry(char* file)
-{
-	try
-	{
-		auto ret = new CXMLRegistry(fromStringz(file));
-
-		Registries ~= ret;
-		
-		return ret;
-	}
-	catch(Exception e)
-	{
-		ErrorText = e.msg;
-	}
-	return null;
-}
-
-void celeme_destroy_xml_registry(CXMLRegistry registry)
-{
-	try
-	{
-		auto len = Registries.remove(registry, &iser!(CXMLRegistry));
-		Registries.length = len;
-	}
-	catch(Exception e)
-	{
-		ErrorText = e.msg;
-	}
-}
-
-CNeuronType celeme_get_neuron_type(CXMLRegistry registry, char* name)
-{
-	try
-	{
-		return registry[fromStringz(name)];
-	}
-	catch(Exception e)
-	{
-		ErrorText = e.msg;
-	}
-	return null;
-}
-
-/*
  * Model bindings
  */
 
-enum : int
+IModel celeme_load_model(char* file)
+{
+	try
+	{		
+		return LoadModel(fromStringz(file));
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+/+enum : int
 {
 	MODEL_FLOAT,
 	MODEL_DOUBLE
@@ -124,8 +89,8 @@ IModel celeme_create_model(int type, bool gpu)
 		IModel ret;
 		if(type == MODEL_FLOAT)
 			ret = CreateCLModel!(float)(gpu);
-		//else if(type == MODEL_DOUBLE)
-//			ret = CreateCLModel!(double)(gpu);
+		else if(type == MODEL_DOUBLE)
+			ret = CreateCLModel!(double)(gpu);
 		else
 		{
 			ErrorText = "Invalid model type.";
@@ -141,7 +106,7 @@ IModel celeme_create_model(int type, bool gpu)
 		ErrorText = e.msg;
 	}
 	return null;
-}
+}+/
 
 void celeme_destroy_model(IModel model)
 {
@@ -190,9 +155,9 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 mixin(ModelFunc!("initialize_model", "void", "Initialize", "", "", ""));
 mixin(ModelFunc!("shutdown_model", "void", "Shutdown", "", "", ""));
 
-mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
+/+mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
 	", CNeuronType type, int number, char* name, bool adaptive_dt", 
-	"type, number, fromStringz(name), adaptive_dt", ""));
+	"type, number, fromStringz(name), adaptive_dt", ""));+/
 mixin(ModelFunc!("generate_model", "void", "Generate", 
 	", bool parallel_delivery, bool atomic_delivery, bool initialize", 
 	"parallel_delivery, atomic_delivery, initialize", ""));
@@ -317,6 +282,10 @@ mixin(GroupFunc!("get_min_dt", "double", "MinDt",
 mixin(GroupFunc!("set_min_dt", "void", "MinDt", 
 	", double min_dt", 
 	"min_dt", ""));
+	
+mixin(GroupFunc!("get_count", "int", "Count", 
+	"", 
+	"", "0"));
 
 /*
  * Recorder

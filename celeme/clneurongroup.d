@@ -314,7 +314,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true)
 	{
 		Model = model;
-		Count = count;
+		CountVal = count;
 		Name = name;
 		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
@@ -461,7 +461,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 					SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
 				}
 			}
-			SetGlobalArg(arg_id++, &Count);
+			SetGlobalArg(arg_id++, &CountVal);
 		}
 		
 		/* Init kernel */
@@ -479,7 +479,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 			{
 				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
 			}
-			SetGlobalArg(arg_id++, &Count);
+			SetGlobalArg(arg_id++, &CountVal);
 		}
 		
 		/* Deliver kernel */
@@ -504,7 +504,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
 				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
 			}
-			SetGlobalArg(arg_id++, &Count);
+			SetGlobalArg(arg_id++, &CountVal);
 		}
 		
 		Core.Finish();
@@ -1530,6 +1530,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return Model.Core;
 	}
 	
+	override
+	int Count()
+	{
+		return CountVal;
+	}
+	
 	CRecorder[int] Recorders;
 	CRecorder EventRecorder;
 	
@@ -1546,7 +1552,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int[char[]] SynGlobalBufferRegistry;
 	
 	char[] Name;
-	int Count = 0;
+	int CountVal = 0;
 	CCLModel!(float_t) Model;
 	
 	char[] StepKernelSource;

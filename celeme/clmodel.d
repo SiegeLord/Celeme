@@ -72,7 +72,7 @@ class CCLModel(float_t) : IModel
 		
 		type.VerifyExternals();
 		
-		if(name is null)
+		if(name is null || name == "")
 			name = type.Name;
 			
 		if((name in NeuronGroups) !is null)
@@ -80,6 +80,7 @@ class CCLModel(float_t) : IModel
 		
 		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
+		
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
 		

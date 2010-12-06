@@ -112,7 +112,73 @@ PyObject* SModel_generate(SModel *self, PyObject *args, PyObject *kwds)
 	if(!DParseTupleAndKeywords(args, kwds, "|iii", kwlist, &parallel_delivery, &atomic_delivery, &initialize))
 		return null;
 	
-	celeme_generate_model(self.Model, parallel_delivery == 1, atomic_delivery == 1, initialize == 1);
+	celeme_generate_model(self.Model, cast(bool)parallel_delivery, cast(bool)atomic_delivery, cast(bool)initialize);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_initialize(SModel *self)
+{
+	celeme_initialize_model(self.Model);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_shutdown(SModel *self)
+{
+	celeme_shutdown_model(self.Model);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_run(SModel *self, PyObject *args, PyObject *kwds)
+{
+	char[][] kwlist = ["timesteps", null];
+	int timesteps;
+
+	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &timesteps))
+		return null;
+	
+	celeme_run(self.Model, timesteps);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_reset_run(SModel *self)
+{
+	celeme_reset_run(self.Model);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_init_run(SModel *self)
+{
+	celeme_init_run(self.Model);
+	
+	mixin(ErrorCheck("null"));
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_run_until(SModel *self, PyObject *args, PyObject *kwds)
+{
+	char[][] kwlist = ["timesteps", null];
+	int timesteps;
+
+	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &timesteps))
+		return null;
+	
+	celeme_run_until(self.Model, timesteps);
 	
 	mixin(ErrorCheck("null"));
 	return Py_None;
@@ -121,6 +187,12 @@ PyObject* SModel_generate(SModel *self, PyObject *args, PyObject *kwds)
 PyMethodDef[] SModel_methods = 
 [
     {"Generate", cast(PyCFunction)&SModel_generate, METH_VARARGS | METH_KEYWORDS, "Generate the model"},
+    {"Initialize", cast(PyCFunction)&SModel_initialize, METH_NOARGS, "Initialize the model"},
+    {"Shutdown", cast(PyCFunction)&SModel_shutdown, METH_NOARGS, "Shutdown the model"},
+    {"Run", cast(PyCFunction)&SModel_run, METH_VARARGS | METH_KEYWORDS, "Run the model"},
+    {"ResetRun", cast(PyCFunction)&SModel_reset_run, METH_NOARGS, "Reset the run"},
+    {"InitRun", cast(PyCFunction)&SModel_init_run, METH_NOARGS, "Init the run"},
+    {"RunUntil", cast(PyCFunction)&SModel_run_until, METH_VARARGS | METH_KEYWORDS, "Run the model until"},
     {null}  /* Sentinel */
 ];
 

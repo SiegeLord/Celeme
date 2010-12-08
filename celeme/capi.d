@@ -72,11 +72,11 @@ void celeme_set_error(char* error)
  * Model bindings
  */
 
-IModel celeme_load_model(char* file)
+IModel celeme_load_model(char* file, bool gpu)
 {
 	try
 	{		
-		return LoadModel(fromStringz(file));
+		return LoadModel(fromStringz(file), gpu);
 	}
 	catch(Exception e)
 	{

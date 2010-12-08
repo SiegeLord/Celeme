@@ -47,13 +47,14 @@ char[] ErrorCheck(char[] ret = "-1")
 extern (C)
 int SModel_init(SModel *self, PyObject *args, PyObject *kwds)
 {
-	char[][] kwlist = ["file", null];
+	char[][] kwlist = ["file", "gpu", null];
 	char* str;
+	int gpu = 0;
 
-	if(!DParseTupleAndKeywords(args, kwds, "s", kwlist, &str))
+	if(!DParseTupleAndKeywords(args, kwds, "s|i", kwlist, &str, &gpu))
 		return -1;
 	
-	self.Model = celeme_load_model(str);
+	self.Model = celeme_load_model(str, cast(bool)gpu);
 	
 	mixin(ErrorCheck("-1"));
 	return 0;

@@ -25,7 +25,7 @@ void celeme_set_error(const char* error);
  */
 
 /*CELEME_MODEL celeme_create_model(int type, bool gpu);*/
-CELEME_MODEL celeme_load_model(const char* file);
+CELEME_MODEL celeme_load_model(const char* file, bool gpu);
 void celeme_initialize_model(CELEME_MODEL model);
 void celeme_shutdown_model(CELEME_MODEL model);
 

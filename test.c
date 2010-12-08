@@ -9,11 +9,10 @@ int main()
 	
 	celeme_init();
 	
-	CELEME_MODEL model = celeme_load_model("stuff.xml"); CHECK;
+	CELEME_MODEL model = celeme_load_model("stuff.xml", false); CHECK;
 	
 	CELEME_NEURON_GROUP group = celeme_get_neuron_group(model, "Regular"); CHECK;
 	
-	printf("%d\n", group);
 	int N = celeme_get_count(group); CHECK;
 	
 	celeme_generate_model(model, true, true, true); CHECK;

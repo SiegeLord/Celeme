@@ -326,7 +326,7 @@ CNeuronType[char[]] LoadNeuronTypes(Node root, CMechanism[char[]] mechanisms, CS
 	return ret;
 }
 
-IModel LoadModel(char[] file)
+IModel LoadModel(char[] file, bool gpu = false)
 {
 	auto root = GetRoot(file);
 	auto mechanisms = LoadMechanisms(root);
@@ -339,8 +339,7 @@ IModel LoadModel(char[] file)
 		throw new Exception("No 'model' node in '" ~ file ~ "'.");
 	
 	IModel ret;
-	
-	auto gpu = GetAttribute!(bool)(model_node, "use_gpu", false);
+
 	auto float_type = GetAttribute!(char[])(model_node, "float_type", "float");
 	auto timestep_size = GetAttribute!(double)(model_node, "timestep_size", 1.0);
 	

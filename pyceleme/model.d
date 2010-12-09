@@ -8,6 +8,7 @@ import pyceleme.main;
 import python.python;
 
 import tango.stdc.stringz;
+import tango.io.Stdout;
 
 struct SModel
 {
@@ -116,6 +117,7 @@ PyObject* SModel_generate(SModel *self, PyObject *args, PyObject *kwds)
 	celeme_generate_model(self.Model, cast(bool)parallel_delivery, cast(bool)atomic_delivery, cast(bool)initialize);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -125,6 +127,7 @@ PyObject* SModel_initialize(SModel *self)
 	celeme_initialize_model(self.Model);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -134,6 +137,7 @@ PyObject* SModel_shutdown(SModel *self)
 	celeme_shutdown_model(self.Model);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -149,6 +153,7 @@ PyObject* SModel_run(SModel *self, PyObject *args, PyObject *kwds)
 	celeme_run(self.Model, timesteps);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -158,6 +163,7 @@ PyObject* SModel_reset_run(SModel *self)
 	celeme_reset_run(self.Model);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -167,6 +173,7 @@ PyObject* SModel_init_run(SModel *self)
 	celeme_init_run(self.Model);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -182,6 +189,129 @@ PyObject* SModel_run_until(SModel *self, PyObject *args, PyObject *kwds)
 	celeme_run_until(self.Model, timesteps);
 	
 	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_set_connection(SModel *self, PyObject *args, PyObject *kwds)
+{
+	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
+		"src_slot", "dest_group", "dest_nrn_id", "dest_syn_type", "dest_slot", null];
+	
+	char* src_group;
+	int src_nrn_id;
+	int src_event_source;
+	int src_slot;
+	char* dest_group;
+	int dest_nrn_id;
+	int dest_syn_type;
+	int dest_slot;
+
+	if(!DParseTupleAndKeywords(args, kwds, "siiisiii", kwlist, &src_group, &src_nrn_id, &src_event_source, 
+		&src_slot, &dest_group, &dest_nrn_id, &dest_syn_type, &dest_slot))
+		return null;
+	
+	celeme_set_connection(self.Model, src_group, src_nrn_id, src_event_source, 
+		src_slot, dest_group, dest_nrn_id, dest_syn_type, dest_slot);
+	
+	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_connect(SModel *self, PyObject *args, PyObject *kwds)
+{
+	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
+		"dest_group", "dest_nrn_id", "dest_syn_type", null];
+	
+	char* src_group;
+	int src_nrn_id;
+	int src_event_source;
+	char* dest_group;
+	int dest_nrn_id;
+	int dest_syn_type;
+
+	if(!DParseTupleAndKeywords(args, kwds, "siisii", kwlist, &src_group, &src_nrn_id, &src_event_source, 
+		&dest_group, &dest_nrn_id, &dest_syn_type))
+		return null;
+	
+	celeme_connect(self.Model, src_group, src_nrn_id, src_event_source, 
+		dest_group, dest_nrn_id, dest_syn_type);
+	
+	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_apply_connector(SModel *self, PyObject *args, PyObject *kwds)
+{
+	char[][] kwlist = ["connector_name", "multiplier", "src_group", 
+		"src_nrn_range", "src_event_source", "dest_group", "dest_syn_range", "dest_syn_type", "args", null];
+	
+	char* connector_name;
+	int multiplier;
+	char* src_group;
+	int src_nrn_start;
+	int src_nrn_end;
+	int src_event_source;
+	char* dest_group;
+	int dest_nrn_start;
+	int dest_nrn_end;
+	int dest_syn_type;	
+	PyObject* conn_args;
+
+	if(!DParseTupleAndKeywords(args, kwds, "sis(ii)is(ii)iO", kwlist, &connector_name, &multiplier, &src_group, 
+		&src_nrn_start, &src_nrn_end, &src_event_source, &dest_group, &dest_nrn_start, &dest_nrn_end, &dest_syn_type, &conn_args))
+		return null;
+	
+	int argc;
+	char*[] arg_keys;
+	double[] arg_vals;
+		
+	if(PyDict_Check(conn_args))
+	{
+		auto items = PyDict_Items(conn_args);
+		scope(exit) Py_DECREF(items);
+		
+		argc = PyList_Size(items);
+		arg_keys.length = argc;
+		arg_vals.length = argc;
+		
+		for(int ii = 0; ii < argc; ii++)
+		{
+			auto item = PyList_GetItem(items, ii);
+			Py_INCREF(item);
+			scope(exit) Py_DECREF(item);
+			
+			char* param;
+			double val;
+			
+			if(!PyArg_ParseTuple(item, "sd", &param, &val))
+			{
+				PyErr_SetString(Error, "args is supposed to be a string->double dictionary");
+				return null;
+			}
+			
+			arg_keys[ii] = param;
+			arg_vals[ii] = val;
+		}
+		
+	}
+	else
+	{
+		PyErr_SetString(Error, "args is supposed to be a string->double dictionary");
+		return null;
+	}
+	
+	celeme_apply_connector(self.Model, connector_name, multiplier, src_group, 
+		src_nrn_start, src_nrn_end, src_event_source, dest_group, dest_nrn_start, dest_nrn_end, dest_syn_type,
+		argc, arg_keys.ptr, arg_vals.ptr);
+	
+	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -194,6 +324,9 @@ PyMethodDef[] SModel_methods =
     {"ResetRun", cast(PyCFunction)&SModel_reset_run, METH_NOARGS, "Reset the run"},
     {"InitRun", cast(PyCFunction)&SModel_init_run, METH_NOARGS, "Init the run"},
     {"RunUntil", cast(PyCFunction)&SModel_run_until, METH_VARARGS | METH_KEYWORDS, "Run the model until"},
+    {"SetConnection", cast(PyCFunction)&SModel_set_connection, METH_VARARGS | METH_KEYWORDS, "Set a connection between two neurons"},
+    {"Connect", cast(PyCFunction)&SModel_connect, METH_VARARGS | METH_KEYWORDS, "Connect two neurons"},
+    {"ApplyConnector", cast(PyCFunction)&SModel_apply_connector, METH_VARARGS | METH_KEYWORDS, "Apply a connector"},
     {null}  /* Sentinel */
 ];
 
@@ -209,7 +342,6 @@ PyObject* SModel_getitem(PyObject *self, PyObject *args)
 	{
 		if(dec_ref_args)
 		{
-			Py_DECREF(args);
 			Py_DECREF(new_args);
 		}
 	}

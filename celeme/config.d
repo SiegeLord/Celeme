@@ -1,4 +1,4 @@
-module config;
+module celeme.config;
 
 import TextUtil = tango.text.Util;
 import Array = tango.core.Array;
@@ -369,13 +369,16 @@ class CParser
 	CTokenizer Tokenizer;
 }
 
-class CEntry
+class CConfigEntry
 {
 	this(char[] name)
 	{
 		Name = name;
 	}
 	
+	/*
+	 * Get the value of this entry
+	 */
 	T Value(T)(T def = T.init, bool* is_def = null)
 	{
 		if(is_def !is null)
@@ -396,7 +399,29 @@ class CEntry
 		return def;
 	}
 	
-	CEntry[] opIndex(char[] name)
+	/*
+	 * Shortcut for accessing a single child entry of this aggregate and returning its value
+	 */
+	T ValueOf(T)(char[] name, T def = T.init, bool* is_def = null)
+	{
+		if(is_def !is null)
+			*is_def = false;
+
+		auto ret = opIndex(name, true);
+		
+		if(ret !is null)
+			return ret.Value!(T)(def, is_def);
+		
+		if(is_def !is null)
+			*is_def = true;
+			
+		return def;
+	}
+	
+	/*
+	 * Get a list of entries that match the provided name
+	 */
+	CConfigEntry[] opIndex(char[] name)
 	{
 		auto aggr = cast(CAggregate)this;
 		if(aggr !is null)
@@ -404,7 +429,10 @@ class CEntry
 		return null;
 	}
 	
-	CEntry opIndex(char[] name, bool last)
+	/*
+	 * Get the last entry that matches the provided name
+	 */
+	CConfigEntry opIndex(char[] name, bool last)
 	{
 		auto aggr = cast(CAggregate)this;
 		if(aggr !is null)
@@ -420,7 +448,7 @@ class CEntry
 	{
 		CAggregate Aggregate;
 		
-		int opApply(int delegate(ref CEntry entry) dg)
+		int opApply(int delegate(ref CConfigEntry entry) dg)
 		{
 			if(Aggregate is null)
 				return 0;
@@ -438,34 +466,46 @@ class CEntry
 		}
 	}
 	
+	/*
+	 * Returns an iterable fruct that goes over all children of this node
+	 */
 	SEntryFruct opSlice()
 	{
 		return SEntryFruct(cast(CAggregate)this);
 	}
 	
+	/*
+	 * Returns true if this entry is an aggregate
+	 */
 	bool IsAggregate()
 	{
 		return cast(CAggregate)this !is null;
 	}
 	
+	/*
+	 * Returns true if this entry is a single value
+	 */
 	bool IsSingleValue()
 	{
 		return cast(CSingleValue)this !is null;
 	}
 	
+	/*
+	 * Name of this entry
+	 */
 	char[] Name;
 }
 
-class CAggregate : CEntry
+class CAggregate : CConfigEntry
 {
 	this(char[] name)
 	{
 		super(name);
 	}
 	
-	alias CEntry.opIndex opIndex;
+	alias CConfigEntry.opIndex opIndex;
 	
-	CEntry[] opIndex(char[] name)
+	CConfigEntry[] opIndex(char[] name)
 	{
 		auto entry_ptr = name in Children;
 		if(entry_ptr !is null)
@@ -474,10 +514,10 @@ class CAggregate : CEntry
 			return null;
 	}
 	
-	CEntry[][char[]] Children;
+	CConfigEntry[][char[]] Children;
 }
 
-class CSingleValue : CEntry
+class CSingleValue : CConfigEntry
 {
 	this(char[] name)
 	{
@@ -492,11 +532,11 @@ class CSingleValue : CEntry
 	Variant Val;
 }
 
-CEntry CreateEntry(CParser parser)
+CConfigEntry CreateEntry(CParser parser)
 {
 	if(parser.Peek == EToken.Name)
 	{
-		CEntry ret;
+		CConfigEntry ret;
 		auto name = parser.CurToken.String;
 		
 		switch(parser.Advance())
@@ -602,7 +642,7 @@ CEntry CreateEntry(CParser parser)
 	return null;
 }
 
-CEntry LoadConfig(char[] filename, char[] src = null)
+CConfigEntry LoadConfig(char[] filename, char[] src = null)
 {
 	if(src is null)
 		src = cast(char[])File.get(filename);
@@ -614,7 +654,7 @@ CEntry LoadConfig(char[] filename, char[] src = null)
 	
 	while(!parser.EOF)
 	{
-		CEntry entry;
+		CConfigEntry entry;
 		entry = CreateEntry(parser);
 		if(entry)
 			ret.Children[entry.Name] ~= entry;
@@ -623,32 +663,4 @@ CEntry LoadConfig(char[] filename, char[] src = null)
 	}
 	
 	return ret;
-}
-
-void main()
-{
-	char[] name = "test.d";
-	char[] src = cast(char[])File.get(name);
-	
-	auto root = LoadConfig(name, src);
-		
-	foreach(mechs; root["mechanism"])
-	{
-		foreach(mech; mechs[])
-		{
-			Stdout(mech.Name).nl;
-			foreach(stage; mech["stage0"])
-				Stdout(stage.Name, stage.Value!(char[])).nl;
-			foreach(values; mech["state"])
-			{
-				foreach(val; values[])
-					Stdout(val.Name, val.Value!(double)(0)).nl;
-			}
-		}
-	}
-	
-	if(auto val = root["B", true])
-	{
-		Stdout(val.Name, val.Value!(int)).nl;
-	}
 }

@@ -18,7 +18,7 @@ void main()
 	
 	timer.start;
 	
-	auto model = LoadModel("stuff.xml");
+	auto model = LoadModel("stuff.cfg");
 	scope(exit) model.Shutdown();
 	
 	auto N = model["Regular"].Count;

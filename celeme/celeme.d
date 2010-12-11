@@ -7,4 +7,4 @@ public import
 	celeme.recorder,
 	celeme.clcore,
 	celeme.capi,
-	celeme.xmlloader;
+	celeme.configloader;

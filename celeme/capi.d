@@ -2,7 +2,6 @@ module celeme.capi;
 
 import celeme.celeme;
 import celeme.clmodel;
-import celeme.xmlutil;
 import celeme.util;
 
 import tango.stdc.stringz;

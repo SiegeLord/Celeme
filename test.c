@@ -9,7 +9,7 @@ int main()
 	
 	celeme_init();
 	
-	CELEME_MODEL* model = celeme_load_model("stuff.xml", false); CHECK;
+	CELEME_MODEL* model = celeme_load_model("stuff.cfg", false); CHECK;
 	
 	CELEME_NEURON_GROUP* group = celeme_get_neuron_group(model, "Regular"); CHECK;
 	

@@ -1,5 +1,5 @@
 module celeme.xmlloader;
-
+/+
 import celeme.xmlutil;
 import celeme.util;
 import celeme.frontend;
@@ -371,3 +371,4 @@ IModel LoadModel(char[] file, bool gpu = false)
 	
 	return ret;
 }
++/

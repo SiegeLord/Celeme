@@ -538,6 +538,8 @@ CConfigEntry CreateEntry(CParser parser)
 	{
 		CConfigEntry ret;
 		auto name = parser.CurToken.String;
+		if(name == "include")
+			throw new CConfigException("'include' is only allowed at the top level.", parser.FileName, parser.CurToken.Line);
 		
 		switch(parser.Advance())
 		{
@@ -642,7 +644,36 @@ CConfigEntry CreateEntry(CParser parser)
 	return null;
 }
 
-CConfigEntry LoadConfig(char[] filename, char[] src = null)
+bool HandleInclude(CAggregate root, CParser parser, char[][] include_list)
+{
+	if(parser.Peek == EToken.Name)
+	{
+		auto name = parser.CurToken.String;
+		if(name == "include")
+		{
+			if(parser.Advance() != EToken.String)
+				throw new CConfigException("Expected a string after the 'include' directive, not : '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				
+			auto path = parser.CurToken.String[1..$-1];
+			
+			auto old_idx = Array.find(include_list, path);
+			if(old_idx != include_list.length)
+			{
+				auto include_seq = TextUtil.join(include_list[old_idx..$], " -> ");
+				include_seq ~= " -> " ~ path;
+				throw new CConfigException("Circular include detected:\n" ~ include_seq, parser.FileName, parser.CurToken.Line);
+			}
+				
+			parser.Advance();
+			
+			LoadConfig(root, path, null, include_list);
+			return true;
+		}
+	}
+	return false;
+}
+
+void LoadConfig(CAggregate ret, char[] filename, char[] src = null, char[][] include_list = null)
 {
 	if(src is null)
 		src = cast(char[])File.get(filename);
@@ -650,17 +681,27 @@ CConfigEntry LoadConfig(char[] filename, char[] src = null)
 	scope tok = new CTokenizer(filename, src);
 	scope parser = new CParser(tok);
 	
-	auto ret = new CAggregate("");
+	include_list ~= filename;
 	
 	while(!parser.EOF)
 	{
-		CConfigEntry entry;
-		entry = CreateEntry(parser);
-		if(entry)
-			ret.Children[entry.Name] ~= entry;
-		else
-			throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+		if(!HandleInclude(ret, parser, include_list))
+		{
+			CConfigEntry entry;
+			entry = CreateEntry(parser);
+			if(entry)
+				ret.Children[entry.Name] ~= entry;
+			else
+				throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+		}
 	}
+}
+
+CConfigEntry LoadConfig(char[] filename, char[] src = null)
+{
+	auto ret = new CAggregate("");
+	
+	LoadConfig(ret, filename, src);
 	
 	return ret;
 }

@@ -24,6 +24,8 @@ if len(sys.argv) > 1:
 			ret = call('ar -r libceleme.a .objs_celeme/*.o', shell=True)
 	elif sys.argv[1] == 'py':
 		ret = call('xfbuild +D=".deps_pyceleme" +O=".objs_pyceleme" +opy_celeme +cldc +xldc +xtango +xopencl +xceleme pyceleme/main.d -L -L/usr/local/atistream/lib/x86_64 -L -lOpenCL -L -lpthread -L -ldl -L-L. -L-lceleme -L-lpython2.6 -I. -unittest', shell=True)
+	elif sys.argv[1] == 'doc':
+		ret = call('dil d doc/ --kandil -hl celeme/*.d', shell=True)
 
 if len(sys.argv) == 1 or (len(sys.argv) > 1 and sys.argv[1] == 'run'):
 	ret = call('xfbuild +omain +cldc +xldc +xtango main.d -L -L/usr/local/atistream/lib/x86_64 -L -lOpenCL -L -lpthread -L -ldl -unittest', shell=True)

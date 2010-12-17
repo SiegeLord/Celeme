@@ -1,3 +1,107 @@
+/**
+ * This module provides support for a simple configuration file format
+ * with D-like syntax. Both C++ and C comments are supported with
+ * the added enhancement that C comments are now nesting. The configuration file
+ * is composed of entries. Each entry has a name. The names need not be unique,
+ * and it is up to the application what to do with multiple entries (it could even
+ * dissallow them if need be). There are two types of entries, single value entries 
+ * and aggregate entries. Single value entries can either be empty or hold one value:
+ * 
+ * ---
+ * sentinel; // This one does not hold any value
+ * size = 5;
+ * mass = 1.2;
+ * length = 1.3e-5;
+ * name = "Test";
+ * some_code = `printf("%d")`;
+ * ---
+ * 
+ * Values can be integers, floating point literals and strings.
+ * Strings can either be delimeted by the " character, or the ` character.
+ * The former are escaped strings, while the latter are WYSIWYG strings,
+ * useful for embedding code.
+ * 
+ * Aggregate entries contain children entries:
+ * 
+ * ---
+ * address
+ * {
+ *    street = "Quiet St.";
+ *    number = 125;
+ * }
+ * ---
+ * 
+ * An alternate syntax can be used if the aggregate only has a single entry:
+ * 
+ * ---
+ * animal dog;
+ * 
+ * animal
+ * {
+ *    dog;
+ * }
+ * ---
+ * 
+ * The above two animal entries are identical. Naturally, aggregate entries can
+ * be nested:
+ * 
+ * ---
+ * animal dog Spotty;
+ * object
+ * {
+ *    children
+ *    {
+ *        Amy;
+ *    }
+ * }
+ * ---
+ * 
+ * Lastly, this file format supports textual includes:
+ * 
+ * ---
+ * include "some_other_file"
+ * ---
+ * 
+ * This will effectively paste the contents of the other file inside this file.
+ * Circular includes are forbidden. Some example usage:
+ * 
+ * ---
+ * char[] file = 
+ * `
+ * value = 5;
+ * value = 7;
+ * container
+ * {
+ *     contents = "Hello";
+ * }
+ * `;
+ * 
+ * auto root = LoadConfig("", file);
+ * 
+ * // Get all entries named "value"
+ * foreach(entry; root["value"])
+ *    Stdout(entry.Value!(int)).nl; // Will print 5 and then 7
+ * 
+ * // Get only the last value
+ * auto last_value = root["value", true];
+ * Stdout(last_value.Value!(int)).nl; // Will print 7
+ * 
+ * // A shortcut for the above
+ * Stdout(root.ValueOf!(int)("value")).nl; // Will print 7
+ * 
+ * // Providing a default value
+ * Stdout(root.ValueOf!(int)("not_there", -1)).nl; // Will print -1
+ * 
+ * auto container = root["container", true];
+ * if(container.IsAggregateEntry)
+ * {
+ *    //Loop through all the contents of the container
+ *    foreach(entry; container)
+ *        Stdout(entry.Name, entry.Value!(char[])).nl; // Will print contents, Hello
+ * }
+ * ---
+ */
+
 module celeme.config;
 
 import TextUtil = tango.text.Util;
@@ -10,6 +114,191 @@ import tango.io.device.File;
 import tango.text.json.JsonEscape;
 
 import tango.io.Stdout;
+
+/**
+ * Create a configuration entry from a file or a string.
+ * 
+ * Params:
+ *     filename = Name of the file to load if no source is provided.
+ *     src = If set, must contain the source to load from.
+ * 
+ * Returns:
+ *     An entry representing the top-level entry of the configuration file.
+ */
+CConfigEntry LoadConfig(char[] filename, char[] src = null)
+{
+	auto ret = new CAggregate("");
+	
+	LoadConfig(ret, filename, src);
+	
+	return ret;
+}
+
+/**
+ * A configuration entry, which represents a single node in the configuration file.
+ * 
+ * An entry can both be a single entry (e.g. "entry = data;" or "entry;") or an aggregate
+ * (e.g. "entry { data; }" or "entry data;").
+ */
+class CConfigEntry
+{
+	this(char[] name)
+	{
+		Name = name;
+	}
+	
+	/**
+	 * Get the value of this entry
+	 * 
+	 * Params:
+	 *     def = Default value returned if some error occured.
+	 *     is_def = Pointer to a bool that is set to true if the default value is returned.
+	 *              Set to false otherwise.
+	 * 
+	 * Returns: The value of this entry. If the value is not set, or the
+	 * entry is an aggregate, then the default value is returned, and the
+	 * is_def argument is set to true (if it is not null).
+	 */
+	T Value(T)(T def = T.init, bool* is_def = null)
+	{
+		if(is_def !is null)
+			*is_def = false;
+			
+		auto val = cast(CSingleValue)this;
+		if(val !is null)
+		{
+			if(val.Val.isImplicitly!(T))
+			{
+				return val.Val.get!(T);
+			}
+		}
+			
+		if(is_def !is null)
+			*is_def = true;
+			
+		return def;
+	}
+	
+	/**
+	 * Shortcut for accessing a single child entry of this aggregate and returning its value.
+	 * 
+	 * Params:
+	 *     name = Name of the child entry.
+	 *     def = Default value returned if some error occured.
+	 *     is_def = Pointer to a bool that is set to true if the default value is returned.
+	 *              Set to false otherwise.
+	 * 
+	 * Returns: The value of this entry. If the value is not set, or the
+	 * entry is an aggregate, then the default value is returned, and the
+	 * is_def argument is set to true (if it is not null).
+	 * 
+	 * See_Also: $(SYMLINK CConfigEntry.Value, Value)
+	 */
+	T ValueOf(T)(char[] name, T def = T.init, bool* is_def = null)
+	{
+		if(is_def !is null)
+			*is_def = false;
+
+		auto ret = opIndex(name, true);
+		
+		if(ret !is null)
+			return ret.Value!(T)(def, is_def);
+		
+		if(is_def !is null)
+			*is_def = true;
+			
+		return def;
+	}
+	
+	/**
+	 * Get an array of entries that match the provided name.
+	 * 
+	 * Params:
+	 *     name = Name to match.
+	 * 
+	 * Returns: An array of entries if some were found. null otherwise.
+	 */
+	CConfigEntry[] opIndex(char[] name)
+	{
+		auto aggr = cast(CAggregate)this;
+		if(aggr !is null)
+			return aggr.opIndex(name);
+		return null;
+	}
+	
+	/**
+	 * Get the last entries that matches the provided name.
+	 * 
+	 * Params:
+	 *     name = Name to match.
+	 * 
+	 * Returns: The found entry. null otherwise.
+	 */
+	CConfigEntry opIndex(char[] name, bool last)
+	{
+		auto aggr = cast(CAggregate)this;
+		if(aggr !is null)
+		{
+			auto arr = aggr.opIndex(name);
+			if(arr !is null)
+				return arr[$ - 1];
+		}
+		return null;
+	}
+	
+	struct SEntryFruct
+	{
+		CAggregate Aggregate;
+		
+		int opApply(int delegate(ref CConfigEntry entry) dg)
+		{
+			if(Aggregate is null)
+				return 0;
+
+			foreach(entries; Aggregate.Children)
+			{
+				foreach(entry; entries)
+				{
+					if(int ret = dg(entry))
+						return ret;
+				}
+			}
+			
+			return 0;
+		}
+	}
+	
+	/**
+	 * Returns an iterable fruct that goes over all children of this node.
+	 */
+	SEntryFruct opSlice()
+	{
+		return SEntryFruct(cast(CAggregate)this);
+	}
+	
+	/**
+	 * Returns true if this entry is an aggregate.
+	 */
+	bool IsAggregate()
+	{
+		return cast(CAggregate)this !is null;
+	}
+	
+	/**
+	 * Returns true if this entry is a single value.
+	 */
+	bool IsSingleValue()
+	{
+		return cast(CSingleValue)this !is null;
+	}
+	
+	/**
+	 * Name of this entry.
+	 */
+	char[] Name;
+}
+
+private:
 
 enum EToken
 {
@@ -369,132 +658,7 @@ class CParser
 	CTokenizer Tokenizer;
 }
 
-class CConfigEntry
-{
-	this(char[] name)
-	{
-		Name = name;
-	}
-	
-	/*
-	 * Get the value of this entry
-	 */
-	T Value(T)(T def = T.init, bool* is_def = null)
-	{
-		if(is_def !is null)
-			*is_def = false;
-			
-		auto val = cast(CSingleValue)this;
-		if(val !is null)
-		{
-			if(val.Val.isImplicitly!(T))
-			{
-				return val.Val.get!(T);
-			}
-		}
-			
-		if(is_def !is null)
-			*is_def = true;
-			
-		return def;
-	}
-	
-	/*
-	 * Shortcut for accessing a single child entry of this aggregate and returning its value
-	 */
-	T ValueOf(T)(char[] name, T def = T.init, bool* is_def = null)
-	{
-		if(is_def !is null)
-			*is_def = false;
 
-		auto ret = opIndex(name, true);
-		
-		if(ret !is null)
-			return ret.Value!(T)(def, is_def);
-		
-		if(is_def !is null)
-			*is_def = true;
-			
-		return def;
-	}
-	
-	/*
-	 * Get a list of entries that match the provided name
-	 */
-	CConfigEntry[] opIndex(char[] name)
-	{
-		auto aggr = cast(CAggregate)this;
-		if(aggr !is null)
-			return aggr.opIndex(name);
-		return null;
-	}
-	
-	/*
-	 * Get the last entry that matches the provided name
-	 */
-	CConfigEntry opIndex(char[] name, bool last)
-	{
-		auto aggr = cast(CAggregate)this;
-		if(aggr !is null)
-		{
-			auto arr = aggr.opIndex(name);
-			if(arr !is null)
-				return arr[$ - 1];
-		}
-		return null;
-	}
-	
-	struct SEntryFruct
-	{
-		CAggregate Aggregate;
-		
-		int opApply(int delegate(ref CConfigEntry entry) dg)
-		{
-			if(Aggregate is null)
-				return 0;
-
-			foreach(entries; Aggregate.Children)
-			{
-				foreach(entry; entries)
-				{
-					if(int ret = dg(entry))
-						return ret;
-				}
-			}
-			
-			return 0;
-		}
-	}
-	
-	/*
-	 * Returns an iterable fruct that goes over all children of this node
-	 */
-	SEntryFruct opSlice()
-	{
-		return SEntryFruct(cast(CAggregate)this);
-	}
-	
-	/*
-	 * Returns true if this entry is an aggregate
-	 */
-	bool IsAggregate()
-	{
-		return cast(CAggregate)this !is null;
-	}
-	
-	/*
-	 * Returns true if this entry is a single value
-	 */
-	bool IsSingleValue()
-	{
-		return cast(CSingleValue)this !is null;
-	}
-	
-	/*
-	 * Name of this entry
-	 */
-	char[] Name;
-}
 
 class CAggregate : CConfigEntry
 {
@@ -695,13 +859,4 @@ void LoadConfig(CAggregate ret, char[] filename, char[] src = null, char[][] inc
 				throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 		}
 	}
-}
-
-CConfigEntry LoadConfig(char[] filename, char[] src = null)
-{
-	auto ret = new CAggregate("");
-	
-	LoadConfig(ret, filename, src);
-	
-	return ret;
 }

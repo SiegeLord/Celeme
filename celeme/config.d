@@ -443,11 +443,8 @@ class CTokenizer
 			{
 				if(idx == src.length)
 					throw new CConfigException("Unexpected EOF when parsing a string", FileName, CurLine);
-				else if(src[idx] == quote)
-				{
-					if(quote == '`' || src[idx - 1] != '\\')
-						break;
-				}
+				else if(src[idx] == quote && src[idx - 1] != '\\')
+					break;
 				//TODO: Windows type newlines
 				else if(src[idx] == '\n')
 					line++;

@@ -27,7 +27,7 @@ void celeme_set_error(const char* error);
 /*CELEME_MODEL* celeme_create_model(int type, bool gpu);*/
 CELEME_MODEL* celeme_load_model(const char* file, bool gpu);
 void celeme_initialize_model(CELEME_MODEL* model);
-void celeme_shutdown_model(CELEME_MODEL* model);
+void celeme_destroy_model(CELEME_MODEL* model);
 
 /*void celeme_add_neuron_group(CELEME_MODEL* model, CELEME_NEURON_TYPE* type, int number, const char* name, bool adaptive_dt);*/
 void celeme_generate_model(CELEME_MODEL* model, bool parallel_delivery, bool atomic_delivery, bool initialize);

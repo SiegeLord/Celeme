@@ -1,3 +1,7 @@
+/*
+ * A simple fixed timestep Heun integrator.
+ */
+
 module celeme.heun;
 
 import celeme.clneurongroup;

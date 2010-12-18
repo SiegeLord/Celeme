@@ -132,16 +132,6 @@ PyObject* SModel_initialize(SModel *self)
 }
 
 extern (C)
-PyObject* SModel_shutdown(SModel *self)
-{
-	celeme_shutdown_model(self.Model);
-	
-	mixin(ErrorCheck("null"));
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-extern (C)
 PyObject* SModel_run(SModel *self, PyObject *args, PyObject *kwds)
 {
 	char[][] kwlist = ["timesteps", null];
@@ -319,7 +309,6 @@ PyMethodDef[] SModel_methods =
 [
     {"Generate", cast(PyCFunction)&SModel_generate, METH_VARARGS | METH_KEYWORDS, "Generate the model"},
     {"Initialize", cast(PyCFunction)&SModel_initialize, METH_NOARGS, "Initialize the model"},
-    {"Shutdown", cast(PyCFunction)&SModel_shutdown, METH_NOARGS, "Shutdown the model"},
     {"Run", cast(PyCFunction)&SModel_run, METH_VARARGS | METH_KEYWORDS, "Run the model"},
     {"ResetRun", cast(PyCFunction)&SModel_reset_run, METH_NOARGS, "Reset the run"},
     {"InitRun", cast(PyCFunction)&SModel_init_run, METH_NOARGS, "Init the run"},

@@ -1,3 +1,8 @@
+/*
+ * An adaptive heun integrator. Absolute tolerance is used, as it is more
+ * appropriate for neural models.
+ */
+
 module celeme.adaptiveheun;
 
 import celeme.clneurongroup;

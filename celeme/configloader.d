@@ -1,3 +1,8 @@
+/**
+ * This module allows the loading of a model definition (including connectors,
+ * neuron types, mechanisms and synapses) from a configuration file.
+ */
+
 module celeme.configloader;
 
 import celeme.config;
@@ -115,6 +120,85 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 	}
 }
 
+/**
+ * Load mechanisms from a root config entry.
+ * 
+ * Returns:
+ *     An associative array of mechanisms.
+ * 
+ * A mechanism entry looks like this:
+ * 
+ * ---
+ * mechanism MechName
+ * {
+ *     // Staged evaluation of the derivatives
+ *     stage0 = "";
+ *     stage1 = "";
+ *     stage2 = "";
+ *     
+ *     // Init code
+ *     init = "";
+ *     
+ *     // Code run before the integration is performed
+ *     pre_stage = "";
+ *     
+ *     // States
+ *     state StateName
+ *     {
+ *         // Initial value
+ *         init = 0;
+ *         // Tolerance
+ *         tolerance = 0.1
+ *     }
+ *     // Alternate syntax, the init is set to the assigned value
+ *     state StateName2 = 0;
+ *     
+ *     // Globals
+ *     global GlobalName
+ *     {
+ *         // Initial value
+ *         init = 0;
+ *         // Whether the global is read only or not
+ *         readonly = false;
+ *     }
+ *     // Alternate syntax, the init is set to the assigned value
+ *     global GlobalName2 = 0;
+ *     
+ *     // Locals
+ *     local LocalName;
+ *     
+ *     // Constants
+ *     constant ConstantName
+ *     {
+ *         init = 0;
+ *     }
+ *     // Alternate syntax, the init is set to the assigned value
+ *     constant ConstantName2 = 0;
+ *     
+ *     // Externals
+ *     external ExternName;
+ *     
+ *     // Thresholds
+ *     threshold
+ *     {
+ *         // State to track. Mandatory parameter.
+ *         state;
+ *         
+ *         // Condition to use as threshold. Mandatory parameter.
+ *         condition;
+ *         
+ *         // Code ran when the threshold is activated
+ *         code = "";
+ *         
+ *         // Specifies whether this is an event source or not
+ *         event_source = false;
+ *         
+ *         // Specifies whether to reset the dt or not when the threshold is activated
+ *         reset_dt = false;
+ *     }
+ * }
+ * ---
+ */
 CMechanism[char[]] LoadMechanisms(CConfigEntry root)
 {
 	CMechanism[char[]] ret;
@@ -140,6 +224,33 @@ CMechanism[char[]] LoadMechanisms(CConfigEntry root)
 	return ret;
 }
 
+/**
+ * Load synapses from a root config entry.
+ * 
+ * Returns:
+ *     An associative array of synapses.
+ * 
+ * A mechanism entry looks just like a mechanism entry, except it has more fields:
+ * 
+ * ---
+ * synapse SynapseName
+ * {
+ *     // Code to be ran when the synapse is triggered
+ *     syn_code = "";
+ *     
+ *     // Syn globals
+ *     syn_global SynGlobalName
+ *     {
+ *         // Initial value
+ *         init = 0;
+ *         // Whether the syn global is read only or not
+ *         readonly = false;
+ *     }
+ *     // Alternate syntax, the init is set to the assigned value
+ *     syn_global SynGlobalName2 = 0;
+ * }
+ * ---
+ */
 CSynapse[char[]] LoadSynapses(CConfigEntry root)
 {
 	CSynapse[char[]] ret;
@@ -190,6 +301,27 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 	return ret;
 }
 
+/**
+ * Load connectors from a root config entry.
+ * 
+ * Returns:
+ *     An associative array of connectors.
+ * 
+ * A connector entry looks like this:
+ * ---
+ * connector ConnectorName
+ * {
+ *     // Connector code
+ *     code = "";
+ * 
+ *     // Constants
+ *     constant ConstantName
+ *     {
+ *         init = 0;
+ *     }
+ * }
+ * ---
+ */
 CConnector[char[]] LoadConnectors(CConfigEntry root)
 {
 	CConnector[char[]] ret;
@@ -265,6 +397,86 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
 	}
 }
 
+/**
+ * Load neuron types from a root config entry.
+ * 
+ * Returns:
+ *     An associative array of neuron types.
+ * 
+ * A neuron type entry looks like this:
+ * 
+ * ---
+ * neuron NeuronTypeName
+ * {
+ *     // Record length
+ *     record_length = 0;
+ *     
+ *     // Record rate
+ *     record_rate = 0;
+ *     
+ *     // Circular buffer size
+ *     circ_buffer_size = 0;
+ *     
+ *     // Number of source synapses
+ *     num_src_synapses = 0;
+ *     
+ *     // Length of the random state
+ *     rand_state_len = 0;
+ *     
+ *     // Minimum dt
+ *     min_dt = 0.01;
+ *     
+ *     // Mechanisms
+ *     mechanism MechName
+ *     {
+ *         // Prefix to use for this mechanism
+ *         prefix = "";
+ *         
+ *         // Initial value setting
+ *         init
+ *         {
+ *             SomeVal
+ *             {
+ *                 // Initial value. If omitted, mechanism's default value is used
+ *                 init;
+ *                 // Tolerance (makes sense only for states). If omitted, mechanism's default value
+ *                 // is used
+ *                 tolerance;
+ *             }
+ *             // Alternate syntax, the init is set to the assigned value
+ *             SomeOtherVal = 0;
+ *         }
+ *     }
+ *     
+ *     // Synapses
+ *     synapse SynName
+ *     {
+ *         // Prefix to use for this synapse
+ *         prefix = "";
+ *         
+ *         // Number of synapses of this type to insert
+ *         number = 0;
+ *         
+ *         init
+ *         {
+ *             SomeVal
+ *             {
+ *                 // Initial value. If omitted, mechanism's default value is used
+ *                 init;
+ *                 // Tolerance (makes sense only for states). If omitted, mechanism's default value
+ *                 // is used
+ *                 tolerance;
+ *             }
+ *             // Alternate syntax, the init is set to the assigned value
+ *             SomeOtherVal = 0;
+ *         }
+ *     }
+ *     
+ *     // Connectors
+ *     connector ConnName;
+ * }
+ * ---
+ */
 CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechanisms, CSynapse[char[]] synapses, CConnector[char[]] connectors)
 {
 	CNeuronType[char[]] ret;
@@ -350,6 +562,41 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 	return ret;
 }
 
+/**
+ * Loads a model from a configuration file.
+ * 
+ * The configuration entry for a model looks like this:
+ * 
+ * ---
+ * model
+ * {
+ *     // What floating point size to use ("float" or "double")
+ *     float_type = "float";
+ *     timestep_size = 1.0;
+ *     
+ *     // Neuron groups
+ *     group NeuronTypeName
+ *     {
+ *         // Number of neurons
+ *         number = 1;
+ *         
+ *         // Override the name of the group (if adding several of the same kind)
+ *         // Empty name keeps the original neuron type name.
+ *         name = "";
+ *         
+ *         // Whether or not to use the adaptive integrator for this group
+ *         adaptive_dt = true;
+ *     }
+ * }
+ * ---
+ * 
+ * Params:
+ *     file = Path to a file to load from.
+ *     gpu = Whether or not to use the GPU.
+ * 
+ * Returns:
+ *     The loaded model.
+ */
 IModel LoadModel(char[] file, bool gpu = false)
 {
 	auto root = LoadConfig(file);

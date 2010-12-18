@@ -383,7 +383,7 @@ class CCLModel(float_t) : IModel
 	}
 	
 	override
-	void Connect(char[] connector_name, int multiplier, char[] src_group, int[2] src_nrn_range, int src_event_source, char[] dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
+	void ApplyConnector(char[] connector_name, int multiplier, char[] src_group, int[2] src_nrn_range, int src_event_source, char[] dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
 	{
 		assert(Initialized);
 		

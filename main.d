@@ -44,7 +44,7 @@ void main()
 	
 	//model.Connect("Regular", 1, 0, "Regular", 0, 0);
 	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);
-	model.Connect("RandConn", N, "Regular", [0, N], 0, "Regular", [0, N], 0, ["P": 0.05]);
+	model.ApplyConnector("RandConn", N, "Regular", [0, N], 0, "Regular", [0, N], 0, ["P": 0.05]);
 	//model.Connect("RandConn", 1, "Regular", [0, 1], 0, "Burster", [1, 2], 0, ["P": 1]);
 	
 	/+auto arr = model["Regular"].DestSynBuffer.Map(CL_MAP_READ);

@@ -412,7 +412,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 		else
 			Integrator = new CHeun!(float_t)(this, type);
 		
-		EventRecorder = new CRecorder();
+		EventRecorder = new CRecorder(Name ~ " events.");
 		
 		/* Create kernel sources */
 		CreateStepKernel(type);
@@ -836,6 +836,7 @@ if(syn_table_end != syn_offset)
 			
 			thresh_idx++;
 		}
+		NumThresholds = thresh_idx;
 		source.Inject(kernel_source, "$threshold_pre_check$");
 		
 		/* Declare locals */
@@ -1324,7 +1325,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 						int id = cast(int)quad[0];
 						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
 						if(quad[3] > 0)
-							EventRecorder.AddDatapoint(quad[1], id * NumEventSources + quad[2]);
+							EventRecorder.AddDatapoint(quad[1], id * NumThresholds + quad[2]);
 						else
 							Recorders[id].AddDatapoint(quad[1], quad[2]);
 					}
@@ -1578,6 +1579,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int RecordRate;
 	int CircBufferSize = 20;
 	int NumEventSources = 0;
+	int NumThresholds = 0;
 	
 	int NumSrcSynapses; /* Number of pre-synaptic slots per event source */
 	int NumDestSynapses; /* Number of post-synaptic slots per neuron */

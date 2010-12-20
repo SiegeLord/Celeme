@@ -1,9 +1,24 @@
 module pyceleme.main;
 
 import python.python;
+
 import pyceleme.model;
+import pyceleme.neurongroup;
 
 import tango.stdc.stringz;
+
+char[] ErrorCheck(char[] ret = "-1")
+{
+	return
+`
+	if(celeme_get_error() !is null)
+	{
+		PyErr_SetString(Error, celeme_get_error());
+		celeme_set_error(null);
+		return ` ~ ret ~ `;
+	}
+`;
+}
 
 char** ToCharPP(char[][] args)
 {
@@ -36,6 +51,7 @@ PyObject* Error;
 void InitModule()
 {
 	PreInitModel();
+	PreInitNeuronGroup();
 	
 	Module = Py_InitModule("pyceleme", CelemeMethods.ptr);
 	if(Module is null)
@@ -46,6 +62,7 @@ void InitModule()
 	PyModule_AddObject(Module, "error", Error);
 	
 	AddModel();
+	AddNeuronGroup();
 }
 
 void main(char[][] args)

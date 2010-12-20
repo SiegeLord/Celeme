@@ -23,7 +23,7 @@ void SModel_dealloc(SModel* self)
 }
 
 extern (C)
-PyObject* SModel_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+PyObject* SModel_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 {
 	auto self = cast(SModel*)type.tp_alloc(type, 0);
 	if(self !is null) 
@@ -32,21 +32,8 @@ PyObject* SModel_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return cast(PyObject*)self;
 }
 
-char[] ErrorCheck(char[] ret = "-1")
-{
-	return
-`
-	if(celeme_get_error() !is null)
-	{
-		PyErr_SetString(Error, celeme_get_error());
-		celeme_set_error(null);
-		return ` ~ ret ~ `;
-	}
-`;
-}
-
 extern (C)
-int SModel_init(SModel *self, PyObject *args, PyObject *kwds)
+int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["file", "gpu", null];
 	char* str;
@@ -104,7 +91,7 @@ PyGetSetDef[] SModel_getseters =
 ];
 
 extern (C)
-PyObject* SModel_generate(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_generate(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["parallel_delivery", "atomic_delivery", "initialize", null];
 	int parallel_delivery = 1;
@@ -132,7 +119,7 @@ PyObject* SModel_initialize(SModel *self)
 }
 
 extern (C)
-PyObject* SModel_run(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_run(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["timesteps", null];
 	int timesteps;
@@ -168,7 +155,7 @@ PyObject* SModel_init_run(SModel *self)
 }
 
 extern (C)
-PyObject* SModel_run_until(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_run_until(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["timesteps", null];
 	int timesteps;
@@ -184,7 +171,7 @@ PyObject* SModel_run_until(SModel *self, PyObject *args, PyObject *kwds)
 }
 
 extern (C)
-PyObject* SModel_set_connection(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_set_connection(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
 		"src_slot", "dest_group", "dest_nrn_id", "dest_syn_type", "dest_slot", null];
@@ -211,7 +198,7 @@ PyObject* SModel_set_connection(SModel *self, PyObject *args, PyObject *kwds)
 }
 
 extern (C)
-PyObject* SModel_connect(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_connect(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
 		"dest_group", "dest_nrn_id", "dest_syn_type", null];
@@ -236,7 +223,7 @@ PyObject* SModel_connect(SModel *self, PyObject *args, PyObject *kwds)
 }
 
 extern (C)
-PyObject* SModel_apply_connector(SModel *self, PyObject *args, PyObject *kwds)
+PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["connector_name", "multiplier", "src_group", 
 		"src_nrn_range", "src_event_source", "dest_group", "dest_syn_range", "dest_syn_type", "args", null];
@@ -320,10 +307,8 @@ PyMethodDef[] SModel_methods =
 ];
 
 extern(C)
-PyObject* SModel_getitem(PyObject *self, PyObject *args)
-{
-	int a, b;
-	
+PyObject* SModel_getitem(PyObject* self, PyObject* args)
+{	
 	PyObject* new_args = args;
 	
 	bool dec_ref_args = false;
@@ -341,10 +326,18 @@ PyObject* SModel_getitem(PyObject *self, PyObject *args)
 		dec_ref_args = true;
 	}
 	
-	if(!PyArg_ParseTuple(new_args, "i|i", &a, &b))
+	char* name;
+	
+	if(!PyArg_ParseTuple(new_args, "s", &name))
 		return null;
+		
+	auto group = celeme_get_neuron_group(self.Model, name);
+	mixin(ErrorCheck("null"));
+		
+	auto ret = SNeuronGroup_new(&SNeuronGroupType, null, null);
+	(cast(SNeuronGroup*)ret).Group = group;
 
-	return Py_BuildValue("i", a + b);
+	return ret;
 }
 
 PyMappingMethods SModelMapping = 

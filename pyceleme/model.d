@@ -5,6 +5,7 @@ import celeme.imodel;
 import celeme.ineurongroup;
 
 import pyceleme.main;
+import pyceleme.neurongroup;
 import python.python;
 
 import tango.stdc.stringz;
@@ -307,7 +308,7 @@ PyMethodDef[] SModel_methods =
 ];
 
 extern(C)
-PyObject* SModel_getitem(PyObject* self, PyObject* args)
+PyObject* SModel_getitem(SModel* self, PyObject* args)
 {	
 	PyObject* new_args = args;
 	

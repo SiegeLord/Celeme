@@ -1,4 +1,4 @@
-module pyceleme.model;
+module pyceleme.neurongroup;
 
 import celeme.capi;
 import celeme.imodel;
@@ -30,6 +30,13 @@ PyObject* SNeuronGroup_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 		self.Group = null;
 
 	return cast(PyObject*)self;
+}
+
+extern (C)
+int SNeuronGroup_init(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	PyErr_SetString(Error, "Cannot create a neuron group explicitly (get it from the model).");
+	return -1;
 }
 
 PyMemberDef[] SNeuronGroup_members = 
@@ -71,7 +78,7 @@ int SNeuronGroup_set_min_dt(SNeuronGroup *self, PyObject *value, void *closure)
 extern(C)
 PyObject* SNeuronGroup_get_count(SNeuronGroup *self, void *closure)
 {
-	auto ret = Py_BuildValue("d", celeme_get_count(self.Group));
+	auto ret = Py_BuildValue("i", celeme_get_count(self.Group));
 	mixin(ErrorCheck("null"));
     return ret;
 }
@@ -106,7 +113,7 @@ PyMethodDef[] SNeuronGroup_methods =
 ];
 
 extern(C)
-PyObject* SNeuronGroup_getitem(PyObject* self, PyObject* args)
+PyObject* SNeuronGroup_getitem(SNeuronGroup* self, PyObject* args)
 {
 	PyObject* new_args = args;
 	
@@ -145,16 +152,16 @@ PyObject* SNeuronGroup_getitem(PyObject* self, PyObject* args)
 	return Py_BuildValue("d", ret);
 }
 
-int SNeuronGroup_setitem(PyObject* o, PyObject* args, PyObject* val)
+int SNeuronGroup_setitem(SNeuronGroup* self, PyObject* args, PyObject* val)
 {
 	PyObject* new_args = args;
 	
 	double dval;
 	
-	if(!PyFloat_Check(val))
+	if(!PyFloat_Check(val) && !PyInt_Check(val))
 	{
-		PyErr_SetString(Error, "must assign a floating point value");
-		return null;
+		PyErr_SetString(Error, "must assign a number");
+		return -1;
 	}
 	
 	dval = PyFloat_AsDouble(val);
@@ -179,7 +186,7 @@ int SNeuronGroup_setitem(PyObject* o, PyObject* args, PyObject* val)
 	int syn_id = -1;
 	
 	if(!PyArg_ParseTuple(new_args, "s|ii", &name, &nrn_id, &syn_id))
-		return null;
+		return -1;
 		
 	if(nrn_id < 0)
 		celeme_set_constant(self.Group, name, dval);
@@ -189,6 +196,7 @@ int SNeuronGroup_setitem(PyObject* o, PyObject* args, PyObject* val)
 		celeme_set_syn_global(self.Group, name, nrn_id, syn_id, dval);
 		
 	mixin(ErrorCheck("-1"));
+	return 0;
 }
 
 PyMappingMethods SNeuronGroupMapping = 

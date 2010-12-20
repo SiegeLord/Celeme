@@ -574,7 +574,7 @@ void celeme_apply_connector(IModel model, char* connector_name, int multiplier, 
 		{
 			d_args[fromStringz(arg_keys[ii]).dup] = arg_vals[ii];
 		}
-		model.Connect(fromStringz(connector_name), multiplier, fromStringz(src_group), [src_nrn_start, src_nrn_end], src_event_source, fromStringz(dest_group), [dest_nrn_start, dest_nrn_end], dest_syn_type, d_args);
+		model.ApplyConnector(fromStringz(connector_name), multiplier, fromStringz(src_group), [src_nrn_start, src_nrn_end], src_event_source, fromStringz(dest_group), [dest_nrn_start, dest_nrn_end], dest_syn_type, d_args);
 	}
 	catch(Exception e)
 	{

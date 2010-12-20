@@ -188,7 +188,8 @@ IModel celeme_create_model(int type, bool gpu)
  * Params:
  *     model - Model to destroy.
  * 
- * See_Also: $(SYMLINK IModel.Shutdown, IModel.Shutdown)
+ * See_Also: 
+ *     $(SYMLINK2 celeme.imodel, IModel.Shutdown, IModel.Shutdown)
  * 
  * C signature:
  * ---
@@ -218,7 +219,7 @@ version(Doc)
 /**
  * Initializes the model.
  * 
- * See_Also: $(SYMLINK IModel.Initialize, IModel.Initialize)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.Initialize, IModel.Initialize)
  * 
  * C signature:
  * ---
@@ -230,7 +231,7 @@ void celeme_initialize_model(IModel model);
 /**
  * Generates the model.
  * 
- * See_Also: $(SYMLINK IModel.Generate, IModel.Generate)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.Generate, IModel.Generate)
  * 
  * C signature:
  * ---
@@ -242,7 +243,7 @@ void celeme_generate_model(IModel model, bool parallel_delivery, bool atomic_del
 /**
  * Returns a neuron group based on its name.
  * 
- * See_Also: $(SYMLINK IModel.opIndex, IModel.opIndex)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.opIndex, IModel.opIndex)
  * 
  * C signature:
  * ---
@@ -254,7 +255,7 @@ INeuronGroup celeme_get_neuron_group(IModel model, char* name);
 /**
  * Run the model.
  * 
- * See_Also: $(SYMLINK IModel.Run, IModel.Run)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.Run, IModel.Run)
  * 
  * C signature:
  * ---
@@ -266,7 +267,7 @@ void celeme_run(IModel model, int num_timesteps);
 /**
  * Reset the run of the model.
  * 
- * See_Also: $(SYMLINK IModel.ResetRun, IModel.ResetRun)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.ResetRun, IModel.ResetRun)
  * 
  * C signature:
  * ---
@@ -278,7 +279,7 @@ void celeme_reset_run(IModel model);
 /**
  * Initialize the run of the model.
  * 
- * See_Also: $(SYMLINK IModel.InitRun, IModel.InitRun)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.InitRun, IModel.InitRun)
  * 
  * C signature:
  * ---
@@ -290,7 +291,7 @@ void celeme_init_run(IModel model);
 /**
  * Run the model until some time.
  * 
- * See_Also: $(SYMLINK IModel.RunUntil, IModel.RunUntil)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.RunUntil, IModel.RunUntil)
  * 
  * C signature:
  * ---
@@ -302,7 +303,7 @@ void celeme_run_until(IModel model, int num_timesteps);
 /**
  * Set a connection between two neurons in a model.
  * 
- * See_Also: $(SYMLINK IModel.SetConnection, IModel.SetConnection)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.SetConnection, IModel.SetConnection)
  * 
  * C signature:
  * ---
@@ -314,7 +315,7 @@ void celeme_set_connection(IModel model, char* src_group, int src_nrn_id, int sr
 /**
  * Connecto two neurons in a model.
  * 
- * See_Also: $(SYMLINK IModel.Connect, IModel.Connect)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.Connect, IModel.Connect)
  * 
  * C signature:
  * ---
@@ -326,7 +327,7 @@ void celeme_connect(IModel model, char* src_group, int src_nrn_id, int src_event
 /**
  * Apply a connector.
  * 
- * See_Also: $(SYMLINK IModel.ApplyConnector, IModel.ApplyConnector)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.ApplyConnector, IModel.ApplyConnector)
  * 
  * C signature:
  * ---
@@ -338,7 +339,7 @@ void celeme_apply_connector(IModel model, char* connector_name, int multiplier, 
 /**
  * Return the timestep size.
  * 
- * See_Also: $(SYMLINK IModel.TimeStepSize, IModel.TimeStepSize)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.TimeStepSize, IModel.TimeStepSize)
  * 
  * C signature:
  * ---
@@ -350,7 +351,7 @@ double celeme_get_timestep_size(IModel model);
 /**
  * Set the timestep size.
  * 
- * See_Also: $(SYMLINK IModel.TimeStepSize, IModel.TimeStepSize)
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.TimeStepSize, IModel.TimeStepSize)
  * 
  * C signature:
  * ---
@@ -363,7 +364,7 @@ void celeme_set_timestep_size(IModel model, double val);
 /**
  * Get the value of a constant, or the default value of a global or a syn global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.TimeStepSize, INeuronGroup.TimeStepSize)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.TimeStepSize, INeuronGroup.TimeStepSize)
  * 
  * C signature:
  * ---
@@ -375,7 +376,7 @@ double celeme_get_constant(INeuronGroup group, char* name);
 /**
  * Set the value of a constant, or the default value of a global or a syn global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
  * 
  * C signature:
  * ---
@@ -387,7 +388,7 @@ double celeme_set_constant(INeuronGroup group, char* name, double val);
 /**
  * Get the value of a global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.opIndex, INeuronGroup.opIndex)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.opIndex, INeuronGroup.opIndex)
  * 
  * C signature:
  * ---
@@ -399,7 +400,7 @@ double celeme_get_global(INeuronGroup group, char* name, int idx);
 /**
  * Set the value of a global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
  * 
  * C signature:
  * ---
@@ -411,7 +412,7 @@ double celeme_set_global(INeuronGroup group, char* name, int idx, double val);
 /**
  * Get the value of a syn global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.opIndex, INeuronGroup.opIndex)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.opIndex, INeuronGroup.opIndex)
  * 
  * C signature:
  * ---
@@ -423,7 +424,7 @@ double celeme_get_syn_global(INeuronGroup group, char* name, int nrn_idx, int sy
 /**
  * Set the value of a syn global.
  * 
- * See_Also: $(SYMLINK INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.opIndexAssign, INeuronGroup.opIndexAssign)
  * 
  * C signature:
  * ---
@@ -435,7 +436,7 @@ double celeme_set_syn_global(INeuronGroup group, char* name, int nrn_idx, int sy
 /**
  * Record the temporal evolution of a state of a single neuron.
  * 
- * See_Also: $(SYMLINK INeuronGroup.Record, INeuronGroup.Record)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Record, INeuronGroup.Record)
  * 
  * C signature:
  * ---
@@ -447,7 +448,7 @@ CRecorder celeme_record(INeuronGroup group, int nrn_idx, char* name);
 /**
  * Record the events from a particular event source of a single neuron.
  * 
- * See_Also: $(SYMLINK INeuronGroup.RecordEvents, INeuronGroup.RecordEvents)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.RecordEvents, INeuronGroup.RecordEvents)
  * 
  * C signature:
  * ---
@@ -459,7 +460,7 @@ CRecorder celeme_record_events(INeuronGroup group, int neuron_id, int thresh_id)
 /**
  * Stop all recording in a particular neuron.
  * 
- * See_Also: $(SYMLINK INeuronGroup.StopRecording, INeuronGroup.StopRecording)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.StopRecording, INeuronGroup.StopRecording)
  * 
  * C signature:
  * ---
@@ -471,7 +472,7 @@ void celeme_stop_recording(INeuronGroup group, int neuron_id);
 /**
  * Get the minimum dt.
  * 
- * See_Also: $(SYMLINK INeuronGroup.MinDt, INeuronGroup.MinDt)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.MinDt, INeuronGroup.MinDt)
  * 
  * C signature:
  * ---
@@ -483,7 +484,7 @@ double celeme_get_min_dt(INeuronGroup group);
 /**
  * Set the minimum dt.
  * 
- * See_Also: $(SYMLINK INeuronGroup.MinDt, INeuronGroup.MinDt)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.MinDt, INeuronGroup.MinDt)
  * 
  * C signature:
  * ---
@@ -495,7 +496,7 @@ void celeme_set_min_dt(INeuronGroup group, double min_dt);
 /**
  * Get the number of neurons in this group.
  * 
- * See_Also: $(SYMLINK INeuronGroup.Count, INeuronGroup.Count)
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Count, INeuronGroup.Count)
  * 
  * C signature:
  * ---
@@ -678,7 +679,7 @@ mixin(GroupFunc!("get_count", "int", "Count",
 /**
  * Get the recorder name.
  * 
- * See_Also: $(SYMLINK CRecorder.Name, CRecorder.Name)
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.Name, CRecorder.Name)
  * 
  * C signature:
  * ---
@@ -701,7 +702,7 @@ char* celeme_get_recorder_name(CRecorder recorder)
 /**
  * Get the length of the recorder data.
  * 
- * See_Also: $(SYMLINK CRecorder.Length, CRecorder.Length)
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.Length, CRecorder.Length)
  * 
  * C signature:
  * ---
@@ -724,7 +725,7 @@ size_t celeme_get_recorder_length(CRecorder recorder)
 /**
  * Get a pointer to an array of recorded time points.
  * 
- * See_Also: $(SYMLINK CRecorder.Time, CRecorder.Time)
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.T, CRecorder.T)
  * 
  * C signature:
  * ---
@@ -747,7 +748,7 @@ double* celeme_get_recorder_time(CRecorder recorder)
 /**
  * Get a pointer to an array of recorded data points.
  * 
- * See_Also: $(SYMLINK CRecorder.Data, CRecorder.Data)
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.Data, CRecorder.Data)
  * 
  * C signature:
  * ---

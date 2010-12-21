@@ -4,6 +4,7 @@ import python.python;
 
 import pyceleme.model;
 import pyceleme.neurongroup;
+import pyceleme.recorder;
 
 import tango.stdc.stringz;
 
@@ -52,6 +53,7 @@ void InitModule()
 {
 	PreInitModel();
 	PreInitNeuronGroup();
+	PreInitRecorder();
 	
 	Module = Py_InitModule("pyceleme", CelemeMethods.ptr);
 	if(Module is null)
@@ -63,6 +65,7 @@ void InitModule()
 	
 	AddModel();
 	AddNeuronGroup();
+	AddRecorder();
 }
 
 void main(char[][] args)

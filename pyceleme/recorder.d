@@ -4,6 +4,7 @@ import celeme.capi;
 import celeme.recorder;
 
 import pyceleme.main;
+import pyceleme.array;
 import python.python;
 
 import tango.stdc.stringz;
@@ -59,10 +60,40 @@ PyObject* SRecorder_get_name(SRecorder *self, void *closure)
     return ret;
 }
 
+extern(C)
+PyObject* SRecorder_get_t(SRecorder *self, void *closure)
+{
+	auto ret = SArray_new(&SArrayType, null, null);
+	mixin(ErrorCheck("null"));
+	
+	auto len = celeme_get_recorder_length(self.Recorder);
+	auto t = celeme_get_recorder_time(self.Recorder);
+	
+	ret.Data = t[0..len];
+	
+    return ret;
+}
+
+extern(C)
+PyObject* SRecorder_get_data(SRecorder *self, void *closure)
+{
+	auto ret = SArray_new(&SArrayType, null, null);
+	mixin(ErrorCheck("null"));
+	
+	auto len = celeme_get_recorder_length(self.Recorder);
+	auto data = celeme_get_recorder_data(self.Recorder);
+	
+	ret.Data = data[0..len];
+	
+    return ret;
+}
+
 PyGetSetDef[] SRecorder_getseters = 
 [
 	{"Length", cast(getter)&SRecorder_get_length, null, "Length", null},
 	{"Name", cast(getter)&SRecorder_get_name, null, "Name", null},
+	{"T", cast(getter)&SRecorder_get_t, null, "Time", null},
+	{"Data", cast(getter)&SRecorder_get_data, null, "Data", null},
 	{null}  /* Sentinel */
 ];
 

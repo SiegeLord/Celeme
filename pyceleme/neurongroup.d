@@ -5,6 +5,7 @@ import celeme.imodel;
 import celeme.ineurongroup;
 
 import pyceleme.main;
+import pyceleme.recorder;
 import python.python;
 
 import tango.stdc.stringz;
@@ -106,9 +107,49 @@ PyObject* SNeuronGroup_stop_recording(SNeuronGroup *self, PyObject* args, PyObje
 	return Py_None;
 }
 
+extern (C)
+PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["neuron_id", "name", null];
+	int neuron_id;
+	char* name;
+
+	if(!DParseTupleAndKeywords(args, kwds, "is", kwlist, &neuron_id, &name))
+		return null;
+	
+	auto rec = cast(CRecorder)celeme_record(self.Group, neuron_id, name);
+	mixin(ErrorCheck("null"));
+	
+	auto ret = SRecorder_new(&SRecorderType, null, null);
+	ret.Recorder = rec;
+	
+	return ret;
+}
+
+extern (C)
+PyObject* SNeuronGroup_record_events(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["neuron_id", "thresh_id", null];
+	int neuron_id;
+	int thresh_id;
+
+	if(!DParseTupleAndKeywords(args, kwds, "ii", kwlist, &neuron_id, &thresh_id))
+		return null;
+	
+	auto rec = celeme_record_events(self.Group, neuron_id, thresh_id);
+	mixin(ErrorCheck("null"));
+	
+	auto ret = cast(CRecorder)SRecorder_new(&SRecorderType, null, null);
+	ret.Recorder = rec;
+	
+	return ret;
+}
+
 PyMethodDef[] SNeuronGroup_methods = 
 [
     {"StopRecording", cast(PyCFunction)&SNeuronGroup_stop_recording, METH_VARARGS | METH_KEYWORDS, "Stop recording from a particular neuron."},
+    {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Record the temporal evolution of a state variable in a neuron."},
+    {"RecordEvents", cast(PyCFunction)&SNeuronGroup_record_events, METH_VARARGS | METH_KEYWORDS, "Record the threshold crossings of a particular threshold in a neuron."},
     {null}  /* Sentinel */
 ];
 

@@ -31,7 +31,7 @@ PyObject* SArray_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SArray_init(SArray *self, PyObject* args, PyObject* kwds)
 {
-	PyErr_SetString(Error, "Cannot create a Array explicitly (get it from the neuron group).");
+	PyErr_SetString(Error, "Cannot create an Array explicitly (get it from the neuron group).");
 	return -1;
 	/+self.Data = [1.0, 2.0, 3.0, 4.0, 5.0];
 	return 0;+/

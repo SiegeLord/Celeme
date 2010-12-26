@@ -22,9 +22,6 @@ extern (C)
 PyObject* SArray_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 {
 	auto self = cast(SArray*)type.tp_alloc(type, 0);
-	if(self !is null) 
-		self.Array = null;
-
 	return cast(PyObject*)self;
 }
 
@@ -43,7 +40,7 @@ PyMemberDef[] SArray_members =
 ];
 
 extern(C)
-PyObject* SArray_get_array_interface(Noddy *self, void *closure)
+PyObject* SArray_get_array_interface(SArray *self, void *closure)
 {
 	auto ret = PyDict_New();
 	

@@ -3,6 +3,7 @@ module pyceleme.neurongroup;
 import celeme.capi;
 import celeme.imodel;
 import celeme.ineurongroup;
+import celeme.recorder;
 
 import pyceleme.main;
 import pyceleme.recorder;
@@ -121,7 +122,7 @@ PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds
 	mixin(ErrorCheck("null"));
 	
 	auto ret = SRecorder_new(&SRecorderType, null, null);
-	ret.Recorder = rec;
+	(cast(SRecorder*)ret).Recorder = rec;
 	
 	return ret;
 }
@@ -139,8 +140,8 @@ PyObject* SNeuronGroup_record_events(SNeuronGroup *self, PyObject* args, PyObjec
 	auto rec = celeme_record_events(self.Group, neuron_id, thresh_id);
 	mixin(ErrorCheck("null"));
 	
-	auto ret = cast(CRecorder)SRecorder_new(&SRecorderType, null, null);
-	ret.Recorder = rec;
+	auto ret = SRecorder_new(&SRecorderType, null, null);
+	(cast(SRecorder*)ret).Recorder = rec;
 	
 	return ret;
 }

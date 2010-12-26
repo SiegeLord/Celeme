@@ -69,7 +69,7 @@ PyObject* SRecorder_get_t(SRecorder *self, void *closure)
 	auto len = celeme_get_recorder_length(self.Recorder);
 	auto t = celeme_get_recorder_time(self.Recorder);
 	
-	ret.Data = t[0..len];
+	(cast(SArray*)ret).Data = t[0..len];
 	
     return ret;
 }
@@ -83,7 +83,7 @@ PyObject* SRecorder_get_data(SRecorder *self, void *closure)
 	auto len = celeme_get_recorder_length(self.Recorder);
 	auto data = celeme_get_recorder_data(self.Recorder);
 	
-	ret.Data = data[0..len];
+	(cast(SArray*)ret).Data = data[0..len];
 	
     return ret;
 }

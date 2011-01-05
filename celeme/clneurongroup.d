@@ -65,8 +65,7 @@ $synapse_code$
 				if(idx >= record_buffer_size)
 				{
 					error_buffer[i + 1] = 10;
-					idx--;
-					atomic_xchg(&record_idx[0], idx);
+					record_idx[0] = record_buffer_size - 1;
 				}
 				$num_type$4 record;
 				record.s0 = i;
@@ -845,8 +844,7 @@ if(syn_table_end != syn_offset)
 	if(idx >= record_buffer_size)
 	{
 		error_buffer[i + 1] = 10;
-		idx--;
-		atomic_xchg(&record_idx[0], idx);
+		record_idx[0] = record_buffer_size - 1;
 	}
 
 	$num_type$4 record;

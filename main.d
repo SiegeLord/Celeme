@@ -18,7 +18,7 @@ void main()
 	
 	timer.start;
 	
-	auto model = LoadModel("stuff.cfg");
+	auto model = LoadModel("stuff.cfg", true);
 	scope(exit) model.Shutdown();
 	
 	auto N = model["Regular"].Count;

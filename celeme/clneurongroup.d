@@ -170,49 +170,14 @@ $event_source_args$
 	
 	/* Max number of source synapses */
 	const int num_synapses = $num_synapses$;
+	(void)num_synapses;
 	
 	if(i < count)
 	{
 $event_source_code$
 	}
 
-#if PARALLEL_DELIVERY
-	barrier(CLK_LOCAL_MEM_FENCE);
-#if !USE_ATOMIC_DELIVERY
-	if(need_to_deliver)
-	{
-#endif
-		int local_size = get_local_size(0);
-		int num_fired;
-#if USE_ATOMIC_DELIVERY
-		num_fired = fire_table_idx;
-#else
-		num_fired = local_size * $num_event_sources$;
-#endif
-
-		for(int ii = 0; ii < num_fired; ii++)
-		{
-#if !USE_ATOMIC_DELIVERY
-			if(fire_table[ii] < 0)
-				continue;
-#endif
-
-			int syn_start = num_synapses * fire_table[ii];
-			for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
-			{
-				int2 dest = dest_syn_buffer[syn_id + syn_start];
-				if(dest.s0 >= 0)
-				{
-					/* Get the index into the global syn buffer */
-					int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
-					fired_syn_buffer[dest_syn] = dest.s1;
-				}
-			}
-		}
-#if !USE_ATOMIC_DELIVERY
-	}
-#endif
-#endif
+$parallel_delivery_code$
 }
 ";
 
@@ -1062,6 +1027,52 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			}
 		}
 		source.Inject(kernel_source, "$event_source_code$");
+		
+		if(NeedSrcSynCode)
+		{
+			char[] src = 
+`
+#if PARALLEL_DELIVERY
+	barrier(CLK_LOCAL_MEM_FENCE);
+#if !USE_ATOMIC_DELIVERY
+	if(need_to_deliver)
+	{
+#endif
+		int local_size = get_local_size(0);
+		int num_fired;
+#if USE_ATOMIC_DELIVERY
+		num_fired = fire_table_idx;
+#else
+		num_fired = local_size * $num_event_sources$;
+#endif
+
+		for(int ii = 0; ii < num_fired; ii++)
+		{
+#if !USE_ATOMIC_DELIVERY
+			if(fire_table[ii] < 0)
+				continue;
+#endif
+
+			int syn_start = num_synapses * fire_table[ii];
+			for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
+			{
+				int2 dest = dest_syn_buffer[syn_id + syn_start];
+				if(dest.s0 >= 0)
+				{
+					/* Get the index into the global syn buffer */
+					int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
+					fired_syn_buffer[dest_syn] = dest.s1;
+				}
+			}
+		}
+#if !USE_ATOMIC_DELIVERY
+	}
+#endif
+#endif
+`.dup;
+			source.AddBlock(src);
+		}
+		source.Inject(kernel_source, "$parallel_delivery_code$");
 		
 		kernel_source = kernel_source.substitute("$num_event_sources$", to!(char[])(NumEventSources));
 		kernel_source = kernel_source.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));

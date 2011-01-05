@@ -453,7 +453,7 @@ class CNeuronType
 			}
 		}
 		if(error.length)
-			throw new Exception("Unreasolved externals:\n" ~ error);
+			throw new Exception("Unreasolved externals in '" ~ Name ~ "' neuron type." ~ error);
 	}
 	
 	int AllSynGlobals(int delegate(ref char[] name, ref CValue value) dg)

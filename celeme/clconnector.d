@@ -116,7 +116,7 @@ class CCLConnector(float_t)
 		if(code.containsPattern("rand()"))
 		{
 			if(!Group.RandLen)
-				throw new Exception("Found rand() but neuron type does not have random_state_len > 0.");
+				throw new Exception("Found rand() but neuron group '" ~ Group.Name ~ "' does not have random_state_len > 0.");
 			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&rand_state)");
 			
 			NeedRand = true;

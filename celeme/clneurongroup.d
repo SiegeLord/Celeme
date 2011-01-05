@@ -937,7 +937,7 @@ else //It is full, error
 		if(RandLen)
 			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
 		else if(kernel_source.containsPattern("rand()"))
-			throw new Exception("Found rand() but neuron type does not have random_state_len > 0.");
+			throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 		
 		kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
 		

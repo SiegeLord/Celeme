@@ -99,7 +99,7 @@ char* celeme_get_error()
 	if(ErrorText == "")
 		return null;
 	else
-		return toStringz(ErrorText);
+		return ErrorText.c_str();
 }
 
 /**
@@ -690,7 +690,7 @@ char* celeme_get_recorder_name(CRecorder recorder)
 {
 	try
 	{
-		return toStringz(recorder.Name);
+		return recorder.Name.c_str();
 	}
 	catch(Exception e)
 	{

@@ -548,7 +548,6 @@ class CTokenizer
 			return true;
 		}
 		return false;
-		return false;
 	}
 	
 	SToken Next()

@@ -4,6 +4,15 @@ import tango.core.Array;
 import tango.sys.Process;
 import tango.io.stream.Text;
 import tango.io.Stdout;
+import tango.stdc.stringz;
+
+private char[] c_str_buf;
+char* c_str(char[] dstr)
+{
+	if(dstr.length >= c_str_buf.length)
+		c_str_buf.length = dstr.length + 1;
+	return toStringz(dstr, c_str_buf);
+}
 
 void println(T...)(char[] fmt, T args)
 {

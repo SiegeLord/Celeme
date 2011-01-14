@@ -5,7 +5,6 @@ import celeme.util;
 import opencl.cl;
 
 import tango.io.Stdout;
-import tango.stdc.stringz;
 import tango.util.Convert;
 
 class CCLKernel
@@ -16,7 +15,7 @@ class CCLKernel
 		Name = name;
 		
 		int err;
-		Kernel = clCreateKernel(*Program, toStringz(Name), &err);
+		Kernel = clCreateKernel(*Program, Name.c_str(), &err);
 		if(err != CL_SUCCESS)
 		{
 			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");

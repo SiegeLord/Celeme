@@ -1,0 +1,36 @@
+Celeme, an Open Source OpenCL neural simulator
+
+Celeme development is in rather early stages, but I am using it for my PhD research already. It currently can simulate multitudes of single compartmental neurons with adaptive time step (using the Heun method). It sports D, C and Python bindings. Some documentation is in the doc/ subfolder.
+
+Celeme is developed on Linux, and has only been tested on it... it shouldn't be terribly difficult to get it to work on Windows. Celeme is also developed using AMD's OpenCL libraries, I do use some AMD specific extensions (that also exist for other implementations, but they are named differently) so for now AMD OpenCL is required.
+
+Compiling:
+
+The build script requires Python to be installed.
+Celeme core requires hg tip LDC and svn trunk Tango as well as AMD OpenCL SDK 2.3.
+Python bindings require the development versions of the Python library.
+Plotting using the D binding requires gnuplot to be installed.
+C bindings require the trunk Tango build without the C main (Use version=NoCMain)
+
+Once those things are taken care of, compile using the build.py script as follows:
+
+./build.py -> compile the D example
+./build.py lib -> compile the libceleme.lib library
+./build.py py -> compile the Python interface
+./build.py c -> compile the C example
+
+After building you can run the examples as follows:
+
+./build.py run -> compile and run the D example
+./main -> run the D example
+./test -> run the C example
+./py_celeme test.py -> run the Python example
+
+Licensing:
+
+The code I wrote myself is under LGPL3.
+
+python/python.d came from PyD @ http://pyd.dsource.org/
+opencl bindings came from cl4d @ https://bitbucket.org/trass3r/cl4d/wiki/Home
+
+That's it for now. Again, many features are not yet implemented and there are probably tons of bugs. User friendliness is also rather low right now... if you're interested in helping out, contact me via this: http://slabode.exofire.net/contact_me.shtml

@@ -33,5 +33,7 @@ if len(argv) > 1:
 		ret = dbuild()
 		if ret == 0:
 			shell('./main ' + join(argv[2:], ' '))
+	elif argv[1] == 'c':
+		shell('gcc test.c -o test -L/usr/local/d/ -L. -lceleme -ltango_nomain -lm -ldl -lpthread -L' + opencl_path + ' -lOpenCL -std=c99')
 else:
 	dbuild()

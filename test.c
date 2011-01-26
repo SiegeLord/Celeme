@@ -1,4 +1,3 @@
-//gcc test.c -o test -L/usr/local/d/ -L. -lceleme -ltango_nomain -lm -ldl -lpthread -L/usr/local/atistream/lib/x86_64 -lOpenCL -std=c99
 #include "celeme/celeme.h"
 #include "stdio.h"
 

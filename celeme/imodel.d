@@ -3,7 +3,7 @@ This file is part of Celeme, an Open Source OpenCL neural simulator.
 Copyright (C) 2010-2011 Pavel Sountsov
 
 Celeme is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the Lesser GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 

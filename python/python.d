@@ -11,6 +11,8 @@ XXX:
 
 module python.python;
 
+version = Python_2_5_Or_Later;
+
 version (Tango) {
     import tango.stdc.stdio;
     import tango.stdc.time;

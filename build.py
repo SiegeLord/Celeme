@@ -16,7 +16,7 @@ def dbuild():
 if len(argv) > 1:
 	if argv[1] == 'lib':
 		# Stupid DMD bugs
-		files = glob.glob('celeme/*.d')
+		files = glob('celeme/*.d')
 		files.sort()
 		files.reverse()
 		file_str = ' '.join(files);

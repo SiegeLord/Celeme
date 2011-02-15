@@ -11,7 +11,7 @@ def shell(cmd):
 	return call(cmd, shell=True)
 
 def dbuild():
-	return shell('xfbuild +omain +cldc +xldc +xtango main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest')
+	return shell('xfbuild +q +omain +cldc +xldc +xtango main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest')
 
 if len(argv) > 1:
 	if argv[1] == 'lib':
@@ -21,7 +21,7 @@ if len(argv) > 1:
 		files.reverse()
 		file_str = ' '.join(files);
 		
-		ret = shell('ldc -c ' + file_str +  ' opencl/*.d gnuplot.d -od=".objs_celeme"')
+		ret = shell('ldc -c ' + file_str +  ' opencl/*.d -od=".objs_celeme"')
 		
 		if ret == 0:
 			ret = shell('ar -r libceleme.a .objs_celeme/*.o')

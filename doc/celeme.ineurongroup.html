@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>celeme.ineurongroup</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css"/>
+  <!-- no favicon -->
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <script type="text/javascript" src="js/utilities.js"></script>
+  <script type="text/javascript" src="js/symbols.js"></script>
+  <script type="text/javascript" src="js/modules.js"></script>
+  <script type="text/javascript" src="js/quicksearch.js"></script>
+  <script type="text/javascript" src="js/navigation.js"></script>
+</head>
+<body id="celeme.ineurongroup">
+<div id="kandil-content">
+<div class="module">
+  <h1 class="module" id="m-celeme.ineurongroup"><a href="htmlsrc/celeme.ineurongroup.html" class="symbol">celeme.ineurongroup</a></h1>
+
+<dl>
+<dt class="decl"><span class="kw">interface</span> <a class="symbol _interface" name="INeuronGroup" href="htmlsrc/celeme.ineurongroup.html#L26">INeuronGroup</a> <a href="celeme.ineurongroup.html#INeuronGroup" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">A common interface to multiple types of groups.</div></div>
+<dl>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex" href="htmlsrc/celeme.ineurongroup.html#L31">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the value of a constant, or the default value of a global or a syn global.</div></div></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign" href="htmlsrc/celeme.ineurongroup.html#L36">opIndexAssign</a><span class="params">(double <em>val</em>, char[] <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Set the value of a constant, or the default value of a global or a syn global.</div></div></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:2" href="htmlsrc/celeme.ineurongroup.html#L44">opIndex</a><span class="params">(char[] <em>name</em>, int <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:2" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the value of a global value of a particular neuron.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>name</em></td><td>Name of the global.</td></tr>
+<tr><td><em>idx</em></td><td>Index of the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:2" href="htmlsrc/celeme.ineurongroup.html#L53">opIndexAssign</a><span class="params">(double <em>val</em>, char[] <em>name</em>, int <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:2" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Set the value of a global value of a particular neuron.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>val</em></td><td>New value.</td></tr>
+<tr><td><em>name</em></td><td>Name of the global.</td></tr>
+<tr><td><em>idx</em></td><td>Index of the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:3" href="htmlsrc/celeme.ineurongroup.html#L62">opIndex</a><span class="params">(char[] <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:3" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the value of a syn global value of a particular neuron.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>name</em></td><td>Name of the global.</td></tr>
+<tr><td><em>nrn_idx</em></td><td>Index of the neuron.</td></tr>
+<tr><td><em>syn_idx</em></td><td>Index of the synapse within the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:3" href="htmlsrc/celeme.ineurongroup.html#L72">opIndexAssign</a><span class="params">(double <em>val</em>, char[] <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:3" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Set the value of a syn global value of a particular neuron.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>val</em></td><td>New value.</td></tr>
+<tr><td><em>name</em></td><td>Name of the global.</td></tr>
+<tr><td><em>nrn_idx</em></td><td>Index of the neuron.</td></tr>
+<tr><td><em>syn_idx</em></td><td>Index of the synapse within the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="INeuronGroup.Record" href="htmlsrc/celeme.ineurongroup.html#L82">Record</a><span class="params">(int <em>neuron_id</em>, char[] <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Record" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Record a state of a particular neuron. Only one state or threshold can be recorded at a time in
+ a single neuron.</div></div>
+<p class="sec_header">Returns:</p><div class="cmnt">A recorder that will hold time-state data points. A new recorder is made for
+     each recorded state.</div></dd>
+<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="INeuronGroup.RecordEvents" href="htmlsrc/celeme.ineurongroup.html#L96">RecordEvents</a><span class="params">(int <em>neuron_id</em>, int <em>thresh_id</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.RecordEvents" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Record the events coming from a particular threshold detector in this neuron.
+ Only one state or threshold can be recorded at a time.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>neuron_id</em></td><td>Index of the neuron.</td></tr>
+<tr><td><em>thresh_id</em></td><td>Index of the threshold to record from.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">A common recorder. The recorder will store times of all the events coming from all recorded
+     neurons in the T array. The Data array will hold the global threshold index, identifying
+     where the event came from. This is calculated like as follows:
+     id = thresh_id + num_thresh * neuron_id.</div></dd>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.StopRecording" href="htmlsrc/celeme.ineurongroup.html#L100">StopRecording</a><span class="params">(int <em>neuron_id</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.StopRecording" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Stop recording everything</div></div></dd>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.MinDt" href="htmlsrc/celeme.ineurongroup.html#L107">MinDt</a><span class="params">(double <em>min_dt</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Sets the minimum dt for this neuron group. When adaptive integration is used, this is the
+ smallest dt that the integrator can use. When fixed step integration is used, it is
+ the dt that the integrator uses.</div></div></dd>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.MinDt:2" href="htmlsrc/celeme.ineurongroup.html#L112">MinDt</a><span class="params">()</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt:2" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Returns the minimum dt for this neuron group.</div></div></dd>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.Count" href="htmlsrc/celeme.ineurongroup.html#L117">Count</a><span class="params">()</span> <a href="celeme.ineurongroup.html#INeuronGroup.Count" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Returns the number of neurons in this group</div></div></dd></dl></dd></dl>
+</div>
+<div id="kandil-footer">
+  <p></p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Tue Feb 15 20:58:23 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+</div>
+</div>
+</body>
+</html>

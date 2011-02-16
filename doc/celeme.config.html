@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>celeme.config</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css"/>
+  <!-- no favicon -->
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <script type="text/javascript" src="js/utilities.js"></script>
+  <script type="text/javascript" src="js/symbols.js"></script>
+  <script type="text/javascript" src="js/modules.js"></script>
+  <script type="text/javascript" src="js/quicksearch.js"></script>
+  <script type="text/javascript" src="js/navigation.js"></script>
+</head>
+<body id="celeme.config">
+<div id="kandil-content">
+<div class="module">
+  <h1 class="module" id="m-celeme.config"><a href="htmlsrc/celeme.config.html" class="symbol">celeme.config</a></h1>
+
+<div class="summary"><div class="cmnt">This module provides support for a simple configuration file format
+ with D-like syntax. Both C++ and C comments are supported with
+ the added enhancement that C comments are now nesting. The configuration file
+ is composed of entries. Each entry has a name. The names need not be unique,
+ and it is up to the application what to do with multiple entries (it could even
+ dissallow them if need be). There are two types of entries, single value entries 
+ and aggregate entries. Single value entries can either be empty or hold one value:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex1" name="L1_ex1">1</a>
+<a href="#L2_ex1" name="L2_ex1">2</a>
+<a href="#L3_ex1" name="L3_ex1">3</a>
+<a href="#L4_ex1" name="L4_ex1">4</a>
+<a href="#L5_ex1" name="L5_ex1">5</a>
+<a href="#L6_ex1" name="L6_ex1">6</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">sentinel</span>; <span class="lc">// This one does not hold any value</span>
+<span class="i">size</span> = <span class="n">5</span>;
+<span class="i">mass</span> = <span class="n">1.2</span>;
+<span class="i">length</span> = <span class="n">1.3e-5</span>;
+<span class="i">name</span> = <span class="sl">"Test"</span>;
+<span class="i">some_code</span> = <span class="sl">`printf("%d")`</span>;</pre>
+</td></tr>
+</table>
+ 
+ Values can be integers, floating point literals and strings.
+ Strings can either be delimeted by the " character, or the ` character.
+ The former are escaped strings, while the latter are WYSIWYG strings,
+ useful for embedding code.
+ 
+ Aggregate entries contain children entries:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex2" name="L1_ex2">1</a>
+<a href="#L2_ex2" name="L2_ex2">2</a>
+<a href="#L3_ex2" name="L3_ex2">3</a>
+<a href="#L4_ex2" name="L4_ex2">4</a>
+<a href="#L5_ex2" name="L5_ex2">5</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">address</span>
+{
+   <span class="i">street</span> = <span class="sl">"Quiet St."</span>;
+   <span class="i">number</span> = <span class="n">125</span>;
+}</pre>
+</td></tr>
+</table>
+ 
+ An alternate syntax can be used if the aggregate only has a single entry:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex3" name="L1_ex3">1</a>
+<a href="#L2_ex3" name="L2_ex3">2</a>
+<a href="#L3_ex3" name="L3_ex3">3</a>
+<a href="#L4_ex3" name="L4_ex3">4</a>
+<a href="#L5_ex3" name="L5_ex3">5</a>
+<a href="#L6_ex3" name="L6_ex3">6</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">animal</span> <span class="i">dog</span>;
+
+<span class="i">animal</span>
+{
+   <span class="i">dog</span>;
+}</pre>
+</td></tr>
+</table>
+ 
+ The above two animal entries are identical. Naturally, aggregate entries can
+ be nested:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex4" name="L1_ex4">1</a>
+<a href="#L2_ex4" name="L2_ex4">2</a>
+<a href="#L3_ex4" name="L3_ex4">3</a>
+<a href="#L4_ex4" name="L4_ex4">4</a>
+<a href="#L5_ex4" name="L5_ex4">5</a>
+<a href="#L6_ex4" name="L6_ex4">6</a>
+<a href="#L7_ex4" name="L7_ex4">7</a>
+<a href="#L8_ex4" name="L8_ex4">8</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">animal</span> <span class="i">dog</span> <span class="i">Spotty</span>;
+<span class="i">object</span>
+{
+   <span class="i">children</span>
+   {
+       <span class="i">Amy</span>;
+   }
+}</pre>
+</td></tr>
+</table>
+ 
+ Lastly, this file format supports textual includes:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex5" name="L1_ex5">1</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">include</span> <span class="sl">"some_other_file"</span></pre>
+</td></tr>
+</table>
+ 
+ This will effectively paste the contents of the other file inside this file.
+ Circular includes are forbidden. Some example usage:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex6" name="L1_ex6">1</a>
+<a href="#L2_ex6" name="L2_ex6">2</a>
+<a href="#L3_ex6" name="L3_ex6">3</a>
+<a href="#L4_ex6" name="L4_ex6">4</a>
+<a href="#L5_ex6" name="L5_ex6">5</a>
+<a href="#L6_ex6" name="L6_ex6">6</a>
+<a href="#L7_ex6" name="L7_ex6">7</a>
+<a href="#L8_ex6" name="L8_ex6">8</a>
+<a href="#L9_ex6" name="L9_ex6">9</a>
+<a href="#L10_ex6" name="L10_ex6">10</a>
+<a href="#L11_ex6" name="L11_ex6">11</a>
+<a href="#L12_ex6" name="L12_ex6">12</a>
+<a href="#L13_ex6" name="L13_ex6">13</a>
+<a href="#L14_ex6" name="L14_ex6">14</a>
+<a href="#L15_ex6" name="L15_ex6">15</a>
+<a href="#L16_ex6" name="L16_ex6">16</a>
+<a href="#L17_ex6" name="L17_ex6">17</a>
+<a href="#L18_ex6" name="L18_ex6">18</a>
+<a href="#L19_ex6" name="L19_ex6">19</a>
+<a href="#L20_ex6" name="L20_ex6">20</a>
+<a href="#L21_ex6" name="L21_ex6">21</a>
+<a href="#L22_ex6" name="L22_ex6">22</a>
+<a href="#L23_ex6" name="L23_ex6">23</a>
+<a href="#L24_ex6" name="L24_ex6">24</a>
+<a href="#L25_ex6" name="L25_ex6">25</a>
+<a href="#L26_ex6" name="L26_ex6">26</a>
+<a href="#L27_ex6" name="L27_ex6">27</a>
+<a href="#L28_ex6" name="L28_ex6">28</a>
+<a href="#L29_ex6" name="L29_ex6">29</a>
+<a href="#L30_ex6" name="L30_ex6">30</a>
+<a href="#L31_ex6" name="L31_ex6">31</a>
+<a href="#L32_ex6" name="L32_ex6">32</a>
+<a href="#L33_ex6" name="L33_ex6">33</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="k">char</span>[] <span class="i">file</span> = 
+<span class="sl">`
+value = 5;
+value = 7;
+container
+{
+    contents = "Hello";
+}
+`</span>;
+
+<span class="k">auto</span> <span class="i">root</span> = <span class="i">LoadConfig</span>(<span class="sl">""</span>, <span class="i">file</span>);
+
+<span class="lc">// Get all entries named "value"</span>
+<span class="k">foreach</span>(<span class="i">entry</span>; <span class="i">root</span>[<span class="sl">"value"</span>])
+   <span class="i">Stdout</span>(<span class="i">entry</span>.<span class="i">Value</span>!(<span class="k">int</span>)).<span class="i">nl</span>; <span class="lc">// Will print 5 and then 7</span>
+
+<span class="lc">// Get only the last value</span>
+<span class="k">auto</span> <span class="i">last_value</span> = <span class="i">root</span>[<span class="sl">"value"</span>, <span class="k">true</span>];
+<span class="i">Stdout</span>(<span class="i">last_value</span>.<span class="i">Value</span>!(<span class="k">int</span>)).<span class="i">nl</span>; <span class="lc">// Will print 7</span>
+
+<span class="lc">// A shortcut for the above</span>
+<span class="i">Stdout</span>(<span class="i">root</span>.<span class="i">ValueOf</span>!(<span class="k">int</span>)(<span class="sl">"value"</span>)).<span class="i">nl</span>; <span class="lc">// Will print 7</span>
+
+<span class="lc">// Providing a default value</span>
+<span class="i">Stdout</span>(<span class="i">root</span>.<span class="i">ValueOf</span>!(<span class="k">int</span>)(<span class="sl">"not_there"</span>, -<span class="n">1</span>)).<span class="i">nl</span>; <span class="lc">// Will print -1</span>
+
+<span class="k">auto</span> <span class="i">container</span> = <span class="i">root</span>[<span class="sl">"container"</span>, <span class="k">true</span>];
+<span class="k">if</span>(<span class="i">container</span>.<span class="i">IsAggregateEntry</span>)
+{
+   <span class="lc">//Loop through all the contents of the container</span>
+   <span class="k">foreach</span>(<span class="i">entry</span>; <span class="i">container</span>)
+       <span class="i">Stdout</span>(<span class="i">entry</span>.<span class="i">Name</span>, <span class="i">entry</span>.<span class="i">Value</span>!(<span class="k">char</span>[])).<span class="i">nl</span>; <span class="lc">// Will print contents, Hello</span>
+}</pre>
+</td></tr>
+</table></div></div>
+<dl>
+<dt class="decl"><span class="rettyp">CConfigEntry</span> <a class="symbol _function" name="LoadConfig" href="htmlsrc/celeme.config.html#L146">LoadConfig</a><span class="params">(char[] <em>filename</em>, char[] <em>src</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#LoadConfig" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Create a configuration entry from a file or a string.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>filename</em></td><td>Name of the file to load if no source is provided.</td></tr>
+<tr><td><em>src</em></td><td>If set, must contain the source to load from.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">An entry representing the top-level entry of the configuration file.</div></dd>
+<dt class="decl"><span class="kw">class</span> <a class="symbol _class" name="CConfigEntry" href="htmlsrc/celeme.config.html#L161">CConfigEntry</a> <a href="celeme.config.html#CConfigEntry" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">A configuration entry, which represents a single node in the configuration file.
+ 
+ An entry can both be a single entry (e.g. "entry = data;" or "entry;") or an aggregate
+ (e.g. "entry { data; }" or "entry data;").</div></div>
+<dl>
+<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.Value" href="htmlsrc/celeme.config.html#L180">Value</a><span class="tparams">(<em>T</em>)</span><span class="params">(T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.Value" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the value of this entry</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>def</em></td><td>Default value returned if some error occured.</td></tr>
+<tr><td><em>is_def</em></td><td>Pointer to a bool that is set to true if the default value is returned.
+              Set to false otherwise.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">The value of this entry. If the value is not set, or the
+ entry is an aggregate, then the default value is returned, and the
+ is_def argument is set to true (if it is not null).</div></dd>
+<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.ValueOf" href="htmlsrc/celeme.config.html#L215">ValueOf</a><span class="tparams">(<em>T</em>)</span><span class="params">(char[] <em>name</em>, T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.ValueOf" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Shortcut for accessing a single child entry of this aggregate and returning its value.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>name</em></td><td>Name of the child entry.</td></tr>
+<tr><td><em>def</em></td><td>Default value returned if some error occured.</td></tr>
+<tr><td><em>is_def</em></td><td>Pointer to a bool that is set to true if the default value is returned.
+              Set to false otherwise.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">The value of this entry. If the value is not set, or the
+ entry is an aggregate, then the default value is returned, and the
+ is_def argument is set to true (if it is not null).</div>
+<p class="sec_header">See Also:</p><div class="cmnt"><a href="#CConfigEntry.Value">Value</a></div></dd>
+<dt class="decl"><span class="rettyp">CConfigEntry[]</span> <a class="symbol _function" name="CConfigEntry.opIndex" href="htmlsrc/celeme.config.html#L239">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get an array of entries that match the provided name.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>name</em></td><td>Name to match.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">An array of entries if some were found. null otherwise.</div></dd>
+<dt class="decl"><span class="rettyp">CConfigEntry</span> <a class="symbol _function" name="CConfigEntry.opIndex:2" href="htmlsrc/celeme.config.html#L255">opIndex</a><span class="params">(char[] <em>name</em>, bool <em>last</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex:2" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the last entries that matches the provided name.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>name</em></td><td>Name to match.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">The found entry. null otherwise.</div></dd>
+<dt class="decl"><span class="rettyp">SEntryFruct</span> <a class="symbol _function" name="CConfigEntry.opSlice" href="htmlsrc/celeme.config.html#L292">opSlice</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.opSlice" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Returns an iterable fruct that goes over all children of this node.</div></div></dd>
+<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsAggregate" href="htmlsrc/celeme.config.html#L300">IsAggregate</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsAggregate" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Returns true if this entry is an aggregate.</div></div></dd>
+<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsSingleValue" href="htmlsrc/celeme.config.html#L308">IsSingleValue</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsSingleValue" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Returns true if this entry is a single value.</div></div></dd>
+<dt class="decl">char[] <a class="symbol _variable" name="CConfigEntry.Name" href="htmlsrc/celeme.config.html#L316">Name</a> <a href="celeme.config.html#CConfigEntry.Name" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Name of this entry.</div></div></dd></dl></dd></dl>
+</div>
+<div id="kandil-footer">
+  <p></p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Tue Feb 15 20:58:23 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+</div>
+</div>
+</body>
+</html>

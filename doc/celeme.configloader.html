@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>celeme.configloader</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css"/>
+  <!-- no favicon -->
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <script type="text/javascript" src="js/utilities.js"></script>
+  <script type="text/javascript" src="js/symbols.js"></script>
+  <script type="text/javascript" src="js/modules.js"></script>
+  <script type="text/javascript" src="js/quicksearch.js"></script>
+  <script type="text/javascript" src="js/navigation.js"></script>
+</head>
+<body id="celeme.configloader">
+<div id="kandil-content">
+<div class="module">
+  <h1 class="module" id="m-celeme.configloader"><a href="htmlsrc/celeme.configloader.html" class="symbol">celeme.configloader</a></h1>
+
+<div class="summary"><div class="cmnt">This module allows the loading of a model definition (including connectors,
+ neuron types, mechanisms and synapses) from a configuration file.</div></div>
+<dl>
+<dt class="decl"><span class="rettyp">CMechanism[char[]]</span> <a class="symbol _function" name="LoadMechanisms" href="htmlsrc/celeme.configloader.html#L220">LoadMechanisms</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadMechanisms" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Load mechanisms from a root config entry.</div></div>
+<p class="sec_header">Returns:</p><div class="cmnt">An associative array of mechanisms.
+ 
+ A mechanism entry looks like this:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex1" name="L1_ex1">1</a>
+<a href="#L2_ex1" name="L2_ex1">2</a>
+<a href="#L3_ex1" name="L3_ex1">3</a>
+<a href="#L4_ex1" name="L4_ex1">4</a>
+<a href="#L5_ex1" name="L5_ex1">5</a>
+<a href="#L6_ex1" name="L6_ex1">6</a>
+<a href="#L7_ex1" name="L7_ex1">7</a>
+<a href="#L8_ex1" name="L8_ex1">8</a>
+<a href="#L9_ex1" name="L9_ex1">9</a>
+<a href="#L10_ex1" name="L10_ex1">10</a>
+<a href="#L11_ex1" name="L11_ex1">11</a>
+<a href="#L12_ex1" name="L12_ex1">12</a>
+<a href="#L13_ex1" name="L13_ex1">13</a>
+<a href="#L14_ex1" name="L14_ex1">14</a>
+<a href="#L15_ex1" name="L15_ex1">15</a>
+<a href="#L16_ex1" name="L16_ex1">16</a>
+<a href="#L17_ex1" name="L17_ex1">17</a>
+<a href="#L18_ex1" name="L18_ex1">18</a>
+<a href="#L19_ex1" name="L19_ex1">19</a>
+<a href="#L20_ex1" name="L20_ex1">20</a>
+<a href="#L21_ex1" name="L21_ex1">21</a>
+<a href="#L22_ex1" name="L22_ex1">22</a>
+<a href="#L23_ex1" name="L23_ex1">23</a>
+<a href="#L24_ex1" name="L24_ex1">24</a>
+<a href="#L25_ex1" name="L25_ex1">25</a>
+<a href="#L26_ex1" name="L26_ex1">26</a>
+<a href="#L27_ex1" name="L27_ex1">27</a>
+<a href="#L28_ex1" name="L28_ex1">28</a>
+<a href="#L29_ex1" name="L29_ex1">29</a>
+<a href="#L30_ex1" name="L30_ex1">30</a>
+<a href="#L31_ex1" name="L31_ex1">31</a>
+<a href="#L32_ex1" name="L32_ex1">32</a>
+<a href="#L33_ex1" name="L33_ex1">33</a>
+<a href="#L34_ex1" name="L34_ex1">34</a>
+<a href="#L35_ex1" name="L35_ex1">35</a>
+<a href="#L36_ex1" name="L36_ex1">36</a>
+<a href="#L37_ex1" name="L37_ex1">37</a>
+<a href="#L38_ex1" name="L38_ex1">38</a>
+<a href="#L39_ex1" name="L39_ex1">39</a>
+<a href="#L40_ex1" name="L40_ex1">40</a>
+<a href="#L41_ex1" name="L41_ex1">41</a>
+<a href="#L42_ex1" name="L42_ex1">42</a>
+<a href="#L43_ex1" name="L43_ex1">43</a>
+<a href="#L44_ex1" name="L44_ex1">44</a>
+<a href="#L45_ex1" name="L45_ex1">45</a>
+<a href="#L46_ex1" name="L46_ex1">46</a>
+<a href="#L47_ex1" name="L47_ex1">47</a>
+<a href="#L48_ex1" name="L48_ex1">48</a>
+<a href="#L49_ex1" name="L49_ex1">49</a>
+<a href="#L50_ex1" name="L50_ex1">50</a>
+<a href="#L51_ex1" name="L51_ex1">51</a>
+<a href="#L52_ex1" name="L52_ex1">52</a>
+<a href="#L53_ex1" name="L53_ex1">53</a>
+<a href="#L54_ex1" name="L54_ex1">54</a>
+<a href="#L55_ex1" name="L55_ex1">55</a>
+<a href="#L56_ex1" name="L56_ex1">56</a>
+<a href="#L57_ex1" name="L57_ex1">57</a>
+<a href="#L58_ex1" name="L58_ex1">58</a>
+<a href="#L59_ex1" name="L59_ex1">59</a>
+<a href="#L60_ex1" name="L60_ex1">60</a>
+<a href="#L61_ex1" name="L61_ex1">61</a>
+<a href="#L62_ex1" name="L62_ex1">62</a>
+<a href="#L63_ex1" name="L63_ex1">63</a>
+<a href="#L64_ex1" name="L64_ex1">64</a>
+<a href="#L65_ex1" name="L65_ex1">65</a>
+<a href="#L66_ex1" name="L66_ex1">66</a>
+<a href="#L67_ex1" name="L67_ex1">67</a>
+<a href="#L68_ex1" name="L68_ex1">68</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">mechanism</span> <span class="i">MechName</span>
+{
+    <span class="lc">// Staged evaluation of the derivatives</span>
+    <span class="i">stage0</span> = <span class="sl">""</span>;
+    <span class="i">stage1</span> = <span class="sl">""</span>;
+    <span class="i">stage2</span> = <span class="sl">""</span>;
+
+    <span class="lc">// Init code</span>
+    <span class="i">init</span> = <span class="sl">""</span>;
+
+    <span class="lc">// Code run before the integration is performed</span>
+    <span class="i">pre_stage</span> = <span class="sl">""</span>;
+
+    <span class="lc">// States</span>
+    <span class="i">state</span> <span class="i">StateName</span>
+    {
+        <span class="lc">// Initial value</span>
+        <span class="i">init</span> = <span class="n">0</span>;
+        <span class="lc">// Tolerance</span>
+        <span class="i">tolerance</span> = <span class="n">0.1</span>
+    }
+    <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+    <span class="i">state</span> <span class="i">StateName2</span> = <span class="n">0</span>;
+
+    <span class="lc">// Globals</span>
+    <span class="i">global</span> <span class="i">GlobalName</span>
+    {
+        <span class="lc">// Initial value</span>
+        <span class="i">init</span> = <span class="n">0</span>;
+        <span class="lc">// Whether the global is read only or not</span>
+        <span class="i">readonly</span> = <span class="k">false</span>;
+    }
+    <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+    <span class="i">global</span> <span class="i">GlobalName2</span> = <span class="n">0</span>;
+
+    <span class="lc">// Locals</span>
+    <span class="i">local</span> <span class="i">LocalName</span>;
+
+    <span class="lc">// Constants</span>
+    <span class="i">constant</span> <span class="i">ConstantName</span>
+    {
+        <span class="i">init</span> = <span class="n">0</span>;
+    }
+    <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+    <span class="i">constant</span> <span class="i">ConstantName2</span> = <span class="n">0</span>;
+
+    <span class="lc">// Externals</span>
+    <span class="i">external</span> <span class="i">ExternName</span>;
+
+    <span class="lc">// Thresholds</span>
+    <span class="i">threshold</span>
+    {
+        <span class="lc">// State to track. Mandatory parameter.</span>
+        <span class="i">state</span>;
+
+        <span class="lc">// Condition to use as threshold. Mandatory parameter.</span>
+        <span class="i">condition</span>;
+
+        <span class="lc">// Code ran when the threshold is activated</span>
+        <span class="i">code</span> = <span class="sl">""</span>;
+
+        <span class="lc">// Specifies whether this is an event source or not</span>
+        <span class="i">event_source</span> = <span class="k">false</span>;
+
+        <span class="lc">// Specifies whether to reset the dt or not when the threshold is activated</span>
+        <span class="i">reset_dt</span> = <span class="k">false</span>;
+    }
+}</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L272">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Load synapses from a root config entry.</div></div>
+<p class="sec_header">Returns:</p><div class="cmnt">An associative array of synapses.
+ 
+ A mechanism entry looks just like a mechanism entry, except it has more fields:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex2" name="L1_ex2">1</a>
+<a href="#L2_ex2" name="L2_ex2">2</a>
+<a href="#L3_ex2" name="L3_ex2">3</a>
+<a href="#L4_ex2" name="L4_ex2">4</a>
+<a href="#L5_ex2" name="L5_ex2">5</a>
+<a href="#L6_ex2" name="L6_ex2">6</a>
+<a href="#L7_ex2" name="L7_ex2">7</a>
+<a href="#L8_ex2" name="L8_ex2">8</a>
+<a href="#L9_ex2" name="L9_ex2">9</a>
+<a href="#L10_ex2" name="L10_ex2">10</a>
+<a href="#L11_ex2" name="L11_ex2">11</a>
+<a href="#L12_ex2" name="L12_ex2">12</a>
+<a href="#L13_ex2" name="L13_ex2">13</a>
+<a href="#L14_ex2" name="L14_ex2">14</a>
+<a href="#L15_ex2" name="L15_ex2">15</a>
+<a href="#L16_ex2" name="L16_ex2">16</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">synapse</span> <span class="i">SynapseName</span>
+{
+    <span class="lc">// Code to be ran when the synapse is triggered</span>
+    <span class="i">syn_code</span> = <span class="sl">""</span>;
+
+    <span class="lc">// Syn globals</span>
+    <span class="i">syn_global</span> <span class="i">SynGlobalName</span>
+    {
+        <span class="lc">// Initial value</span>
+        <span class="i">init</span> = <span class="n">0</span>;
+        <span class="lc">// Whether the syn global is read only or not</span>
+        <span class="i">readonly</span> = <span class="k">false</span>;
+    }
+    <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+    <span class="i">syn_global</span> <span class="i">SynGlobalName2</span> = <span class="n">0</span>;
+}</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L343">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Load connectors from a root config entry.</div></div>
+<p class="sec_header">Returns:</p><div class="cmnt">An associative array of connectors.
+ 
+ A connector entry looks like this:
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex3" name="L1_ex3">1</a>
+<a href="#L2_ex3" name="L2_ex3">2</a>
+<a href="#L3_ex3" name="L3_ex3">3</a>
+<a href="#L4_ex3" name="L4_ex3">4</a>
+<a href="#L5_ex3" name="L5_ex3">5</a>
+<a href="#L6_ex3" name="L6_ex3">6</a>
+<a href="#L7_ex3" name="L7_ex3">7</a>
+<a href="#L8_ex3" name="L8_ex3">8</a>
+<a href="#L9_ex3" name="L9_ex3">9</a>
+<a href="#L10_ex3" name="L10_ex3">10</a>
+<a href="#L11_ex3" name="L11_ex3">11</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">connector</span> <span class="i">ConnectorName</span>
+{
+    <span class="lc">// Connector code</span>
+    <span class="i">code</span> = <span class="sl">""</span>;
+
+    <span class="lc">// Constants</span>
+    <span class="i">constant</span> <span class="i">ConstantName</span>
+    {
+        <span class="i">init</span> = <span class="n">0</span>;
+    }
+}</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L498">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Load neuron types from a root config entry.</div></div>
+<p class="sec_header">Returns:</p><div class="cmnt">An associative array of neuron types.
+ 
+ A neuron type entry looks like this:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex4" name="L1_ex4">1</a>
+<a href="#L2_ex4" name="L2_ex4">2</a>
+<a href="#L3_ex4" name="L3_ex4">3</a>
+<a href="#L4_ex4" name="L4_ex4">4</a>
+<a href="#L5_ex4" name="L5_ex4">5</a>
+<a href="#L6_ex4" name="L6_ex4">6</a>
+<a href="#L7_ex4" name="L7_ex4">7</a>
+<a href="#L8_ex4" name="L8_ex4">8</a>
+<a href="#L9_ex4" name="L9_ex4">9</a>
+<a href="#L10_ex4" name="L10_ex4">10</a>
+<a href="#L11_ex4" name="L11_ex4">11</a>
+<a href="#L12_ex4" name="L12_ex4">12</a>
+<a href="#L13_ex4" name="L13_ex4">13</a>
+<a href="#L14_ex4" name="L14_ex4">14</a>
+<a href="#L15_ex4" name="L15_ex4">15</a>
+<a href="#L16_ex4" name="L16_ex4">16</a>
+<a href="#L17_ex4" name="L17_ex4">17</a>
+<a href="#L18_ex4" name="L18_ex4">18</a>
+<a href="#L19_ex4" name="L19_ex4">19</a>
+<a href="#L20_ex4" name="L20_ex4">20</a>
+<a href="#L21_ex4" name="L21_ex4">21</a>
+<a href="#L22_ex4" name="L22_ex4">22</a>
+<a href="#L23_ex4" name="L23_ex4">23</a>
+<a href="#L24_ex4" name="L24_ex4">24</a>
+<a href="#L25_ex4" name="L25_ex4">25</a>
+<a href="#L26_ex4" name="L26_ex4">26</a>
+<a href="#L27_ex4" name="L27_ex4">27</a>
+<a href="#L28_ex4" name="L28_ex4">28</a>
+<a href="#L29_ex4" name="L29_ex4">29</a>
+<a href="#L30_ex4" name="L30_ex4">30</a>
+<a href="#L31_ex4" name="L31_ex4">31</a>
+<a href="#L32_ex4" name="L32_ex4">32</a>
+<a href="#L33_ex4" name="L33_ex4">33</a>
+<a href="#L34_ex4" name="L34_ex4">34</a>
+<a href="#L35_ex4" name="L35_ex4">35</a>
+<a href="#L36_ex4" name="L36_ex4">36</a>
+<a href="#L37_ex4" name="L37_ex4">37</a>
+<a href="#L38_ex4" name="L38_ex4">38</a>
+<a href="#L39_ex4" name="L39_ex4">39</a>
+<a href="#L40_ex4" name="L40_ex4">40</a>
+<a href="#L41_ex4" name="L41_ex4">41</a>
+<a href="#L42_ex4" name="L42_ex4">42</a>
+<a href="#L43_ex4" name="L43_ex4">43</a>
+<a href="#L44_ex4" name="L44_ex4">44</a>
+<a href="#L45_ex4" name="L45_ex4">45</a>
+<a href="#L46_ex4" name="L46_ex4">46</a>
+<a href="#L47_ex4" name="L47_ex4">47</a>
+<a href="#L48_ex4" name="L48_ex4">48</a>
+<a href="#L49_ex4" name="L49_ex4">49</a>
+<a href="#L50_ex4" name="L50_ex4">50</a>
+<a href="#L51_ex4" name="L51_ex4">51</a>
+<a href="#L52_ex4" name="L52_ex4">52</a>
+<a href="#L53_ex4" name="L53_ex4">53</a>
+<a href="#L54_ex4" name="L54_ex4">54</a>
+<a href="#L55_ex4" name="L55_ex4">55</a>
+<a href="#L56_ex4" name="L56_ex4">56</a>
+<a href="#L57_ex4" name="L57_ex4">57</a>
+<a href="#L58_ex4" name="L58_ex4">58</a>
+<a href="#L59_ex4" name="L59_ex4">59</a>
+<a href="#L60_ex4" name="L60_ex4">60</a>
+<a href="#L61_ex4" name="L61_ex4">61</a>
+<a href="#L62_ex4" name="L62_ex4">62</a>
+<a href="#L63_ex4" name="L63_ex4">63</a>
+<a href="#L64_ex4" name="L64_ex4">64</a>
+<a href="#L65_ex4" name="L65_ex4">65</a>
+<a href="#L66_ex4" name="L66_ex4">66</a>
+<a href="#L67_ex4" name="L67_ex4">67</a>
+<a href="#L68_ex4" name="L68_ex4">68</a>
+<a href="#L69_ex4" name="L69_ex4">69</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">neuron</span> <span class="i">NeuronTypeName</span>
+{
+    <span class="lc">// Record length</span>
+    <span class="i">record_length</span> = <span class="n">0</span>;
+
+    <span class="lc">// Record rate</span>
+    <span class="i">record_rate</span> = <span class="n">0</span>;
+
+    <span class="lc">// Circular buffer size</span>
+    <span class="i">circ_buffer_size</span> = <span class="n">0</span>;
+
+    <span class="lc">// Number of source synapses</span>
+    <span class="i">num_src_synapses</span> = <span class="n">0</span>;
+
+    <span class="lc">// Length of the random state</span>
+    <span class="i">rand_state_len</span> = <span class="n">0</span>;
+
+    <span class="lc">// Minimum dt</span>
+    <span class="i">min_dt</span> = <span class="n">0.01</span>;
+
+    <span class="lc">// Mechanisms</span>
+    <span class="i">mechanism</span> <span class="i">MechName</span>
+    {
+        <span class="lc">// Prefix to use for this mechanism</span>
+        <span class="i">prefix</span> = <span class="sl">""</span>;
+
+        <span class="lc">// Initial value setting</span>
+        <span class="i">init</span>
+        {
+            <span class="i">SomeVal</span>
+            {
+                <span class="lc">// Initial value. If omitted, mechanism's default value is used</span>
+                <span class="i">init</span>;
+                <span class="lc">// Tolerance (makes sense only for states). If omitted, mechanism's default value</span>
+                <span class="lc">// is used</span>
+                <span class="i">tolerance</span>;
+            }
+            <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+            <span class="i">SomeOtherVal</span> = <span class="n">0</span>;
+        }
+    }
+
+    <span class="lc">// Synapses</span>
+    <span class="i">synapse</span> <span class="i">SynName</span>
+    {
+        <span class="lc">// Prefix to use for this synapse</span>
+        <span class="i">prefix</span> = <span class="sl">""</span>;
+
+        <span class="lc">// Number of synapses of this type to insert</span>
+        <span class="i">number</span> = <span class="n">0</span>;
+
+        <span class="i">init</span>
+        {
+            <span class="i">SomeVal</span>
+            {
+                <span class="lc">// Initial value. If omitted, mechanism's default value is used</span>
+                <span class="i">init</span>;
+                <span class="lc">// Tolerance (makes sense only for states). If omitted, mechanism's default value</span>
+                <span class="lc">// is used</span>
+                <span class="i">tolerance</span>;
+            }
+            <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
+            <span class="i">SomeOtherVal</span> = <span class="n">0</span>;
+        }
+    }
+
+    <span class="lc">// Connectors</span>
+    <span class="i">connector</span> <span class="i">ConnName</span>;
+}</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L618">LoadModel</a><span class="params">(char[] <em>file</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Loads a model from a configuration file.
+ 
+ The configuration entry for a model looks like this:
+ 
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex5" name="L1_ex5">1</a>
+<a href="#L2_ex5" name="L2_ex5">2</a>
+<a href="#L3_ex5" name="L3_ex5">3</a>
+<a href="#L4_ex5" name="L4_ex5">4</a>
+<a href="#L5_ex5" name="L5_ex5">5</a>
+<a href="#L6_ex5" name="L6_ex5">6</a>
+<a href="#L7_ex5" name="L7_ex5">7</a>
+<a href="#L8_ex5" name="L8_ex5">8</a>
+<a href="#L9_ex5" name="L9_ex5">9</a>
+<a href="#L10_ex5" name="L10_ex5">10</a>
+<a href="#L11_ex5" name="L11_ex5">11</a>
+<a href="#L12_ex5" name="L12_ex5">12</a>
+<a href="#L13_ex5" name="L13_ex5">13</a>
+<a href="#L14_ex5" name="L14_ex5">14</a>
+<a href="#L15_ex5" name="L15_ex5">15</a>
+<a href="#L16_ex5" name="L16_ex5">16</a>
+<a href="#L17_ex5" name="L17_ex5">17</a>
+<a href="#L18_ex5" name="L18_ex5">18</a>
+<a href="#L19_ex5" name="L19_ex5">19</a>
+<a href="#L20_ex5" name="L20_ex5">20</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="i">model</span>
+{
+    <span class="lc">// What floating point size to use ("float" or "double")</span>
+    <span class="i">float_type</span> = <span class="sl">"float"</span>;
+    <span class="i">timestep_size</span> = <span class="n">1.0</span>;
+
+    <span class="lc">// Neuron groups</span>
+    <span class="i">group</span> <span class="i">NeuronTypeName</span>
+    {
+        <span class="lc">// Number of neurons</span>
+        <span class="i">number</span> = <span class="n">1</span>;
+
+        <span class="lc">// Override the name of the group (if adding several of the same kind)</span>
+        <span class="lc">// Empty name keeps the original neuron type name.</span>
+        <span class="i">name</span> = <span class="sl">""</span>;
+
+        <span class="lc">// Whether or not to use the adaptive integrator for this group</span>
+        <span class="i">adaptive_dt</span> = <span class="k">true</span>;
+    }
+}</pre>
+</td></tr>
+</table></div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>file</em></td><td>Path to a file to load from.</td></tr>
+<tr><td><em>gpu</em></td><td>Whether or not to use the GPU.</td></tr></table>
+<p class="sec_header">Returns:</p><div class="cmnt">The loaded model.</div></dd></dl>
+</div>
+<div id="kandil-footer">
+  <p></p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Tue Feb 15 20:58:23 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+</div>
+</div>
+</body>
+</html>

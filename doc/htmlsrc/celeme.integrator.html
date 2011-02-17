@@ -37,14 +37,14 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Compound"><span class="d Module"><span class="k">module</span> <span class="i">celeme</span>.<span class="i">integrator</span>;</span>
 
-<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">clneurongroup</span>;</span>
+<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">iclneurongroup</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">frontend</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">clcore</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">sourceconstructor</span>;</span>
 
 <span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CIntegrator</span><span class="o TemplateParameters">(<span class="o TemplateTypeParameter"><span class="i">float_t</span></span>)</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t TemplateInstance"><span class="i">CNeuronGroup</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Group</span></span> = <span class="e Identifier"><span class="i">group</span></span></span>;</span>
 	}</span></span></span>
@@ -53,7 +53,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Will set the arguments of the integrator (it assumes the StepKernel is used)
 	 * Returns the updated arg_id.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">arg_id</span></span>;</span>
 	}</span></span></span>
@@ -122,12 +122,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		
 	}</span></span></span>
 	
-	<span class="d Variables"><span class="t TemplateInstance"><span class="i">CNeuronGroup</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">Group</span>;</span>
+	<span class="d Variables"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">Group</span>;</span>
 }</span></span></span></span>
 
 <span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CAdaptiveIntegrator</span><span class="o TemplateParameters">(<span class="o TemplateTypeParameter"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CIntegrator</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t TemplateInstance"><span class="i">CNeuronGroup</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>(<span class="i">group</span>, <span class="i">type</span>)</span>;</span>
 	}</span></span></span>
@@ -135,7 +135,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Adaptive integrators have tolerances associated with states
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetTolerance</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">state</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">tolerance</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetTolerance</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">state</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">tolerance</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>

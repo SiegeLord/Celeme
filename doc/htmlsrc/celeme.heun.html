@@ -36,11 +36,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Compound"><span class="d Module"><span class="k">module</span> <span class="i">celeme</span>.<span class="i">heun</span>;</span>
 
-<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">clneurongroup</span>;</span>
+<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">iclneurongroup</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">frontend</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">integrator</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">sourceconstructor</span>;</span>
 <span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">util</span>;</span>
+<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">clcore</span>;</span>
 
 <span class="d Import"><span class="k">import</span> <span class="i">opencl</span>.<span class="i">cl</span>;</span>
 
@@ -48,7 +49,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CHeun</span><span class="o TemplateParameters">(<span class="o TemplateTypeParameter"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CIntegrator</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t TemplateInstance"><span class="i">CNeuronGroup</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>(<span class="i">group</span>, <span class="i">type</span>)</span>;</span>
 	}</span></span></span>
@@ -66,20 +67,19 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetDt</span></span>(<span class="i">Group</span>.<span class="i">MinDt</span>)</span>;</span>		
+		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetDt</span></span>(<span class="i">kernel</span>, <span class="i">Group</span>.<span class="i">MinDt</span>)</span>;</span>		
 		<span class="s Return"><span class="k">return</span> <span class="e Plus"><span class="e Identifier"><span class="i">arg_id</span></span> + <span class="e Int"><span class="n">1</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetDt</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">dt</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetDt</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">dt</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">parts</span> = <span class="e Cast"><span class="k">cast</span>(<span class="t Integral"><span class="k">int</span></span>)<span class="e Paren">(<span class="e Plus"><span class="e Div"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Model</span></span>.<span class="e Identifier"><span class="i">TimeStepSize</span></span> / <span class="e Identifier"><span class="i">dt</span></span></span> + <span class="e Real"><span class="n">0.5</span></span></span>)</span></span>;</span></span>
+		<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">parts</span> = <span class="e Cast"><span class="k">cast</span>(<span class="t Integral"><span class="k">int</span></span>)<span class="e Paren">(<span class="e Plus"><span class="e Div"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">TimeStepSize</span></span> / <span class="e Identifier"><span class="i">dt</span></span></span> + <span class="e Real"><span class="n">0.5</span></span></span>)</span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">parts</span></span> == <span class="e Int"><span class="n">0</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e PostIncr"><span class="e Identifier"><span class="i">parts</span></span>++</span>;</span></span></span>
-		
-		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">float_t</span></span> <span class="i">val</span> = <span class="e Cast"><span class="k">cast</span>(<span class="t Identifier"><span class="i">float_t</span></span>)<span class="e Paren">(<span class="e Div"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Model</span></span>.<span class="e Identifier"><span class="i">TimeStepSize</span></span> / <span class="e Identifier"><span class="i">parts</span></span></span>)</span></span>;</span></span>
-		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">StepKernel</span></span>.<span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">Group</span>.<span class="i">IntegratorArgOffset</span>, &amp;<span class="i">val</span>)</span>;</span>
+
+		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">kernel</span></span>.<span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">Group</span>.<span class="i">IntegratorArgOffset</span>, <span class="k">cast</span>(<span class="i">float_t</span>)(<span class="i">Group</span>.<span class="i">TimeStepSize</span> / <span class="i">parts</span>))</span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>

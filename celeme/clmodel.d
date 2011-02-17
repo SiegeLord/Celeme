@@ -29,6 +29,9 @@ import celeme.ineurongroup;
 import tango.text.Util;
 import tango.io.Stdout;
 
+version (AMDPerf)
+import perf = celeme.amdperf;
+
 import opencl.cl;
 
 char[] FloatMemsetKernelTemplate = "
@@ -277,10 +280,39 @@ class CCLModel(float_t) : IModel
 			/* Called first because it resets the record index to 0,
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
+			
+			perf.gpa_uint32 id;
+			const prof_t = 0;
+			if(t == prof_t)
+			{
+				perf.EnableCounters(1, "GPUBusy", "ALUBusy");
+				id = perf.BeginSP();
+			}
+				
+			if(t == prof_t)
+				perf.BeginSample("Deliver");
+
 			foreach(group; groups)
 				group.CallDeliverKernel(time, DeliverWorkgroupSize);
+				
+			if(t == prof_t)
+			{
+				perf.EndSample();
+				perf.BeginSample("Step");
+			}
+
 			foreach(group; groups)
 				group.CallStepKernel(time, StepWorkgroupSize);
+				
+			if(t == prof_t)
+				perf.EndSample();
+				
+			if(t == prof_t)
+			{
+				perf.EndSP();
+				Stdout(perf.GetSessionData(id));
+			}
+				
 			foreach(group; groups)
 				group.UpdateRecorders(t, t == num_timesteps - 1);
 			t++;
@@ -431,14 +463,31 @@ class CCLModel(float_t) : IModel
 		TimeStepSizeVal = val;
 	}
 	
+	override
+	cl_program Program()
+	{
+		return ProgramVal;
+	}
+	
+	private
+	void Program(cl_program val)
+	{
+		ProgramVal = val;
+	}
+	
+	mixin(Prop!(CCLKernel, "FloatMemsetKernel", "override", "private"));
+	mixin(Prop!(CCLKernel, "IntMemsetKernel", "override", "private"));
+	mixin(Prop!(CCLBuffer!(int), "FiredSynIdxBuffer", "override", "private"));
+	mixin(Prop!(CCLBuffer!(int), "FiredSynBuffer", "override", "private"));
+	
+	cl_program ProgramVal;
+	CCLKernel FloatMemsetKernelVal;
+	CCLKernel IntMemsetKernelVal;
+	
+	CCLBuffer!(int) FiredSynIdxBufferVal;
+	CCLBuffer!(int) FiredSynBufferVal;
+	
 	bool[5] RandsUsed;
-	
-	cl_program Program;
-	CCLKernel FloatMemsetKernel;
-	CCLKernel IntMemsetKernel;
-	
-	CCLBuffer!(int) FiredSynIdxBuffer;
-	CCLBuffer!(int) FiredSynBuffer;
 	
 	/* Total model number of dest synapses */
 	int NumDestSynapses = 0;

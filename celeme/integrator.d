@@ -23,14 +23,14 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.integrator;
 
-import celeme.clneurongroup;
+import celeme.iclneurongroup;
 import celeme.frontend;
 import celeme.clcore;
 import celeme.sourceconstructor;
 
 class CIntegrator(float_t)
 {
-	this(CNeuronGroup!(float_t) group, CNeuronType type)
+	this(ICLNeuronGroup group, CNeuronType type)
 	{
 		Group = group;
 	}
@@ -39,7 +39,7 @@ class CIntegrator(float_t)
 	 * Will set the arguments of the integrator (it assumes the StepKernel is used)
 	 * Returns the updated arg_id.
 	 */
-	int SetArgs(int arg_id)
+	int SetArgs(CCLKernel kernel, int arg_id)
 	{
 		return arg_id;
 	}
@@ -108,12 +108,12 @@ class CIntegrator(float_t)
 		
 	}
 	
-	CNeuronGroup!(float_t) Group;
+	ICLNeuronGroup Group;
 }
 
 class CAdaptiveIntegrator(float_t) : CIntegrator!(float_t)
 {
-	this(CNeuronGroup!(float_t) group, CNeuronType type)
+	this(ICLNeuronGroup group, CNeuronType type)
 	{
 		super(group, type);
 	}
@@ -121,7 +121,7 @@ class CAdaptiveIntegrator(float_t) : CIntegrator!(float_t)
 	/*
 	 * Adaptive integrators have tolerances associated with states
 	 */
-	void SetTolerance(char[] state, double tolerance)
+	void SetTolerance(CCLKernel kernel, char[] state, double tolerance)
 	{
 		
 	}

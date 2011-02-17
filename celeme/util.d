@@ -158,3 +158,19 @@ char[] GetGitRevisionHash()
 	}
 	return ret;
 }
+
+char[] Prop(type, char[] name, char[] get_attr = "", char[] set_attr = "")()
+{
+	return
+	get_attr ~ "
+	" ~ type.stringof ~ " " ~ name ~ "()
+	{
+		return " ~ name ~ "Val;
+	}
+	
+	" ~ set_attr ~ "
+	void " ~ name ~ "(" ~ type.stringof ~ " val)
+	{
+		" ~ name ~ "Val = val;
+	}";
+}

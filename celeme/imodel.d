@@ -27,16 +27,6 @@ import celeme.frontend;
 import celeme.ineurongroup;
 
 /**
- * Creates a new OpenCL model.
- * Params:
- *     gpu = Whether or not to use the gpu
- */
-IModel CreateCLModel(float_t)(bool gpu = false)
-{
-	return new CCLModel!(float_t)(gpu);
-}
-
-/**
  * Interface to a generic model
  */ 
 interface IModel

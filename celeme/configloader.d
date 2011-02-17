@@ -633,7 +633,7 @@ IModel LoadModel(char[] file, bool gpu = false)
 	auto timestep_size = model_entry.ValueOf!(double)("timestep_size", 1.0);
 	
 	if(float_type == "float")
-		ret = CreateCLModel!(float)(gpu);
+		ret = new CCLModel!(float)(gpu);
 	//else if(float_type == "double")
 	//	ret = CreateCLModel!(double)(gpu);
 	else

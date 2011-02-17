@@ -18,10 +18,11 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.clneurongroup;
 
+import celeme.iclneurongroup;
 import celeme.frontend;
 import celeme.clcore;
 import celeme.clconnector;
-import celeme.clmodel;
+import celeme.iclmodel;
 import celeme.recorder;
 import celeme.alignedarray;
 import celeme.sourceconstructor;
@@ -30,7 +31,7 @@ import celeme.integrator;
 import celeme.adaptiveheun;
 import celeme.heun;
 import celeme.clrand;
-import celeme.ineurongroup;
+import celeme.clmiscbuffers;
 
 import opencl.cl;
 
@@ -198,87 +199,7 @@ $parallel_delivery_code$
 }
 ";
 
-class CValueBuffer(T)
-{
-	this(CValue val, CCLCore core, size_t count)
-	{
-		DefaultValue = val.Value;
-		Buffer = core.CreateBufferEx!(T)(count);
-	}
-	
-	double opAssign(double val)
-	{
-		return DefaultValue = val;
-	}
-	
-	void Release()
-	{
-		Buffer.Release();
-	}
-		
-	CCLBuffer!(T) Buffer;	
-	double DefaultValue;
-}
-
-class CSynGlobalBuffer(T)
-{
-	this(CValue val, CCLCore core, size_t num_syn)
-	{
-		DefaultValue = val.Value;
-		Buffer = core.CreateBufferEx!(T)(num_syn);
-	}
-	
-	void Release()
-	{
-		Buffer.Release();
-	}
-	
-	CCLBuffer!(T) Buffer;
-	double DefaultValue;
-}
-
-class CEventSourceBuffer
-{
-	this(CCLCore core, int nrn_count)
-	{
-		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
-		auto buff = FreeIdx.Map(CL_MAP_WRITE);
-		buff[] = 0;
-		FreeIdx.UnMap(buff);
-	}
-	
-	void Release()
-	{
-		FreeIdx.Release();
-	}
-	
-	/* Last free index */
-	CCLBuffer!(int) FreeIdx;
-}
-
-class CSynapseBuffer
-{
-	this(CCLCore core, int offset, int count, int nrn_count)
-	{
-		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
-		auto buff = FreeIdx.Map(CL_MAP_WRITE);
-		buff[] = 0;
-		FreeIdx.UnMap(buff);
-		SlotOffset = offset;
-		Count = count;
-	}
-	
-	void Release()
-	{
-		FreeIdx.Release();
-	}
-	/* Last free index */
-	CCLBuffer!(int) FreeIdx;
-	int SlotOffset;
-	int Count;
-}
-
-class CNeuronGroup(float_t) : INeuronGroup
+class CNeuronGroup(float_t) : ICLNeuronGroup
 {
 	static if(is(float_t == float))
 	{
@@ -293,7 +214,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 		static assert(0);
 	}
 	
-	this(CCLModel!(float_t) model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true)
+	this(ICLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -355,21 +276,21 @@ class CNeuronGroup(float_t) : INeuronGroup
 		foreach(syn_type; type.SynapseTypes)
 		{
 			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count);
-			SynapseBuffers ~= syn_buff;
+			SynapseBuffers = SynapseBuffers ~ syn_buff;
 			
 			syn_type_offset += syn_type.NumSynapses;
 		}
 		
 		foreach(ii; range(NumEventSources))
 		{
-			EventSourceBuffers ~= new CEventSourceBuffer(Core, Count);
+			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, Count);
 		}
 		
 		if(NeedSrcSynCode)
 		{
 			CircBufferStart = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
 			CircBufferEnd = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
-			CircBuffer = Core.CreateBuffer(CircBufferSize * NumEventSources * Count * Model.NumSize);
+			CircBuffer = Core.CreateBuffer(CircBufferSize * NumEventSources * Count * float_t.sizeof);
 		}
 		
 		ErrorBuffer = Core.CreateBuffer((Count + 1) * int.sizeof);
@@ -408,13 +329,15 @@ class CNeuronGroup(float_t) : INeuronGroup
 	{
 		int arg_id;
 		/* Step kernel */
-		StepKernel = new CCLKernel(&Model.Program, Name ~ "_step");
+		auto program = Model.Program;
+		StepKernel = new CCLKernel(&program, Name ~ "_step");
 		
 		with(StepKernel)
 		{
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
-			SetGlobalArg(arg_id++, &ErrorBuffer);
+			auto error_buffer = ErrorBuffer;
+			SetGlobalArg(arg_id++, &error_buffer);
 			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordBuffer.Buffer);
@@ -426,7 +349,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 			arg_id += Constants.length;
 			if(RandLen)
 				arg_id = Rand.SetArgs(StepKernel, arg_id);
-			arg_id = Integrator.SetArgs(arg_id);
+			arg_id = Integrator.SetArgs(StepKernel, arg_id);
 			if(NeedSrcSynCode)
 			{
 				/* Set the event source args */
@@ -471,7 +394,8 @@ class CNeuronGroup(float_t) : INeuronGroup
 		{
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
-			SetGlobalArg(arg_id++, &ErrorBuffer);
+			auto error_buffer = ErrorBuffer;
+			SetGlobalArg(arg_id++, &error_buffer);
 			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
 			SetGlobalArg(arg_id++, &RecordRate);
 			if(NeedSrcSynCode)
@@ -524,7 +448,8 @@ class CNeuronGroup(float_t) : INeuronGroup
 			Rand.Seed();
 		
 		/* Initialize the buffers */
-		Model.MemsetIntBuffer(ErrorBuffer, Count + 1, 0);
+		auto error_buffer = ErrorBuffer;
+		Model.MemsetIntBuffer(error_buffer, Count + 1, 0);
 		RecordIdxBuffer.WriteOne(0, 0);
 		
 		if(NeedSrcSynCode)
@@ -569,7 +494,7 @@ class CNeuronGroup(float_t) : INeuronGroup
 		auto adaptive = cast(CAdaptiveIntegrator!(float_t))Integrator;
 		if(adaptive !is null)
 		{
-			adaptive.SetTolerance(state, tolerance);
+			adaptive.SetTolerance(StepKernel, state, tolerance);
 		}
 		else
 		{
@@ -1538,6 +1463,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		MinDtVal = min_dt;
 	}
 	
+	override
 	int IntegratorArgOffset()
 	{
 		int rand_offset = 0;
@@ -1553,6 +1479,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return &Model.Program;
 	}
 	
+	override
 	CCLCore Core()
 	{
 		return Model.Core;
@@ -1562,6 +1489,144 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int Count()
 	{
 		return CountVal;
+	}
+	
+	override
+	char[] Name()
+	{
+		return NameVal;
+	}
+	
+	private
+	void Name(char[] name)
+	{
+		NameVal = name;
+	}
+	
+	override
+	int NumEventSources()
+	{
+		return NumEventSourcesVal;
+	}
+	
+	private
+	void NumEventSources(int val)
+	{
+		NumEventSourcesVal = val;
+	}
+	
+	override
+	int NumSrcSynapses()
+	{
+		return NumSrcSynapsesVal;
+	}
+	
+	private
+	void NumSrcSynapses(int val)
+	{
+		NumSrcSynapsesVal = val;
+	}
+	
+	override
+	CEventSourceBuffer[] EventSourceBuffers()
+	{
+		return EventSourceBuffersVal;
+	}
+	
+	private
+	void EventSourceBuffers(CEventSourceBuffer[] val)
+	{
+		EventSourceBuffersVal = val;
+	}
+	
+	override
+	CSynapseBuffer[] SynapseBuffers()
+	{
+		return SynapseBuffersVal;
+	}
+	
+	private
+	void SynapseBuffers(CSynapseBuffer[] val)
+	{
+		SynapseBuffersVal = val;
+	}
+	
+	override
+	CCLBuffer!(cl_int2) DestSynBuffer()
+	{
+		return DestSynBufferVal;
+	}
+	
+	private
+	void DestSynBuffer(CCLBuffer!(cl_int2) val)
+	{
+		DestSynBufferVal = val;
+	}
+	
+	override
+	int NrnOffset()
+	{
+		return NrnOffsetVal;
+	}
+	
+	private
+	void NrnOffset(int val)
+	{
+		NrnOffsetVal = val;
+	}
+	
+	override
+	cl_mem ErrorBuffer()
+	{
+		return ErrorBufferVal;
+	}
+	
+	private
+	void ErrorBuffer(cl_mem val)
+	{
+		ErrorBufferVal = val;
+	}
+	
+	override
+	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
+	{
+		Model.MemsetFloatBuffer(buffer, count, value);
+	}
+	
+	override
+	bool Initialized()
+	{
+		return Model.Initialized;
+	}
+	
+	override
+	double TimeStepSize()
+	{
+		return Model.TimeStepSize;
+	}
+	
+	override
+	int RandLen()
+	{
+		return RandLenVal;
+	}
+	
+	private
+	void RandLen(int val)
+	{
+		RandLenVal = val;
+	}
+	
+	override
+	CCLRand Rand()
+	{
+		return RandVal;
+	}
+	
+	private
+	void Rand(CCLRand val)
+	{
+		RandVal = val;
 	}
 	
 	CRecorder[int] Recorders;
@@ -1579,9 +1644,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CSynGlobalBuffer!(float_t)[] SynGlobalBuffers;
 	int[char[]] SynGlobalBufferRegistry;
 	
-	char[] Name;
+	char[] NameVal;
 	int CountVal = 0;
-	CCLModel!(float_t) Model;
+	ICLModel Model;
 	
 	char[] StepKernelSource;
 	char[] InitKernelSource;
@@ -1595,34 +1660,34 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	cl_mem CircBufferStart;
 	cl_mem CircBufferEnd;
 	cl_mem CircBuffer;
-	cl_mem ErrorBuffer;
+	cl_mem ErrorBufferVal;
 	CCLBuffer!(int) RecordFlagsBuffer;
 	CCLBuffer!(float_t4) RecordBuffer;
 	CCLBuffer!(int) RecordIdxBuffer;
 	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
-	CCLBuffer!(cl_int2) DestSynBuffer;
+	CCLBuffer!(cl_int2) DestSynBufferVal;
 	
 	int RecordLength;
 	int RecordRate;
 	int CircBufferSize = 20;
-	int NumEventSources = 0;
+	int NumEventSourcesVal = 0;
 	int NumThresholds = 0;
 	
-	int NumSrcSynapses; /* Number of pre-synaptic slots per event source */
+	int NumSrcSynapsesVal; /* Number of pre-synaptic slots per event source */
 	int NumDestSynapses; /* Number of post-synaptic slots per neuron */
 	
 	/* The place we reset the fired syn idx to*/
 	int SynOffset;
 	/* Offset for indexing into the model global indices */
-	int NrnOffset;
+	int NrnOffsetVal;
 	
 	int ThreshRecordOffset = 0;
 	
-	CSynapseBuffer[] SynapseBuffers;
-	CEventSourceBuffer[] EventSourceBuffers;
+	CSynapseBuffer[] SynapseBuffersVal;
+	CEventSourceBuffer[] EventSourceBuffersVal;
 	
-	int RandLen = 0;
-	CCLRand Rand;
+	int RandLenVal = 0;
+	CCLRand RandVal;
 	
 	CIntegrator!(float_t) Integrator;
 	

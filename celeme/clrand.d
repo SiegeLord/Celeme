@@ -19,7 +19,6 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.clrand;
 
 import celeme.clcore;
-import celeme.clneurongroup;
 import celeme.util;
 
 import tango.math.random.Random;

@@ -25,6 +25,9 @@ import opencl.cl;
 import tango.io.Stdout;
 import tango.util.Convert;
 
+version (AMDPerf)
+import perf = celeme.amdperf;
+
 class CCLKernel
 {
 	this(cl_program *program, char[] name)
@@ -149,6 +152,10 @@ class CCLCore
 	{
 		GPU = use_gpu;
 		
+		version (AMDPerf)
+		if(GPU)
+			perf.Initialize();
+		
 		int err;
 		
 		/* Get platforms */
@@ -222,6 +229,10 @@ class CCLCore
 		{
 			throw new Exception("Failed to create a command queue!");
 		}
+		
+		version (AMDPerf)
+		if(GPU)
+			perf.OpenContext(Commands);
 	}
 	
 	T GetDeviceParam(T)(cl_device_id device, cl_device_info param)
@@ -249,7 +260,20 @@ class CCLCore
 	void Shutdown()
 	{
 		clReleaseCommandQueue(Commands);
+		
+		version (AMDPerf)
+		if(GPU)
+		{
+			perf.CloseContext();
+		}
+		
 		clReleaseContext(Context);
+		
+		version (AMDPerf)
+		if(GPU)
+		{
+			perf.Destroy();
+		}
 	}
 	
 	cl_mem CreateBuffer(size_t size)

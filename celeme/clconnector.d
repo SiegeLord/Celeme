@@ -21,7 +21,7 @@ module celeme.clconnector;
 import celeme.frontend;
 import celeme.util;
 import celeme.clcore;
-import celeme.clneurongroup;
+import celeme.iclneurongroup;
 import celeme.sourceconstructor;
 
 import opencl.cl;
@@ -102,7 +102,7 @@ $save_rand_state$
 
 class CCLConnector(float_t)
 {
-	this(CNeuronGroup!(float_t) group, CConnector conn)
+	this(ICLNeuronGroup group, CConnector conn)
 	{
 		Group = group;
 		Name = conn.Name;
@@ -177,7 +177,7 @@ class CCLConnector(float_t)
 		KernelCode = kernel_source;
 	}
 	
-	void Connect(int num_cycles, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type)
+	void Connect(int num_cycles, int[2] src_nrn_range, int src_event_source, ICLNeuronGroup dest, int[2] dest_nrn_range, int dest_syn_type)
 	{
 		assert(src_nrn_range[1] > src_nrn_range[0]);
 		assert(num_cycles > 0);
@@ -207,7 +207,8 @@ class CCLConnector(float_t)
 			//const int src_event_source,
 			SetGlobalArg(arg_id++, &src_event_source);
 			//const int src_slot_max,
-			SetGlobalArg(arg_id++, &Group.NumSrcSynapses);
+			auto num_src_synapses = Group.NumSrcSynapses;
+			SetGlobalArg(arg_id++, &num_src_synapses);
 			//__global int* event_source_idxs,
 			SetGlobalArg(arg_id++, &Group.EventSourceBuffers[src_event_source].FreeIdx.Buffer);
 			//const int dest_start,
@@ -221,16 +222,18 @@ class CCLConnector(float_t)
 			//__global int2* dest_syn_buffer,
 			SetGlobalArg(arg_id++, &Group.DestSynBuffer.Buffer);
 			//int dest_nrn_offset,
-			SetGlobalArg(arg_id++, &dest.NrnOffset);
+			auto nrn_offset = dest.NrnOffset;
+			SetGlobalArg(arg_id++, &nrn_offset);
 			//int dest_slot_offset,
 			SetGlobalArg(arg_id++, &dest.SynapseBuffers[dest_syn_type].SlotOffset);
 			//__global int* error_buffer
-			SetGlobalArg(arg_id++, &Group.ErrorBuffer);
+			auto error_buffer = Group.ErrorBuffer;
+			SetGlobalArg(arg_id++, &error_buffer);
 		}
 		
 		size_t total_num = src_nrn_range[1] - src_nrn_range[0];
 		
-		auto err = clEnqueueNDRangeKernel(Group.Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
+		auto err = clEnqueueNDRangeKernel(Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -276,7 +279,8 @@ class CCLConnector(float_t)
 	bool NeedRand = false;
 	
 	char[] KernelCode;
-	CNeuronGroup!(float_t) Group;
+	ICLNeuronGroup Group;
 	
 	CCLKernel ConnectKernel;
+	CCLCore Core;
 }

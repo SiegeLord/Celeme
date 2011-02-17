@@ -23,11 +23,12 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.adaptiveheun;
 
-import celeme.clneurongroup;
+import celeme.iclneurongroup;
 import celeme.frontend;
 import celeme.integrator;
 import celeme.sourceconstructor;
 import celeme.util;
+import celeme.clcore;
 
 import opencl.cl;
 
@@ -35,7 +36,7 @@ import tango.io.Stdout;
 
 class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 {
-	this(CNeuronGroup!(float_t) group, CNeuronType type)
+	this(ICLNeuronGroup group, CNeuronType type)
 	{
 		super(group, type);
 		
@@ -46,13 +47,13 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 			Tolerances ~= state.Tolerance;
 		}
 		
-		DtBuffer = Group.Model.Core.CreateBuffer(Group.Count * Group.Model.NumSize);
+		DtBuffer = Group.Core.CreateBuffer(Group.Count * float_t.sizeof);
 	}
 	
 	override
 	void Reset()
 	{
-		Group.Model.MemsetFloatBuffer(DtBuffer, Group.Count, Group.MinDt);
+		Group.MemsetFloatBuffer(DtBuffer, Group.Count, Group.MinDt);
 	}
 	
 	override
@@ -76,13 +77,13 @@ dt_buf[i] = dt;";
 	}
 	
 	override
-	int SetArgs(int arg_id)
+	int SetArgs(CCLKernel kernel, int arg_id)
 	{
-		Group.StepKernel.SetGlobalArg(arg_id++, &DtBuffer);
+		kernel.SetGlobalArg(arg_id++, &DtBuffer);
 		foreach(tol; Tolerances)
 		{
 			float_t tolerance = tol;
-			Group.StepKernel.SetGlobalArg(arg_id++, &tolerance);
+			kernel.SetGlobalArg(arg_id++, &tolerance);
 		}
 		
 		return arg_id;
@@ -217,7 +218,7 @@ else
 	}
 	
 	override
-	void SetTolerance(char[] state, double tolerance)
+	void SetTolerance(CCLKernel kernel, char[] state, double tolerance)
 	{
 		assert(tolerance > 0);
 		
@@ -225,10 +226,10 @@ else
 		if(idx_ptr !is null)
 		{	
 			Tolerances[*idx_ptr] = tolerance;
-			if(Group.Model.Initialized)
+			if(Group.Initialized)
 			{
 				float_t val = tolerance;
-				Group.StepKernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, &val);
+				kernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, &val);
 			}
 		}
 		else

@@ -22,11 +22,12 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.heun;
 
-import celeme.clneurongroup;
+import celeme.iclneurongroup;
 import celeme.frontend;
 import celeme.integrator;
 import celeme.sourceconstructor;
 import celeme.util;
+import celeme.clcore;
 
 import opencl.cl;
 
@@ -34,7 +35,7 @@ import tango.io.Stdout;
 
 class CHeun(float_t) : CIntegrator!(float_t)
 {
-	this(CNeuronGroup!(float_t) group, CNeuronType type)
+	this(ICLNeuronGroup group, CNeuronType type)
 	{
 		super(group, type);
 	}
@@ -52,20 +53,20 @@ class CHeun(float_t) : CIntegrator!(float_t)
 	}
 	
 	override
-	int SetArgs(int arg_id)
+	int SetArgs(CCLKernel kernel, int arg_id)
 	{
-		SetDt(Group.MinDt);		
+		SetDt(kernel, Group.MinDt);		
 		return arg_id + 1;
 	}
 	
-	void SetDt(double dt)
+	void SetDt(CCLKernel kernel, double dt)
 	{
-		int parts = cast(int)(Group.Model.TimeStepSize / dt + 0.5);
+		int parts = cast(int)(Group.TimeStepSize / dt + 0.5);
 		if(parts == 0)
 			parts++;
 		
-		float_t val = cast(float_t)(Group.Model.TimeStepSize / parts);
-		Group.StepKernel.SetGlobalArg(Group.IntegratorArgOffset, &val);
+		float_t val = cast(float_t)(Group.TimeStepSize / parts);
+		kernel.SetGlobalArg(Group.IntegratorArgOffset, &val);
 	}
 	
 	override

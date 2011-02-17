@@ -27,19 +27,24 @@ import celeme.ineurongroup;
 
 interface ICLNeuronGroup : INeuronGroup
 {
-	cl_program* Program();
 	char[] Name();
+	
 	int RandLen();
-	CCLRand Rand();
 	int NumEventSources();
 	int NumSrcSynapses();
+	int NrnOffset();
+	
+	CCLRand Rand();
 	CEventSourceBuffer[] EventSourceBuffers();
 	CSynapseBuffer[] SynapseBuffers();
 	CCLBuffer!(cl_int2) DestSynBuffer();
-	int NrnOffset();
 	cl_mem ErrorBuffer();
+	cl_program Program();
+	
 	CCLCore Core();
-	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value);
+	
+	void MemsetFloatBuffer(cl_mem buffer, int count, double value);
+	
 	bool Initialized();
 	int IntegratorArgOffset();
 	double TimeStepSize();

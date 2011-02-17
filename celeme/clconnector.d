@@ -190,7 +190,7 @@ class CCLConnector(float_t)
 			foreach(cnst; Constants)
 			{
 				float_t val = cnst;
-				SetGlobalArg(arg_id++, &val);
+				SetGlobalArg(arg_id++, val);
 			}
 			
 			//$random_state_args$
@@ -199,41 +199,41 @@ class CCLConnector(float_t)
 				arg_id = Group.Rand.SetArgs(ConnectKernel, arg_id);
 			}
 			//const int num_cycles,
-			SetGlobalArg(arg_id++, &num_cycles);
+			SetGlobalArg(arg_id++, num_cycles);
 			//const int src_start,
-			SetGlobalArg(arg_id++, &src_nrn_range[0]);
+			SetGlobalArg(arg_id++, src_nrn_range[0]);
 			//const int src_end,
-			SetGlobalArg(arg_id++, &src_nrn_range[1]);
+			SetGlobalArg(arg_id++, src_nrn_range[1]);
 			//const int src_event_source,
-			SetGlobalArg(arg_id++, &src_event_source);
+			SetGlobalArg(arg_id++, src_event_source);
 			//const int src_slot_max,
 			auto num_src_synapses = Group.NumSrcSynapses;
-			SetGlobalArg(arg_id++, &num_src_synapses);
+			SetGlobalArg(arg_id++, num_src_synapses);
 			//__global int* event_source_idxs,
-			SetGlobalArg(arg_id++, &Group.EventSourceBuffers[src_event_source].FreeIdx.Buffer);
+			SetGlobalArg(arg_id++, Group.EventSourceBuffers[src_event_source].FreeIdx.Buffer);
 			//const int dest_start,
-			SetGlobalArg(arg_id++, &dest_nrn_range[0]);
+			SetGlobalArg(arg_id++, dest_nrn_range[0]);
 			//const int dest_end,
-			SetGlobalArg(arg_id++, &dest_nrn_range[1]);
+			SetGlobalArg(arg_id++, dest_nrn_range[1]);
 			//const int dest_slot_max,
-			SetGlobalArg(arg_id++, &dest.SynapseBuffers[dest_syn_type].Count);
+			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].Count);
 			//__global int* dest_syn_idxs,
-			SetGlobalArg(arg_id++, &dest.SynapseBuffers[dest_syn_type].FreeIdx.Buffer);
+			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].FreeIdx.Buffer);
 			//__global int2* dest_syn_buffer,
-			SetGlobalArg(arg_id++, &Group.DestSynBuffer.Buffer);
+			SetGlobalArg(arg_id++, Group.DestSynBuffer.Buffer);
 			//int dest_nrn_offset,
-			auto nrn_offset = dest.NrnOffset;
-			SetGlobalArg(arg_id++, &nrn_offset);
+			SetGlobalArg(arg_id++, dest.NrnOffset);
 			//int dest_slot_offset,
-			SetGlobalArg(arg_id++, &dest.SynapseBuffers[dest_syn_type].SlotOffset);
+			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].SlotOffset);
 			//__global int* error_buffer
 			auto error_buffer = Group.ErrorBuffer;
-			SetGlobalArg(arg_id++, &error_buffer);
+			SetGlobalArg(arg_id++, error_buffer);
 		}
 		
 		size_t total_num = src_nrn_range[1] - src_nrn_range[0];
 		
-		auto err = clEnqueueNDRangeKernel(Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
+		auto err = clEnqueueNDRangeKernel(Group.Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
+
 		assert(err == CL_SUCCESS);
 	}
 	
@@ -282,5 +282,4 @@ class CCLConnector(float_t)
 	ICLNeuronGroup Group;
 	
 	CCLKernel ConnectKernel;
-	CCLCore Core;
 }

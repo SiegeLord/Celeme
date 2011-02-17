@@ -329,22 +329,21 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		int arg_id;
 		/* Step kernel */
-		auto program = Model.Program;
-		StepKernel = new CCLKernel(&program, Name ~ "_step");
+		auto program = Program;
+		StepKernel = new CCLKernel(program, Name ~ "_step");
 		
 		with(StepKernel)
 		{
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
-			auto error_buffer = ErrorBuffer;
-			SetGlobalArg(arg_id++, &error_buffer);
-			SetGlobalArg(arg_id++, &RecordFlagsBuffer.Buffer);
-			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
-			SetGlobalArg(arg_id++, &RecordBuffer.Buffer);
-			SetGlobalArg(arg_id++, &RecordLength);
+			SetGlobalArg(arg_id++, ErrorBuffer);
+			SetGlobalArg(arg_id++, RecordFlagsBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordIdxBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordLength);
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
+				SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(RandLen)
@@ -353,64 +352,63 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			if(NeedSrcSynCode)
 			{
 				/* Set the event source args */
-				SetGlobalArg(arg_id++, &CircBufferStart);
-				SetGlobalArg(arg_id++, &CircBufferEnd);
-				SetGlobalArg(arg_id++, &CircBuffer);
+				SetGlobalArg(arg_id++, CircBufferStart);
+				SetGlobalArg(arg_id++, CircBufferEnd);
+				SetGlobalArg(arg_id++, CircBuffer);
 			}
 			if(NumDestSynapses)
 			{
-				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer.Buffer);
+				SetGlobalArg(arg_id++, Model.FiredSynBuffer.Buffer);
 				foreach(buffer; SynGlobalBuffers)
 				{
-					SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
+					SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
 				}
 			}
-			SetGlobalArg(arg_id++, &CountVal);
+			SetGlobalArg(arg_id++, CountVal);
 		}
 		
 		/* Init kernel */
-		InitKernel = new CCLKernel(&Model.Program, Name ~ "_init");
+		InitKernel = new CCLKernel(Program, Name ~ "_init");
 		with(InitKernel)
 		{
 			/* Nothing to skip, so set it at 0 */
 			arg_id = 0;
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, &buffer.Buffer.Buffer);
+				SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
 			{
-				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, DestSynBuffer.Buffer);
 			}
-			SetGlobalArg(arg_id++, &CountVal);
+			SetGlobalArg(arg_id++, CountVal);
 		}
 		
 		/* Deliver kernel */
-		DeliverKernel = new CCLKernel(&Model.Program, Name ~ "_deliver");
+		DeliverKernel = new CCLKernel(Program, Name ~ "_deliver");
 		
 		with(DeliverKernel)
 		{
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
-			auto error_buffer = ErrorBuffer;
-			SetGlobalArg(arg_id++, &error_buffer);
-			SetGlobalArg(arg_id++, &RecordIdxBuffer.Buffer);
-			SetGlobalArg(arg_id++, &RecordRate);
+			SetGlobalArg(arg_id++, ErrorBuffer);
+			SetGlobalArg(arg_id++, RecordIdxBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordRate);
 			if(NeedSrcSynCode)
 			{
 				/* Skip the fire table */
 				arg_id++;
 				/* Set the event source args */
-				SetGlobalArg(arg_id++, &CircBufferStart);
-				SetGlobalArg(arg_id++, &CircBufferEnd);
-				SetGlobalArg(arg_id++, &CircBuffer);
-				SetGlobalArg(arg_id++, &DestSynBuffer.Buffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynIdxBuffer.Buffer);
-				SetGlobalArg(arg_id++, &Model.FiredSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, CircBufferStart);
+				SetGlobalArg(arg_id++, CircBufferEnd);
+				SetGlobalArg(arg_id++, CircBuffer);
+				SetGlobalArg(arg_id++, DestSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer.Buffer);
+				SetGlobalArg(arg_id++, Model.FiredSynBuffer.Buffer);
 			}
-			SetGlobalArg(arg_id++, &CountVal);
+			SetGlobalArg(arg_id++, CountVal);
 		}
 		
 		Core.Finish();
@@ -485,8 +483,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		assert(Model.Initialized);
 		
 		float_t val = Constants[idx];
-		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, &val);
-		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, &val);
+		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, val);
+		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, val);
 	}
 	
 	void SetTolerance(char[] state, double tolerance)
@@ -523,8 +521,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		with(StepKernel)
 		{
-			float_t t_val = sim_time;
-			SetGlobalArg(0, &t_val);
+			SetGlobalArg(0, cast(float_t)sim_time);
 
 			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
 			assert(err == CL_SUCCESS);
@@ -541,8 +538,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		with(DeliverKernel)
 		{
-			float_t t_val = sim_time;
-			SetGlobalArg(0, &t_val);
+			SetGlobalArg(0, cast(float_t)sim_time);
 			
 			if(NeedSrcSynCode)
 			{
@@ -1474,9 +1470,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return ValueBuffers.length + Constants.length + ArgOffsetStep + rand_offset;
 	}
 	
-	cl_program* Program()
+	cl_program Program()
 	{
-		return &Model.Program;
+		return Model.Program;
 	}
 	
 	override
@@ -1492,103 +1488,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
-	char[] Name()
-	{
-		return NameVal;
-	}
-	
-	private
-	void Name(char[] name)
-	{
-		NameVal = name;
-	}
-	
-	override
-	int NumEventSources()
-	{
-		return NumEventSourcesVal;
-	}
-	
-	private
-	void NumEventSources(int val)
-	{
-		NumEventSourcesVal = val;
-	}
-	
-	override
-	int NumSrcSynapses()
-	{
-		return NumSrcSynapsesVal;
-	}
-	
-	private
-	void NumSrcSynapses(int val)
-	{
-		NumSrcSynapsesVal = val;
-	}
-	
-	override
-	CEventSourceBuffer[] EventSourceBuffers()
-	{
-		return EventSourceBuffersVal;
-	}
-	
-	private
-	void EventSourceBuffers(CEventSourceBuffer[] val)
-	{
-		EventSourceBuffersVal = val;
-	}
-	
-	override
-	CSynapseBuffer[] SynapseBuffers()
-	{
-		return SynapseBuffersVal;
-	}
-	
-	private
-	void SynapseBuffers(CSynapseBuffer[] val)
-	{
-		SynapseBuffersVal = val;
-	}
-	
-	override
-	CCLBuffer!(cl_int2) DestSynBuffer()
-	{
-		return DestSynBufferVal;
-	}
-	
-	private
-	void DestSynBuffer(CCLBuffer!(cl_int2) val)
-	{
-		DestSynBufferVal = val;
-	}
-	
-	override
-	int NrnOffset()
-	{
-		return NrnOffsetVal;
-	}
-	
-	private
-	void NrnOffset(int val)
-	{
-		NrnOffsetVal = val;
-	}
-	
-	override
-	cl_mem ErrorBuffer()
-	{
-		return ErrorBufferVal;
-	}
-	
-	private
-	void ErrorBuffer(cl_mem val)
-	{
-		ErrorBufferVal = val;
-	}
-	
-	override
-	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
+	void MemsetFloatBuffer(cl_mem buffer, int count, double value)
 	{
 		Model.MemsetFloatBuffer(buffer, count, value);
 	}
@@ -1605,29 +1505,16 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return Model.TimeStepSize;
 	}
 	
-	override
-	int RandLen()
-	{
-		return RandLenVal;
-	}
-	
-	private
-	void RandLen(int val)
-	{
-		RandLenVal = val;
-	}
-	
-	override
-	CCLRand Rand()
-	{
-		return RandVal;
-	}
-	
-	private
-	void Rand(CCLRand val)
-	{
-		RandVal = val;
-	}
+	mixin(Prop!("char[]", "Name", "override", "private"));
+	mixin(Prop!("int", "NumEventSources", "override", "private"));
+	mixin(Prop!("int", "NumSrcSynapses", "override", "private"));
+	mixin(Prop!("CEventSourceBuffer[]", "EventSourceBuffers", "override", "private"));
+	mixin(Prop!("CSynapseBuffer[]", "SynapseBuffers", "override", "private"));
+	mixin(Prop!("CCLBuffer!(cl_int2)", "DestSynBuffer", "override", "private"));
+	mixin(Prop!("int", "NrnOffset", "override", "private"));
+	mixin(Prop!("cl_mem", "ErrorBuffer", "override", "private"));
+	mixin(Prop!("CCLRand", "Rand", "override", "private"));
+	mixin(Prop!("int", "RandLen", "override", "private"));
 	
 	CRecorder[int] Recorders;
 	CRecorder EventRecorder;

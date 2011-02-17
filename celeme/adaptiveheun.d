@@ -79,11 +79,11 @@ dt_buf[i] = dt;";
 	override
 	int SetArgs(CCLKernel kernel, int arg_id)
 	{
-		kernel.SetGlobalArg(arg_id++, &DtBuffer);
+		kernel.SetGlobalArg(arg_id++, DtBuffer);
 		foreach(tol; Tolerances)
 		{
 			float_t tolerance = tol;
-			kernel.SetGlobalArg(arg_id++, &tolerance);
+			kernel.SetGlobalArg(arg_id++, tolerance);
 		}
 		
 		return arg_id;
@@ -228,8 +228,7 @@ else
 			Tolerances[*idx_ptr] = tolerance;
 			if(Group.Initialized)
 			{
-				float_t val = tolerance;
-				kernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, &val);
+				kernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, cast(float_t)tolerance);
 			}
 		}
 		else

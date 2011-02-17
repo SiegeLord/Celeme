@@ -30,20 +30,20 @@ import perf = celeme.amdperf;
 
 class CCLKernel
 {
-	this(cl_program *program, char[] name)
+	this(cl_program program, char[] name)
 	{
 		Program = program;
 		Name = name;
 		
 		int err;
-		Kernel = clCreateKernel(*Program, Name.c_str(), &err);
+		Kernel = clCreateKernel(Program, Name.c_str(), &err);
 		if(err != CL_SUCCESS)
 		{
 			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");
 		}
 	}
 	
-	void SetGlobalArg(T)(uint argnum, T* arg)
+	void SetGlobalArg(T)(uint argnum, T arg)
 	{
 		static if(!is(T == int) 
 		       && !is(T == uint)
@@ -61,7 +61,7 @@ class CCLKernel
 		       )
 			static assert(0, "Invalid argument to SetGlobalArg.");
 
-		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, arg);
+		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, &arg);
 		if(err != CL_SUCCESS)
 		{
 			throw new Exception("Failed to set a global argument " ~ to!(char[])(argnum) ~ " of kernel '" ~ Name ~ "'.");
@@ -82,7 +82,7 @@ class CCLKernel
 		clReleaseKernel(Kernel);
 	}
 	
-	cl_program* Program;
+	cl_program Program;
 	cl_kernel Kernel;
 	char[] Name;
 }

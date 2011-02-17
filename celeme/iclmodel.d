@@ -25,10 +25,11 @@ import opencl.cl;
 
 interface ICLModel : IModel
 {
+	bool Initialized();
 	cl_program Program();
-	CCLKernel FloatMemsetKernel();
-	CCLKernel IntMemsetKernel();
-	
+	CCLCore Core();
 	CCLBuffer!(int) FiredSynIdxBuffer();
 	CCLBuffer!(int) FiredSynBuffer();
+	void MemsetFloatBuffer(cl_mem buffer, int count, double value);
+	void MemsetIntBuffer(cl_mem buffer, int count, int value);
 }

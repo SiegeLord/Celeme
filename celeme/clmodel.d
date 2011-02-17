@@ -23,7 +23,7 @@ import celeme.clrand;
 import celeme.frontend;
 import celeme.clneurongroup;
 import celeme.util;
-import celeme.imodel;
+import celeme.iclmodel;
 import celeme.ineurongroup;
 
 import tango.text.Util;
@@ -64,7 +64,7 @@ __kernel void int_memset(
 }
 ";
 
-class CCLModel(float_t) : IModel
+class CCLModel(float_t) : ICLModel
 {
 	static if(is(float_t == float))
 	{
@@ -195,8 +195,8 @@ class CCLModel(float_t) : IModel
 		assert(Generated);
 		assert(!Initialized);
 		
-		FloatMemsetKernel = new CCLKernel(&Program, "float_memset");
-		IntMemsetKernel = new CCLKernel(&Program, "int_memset");
+		FloatMemsetKernel = new CCLKernel(Program, "float_memset");
+		IntMemsetKernel = new CCLKernel(Program, "int_memset");
 		
 		/* Set it to -1, so that when the neuron step functions are called,
 		 * it gets reset automatically there */
@@ -281,20 +281,22 @@ class CCLModel(float_t) : IModel
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
 			
-			perf.gpa_uint32 id;
-			const prof_t = 0;
-			if(t == prof_t)
+			version(AMDPerf)
 			{
-				perf.EnableCounters(1, "GPUBusy", "ALUBusy");
-				id = perf.BeginSP();
+				perf.gpa_uint32 id;
+				const prof_t = 0;
+				if(t == prof_t)
+				{
+					perf.EnableCounters(1, "GPUBusy", "ALUBusy");
+					id = perf.BeginSP();
+					perf.BeginSample("Deliver");
+				}
 			}
-				
-			if(t == prof_t)
-				perf.BeginSample("Deliver");
 
 			foreach(group; groups)
 				group.CallDeliverKernel(time, DeliverWorkgroupSize);
-				
+			
+			version(AMDPerf)	
 			if(t == prof_t)
 			{
 				perf.EndSample();
@@ -303,12 +305,11 @@ class CCLModel(float_t) : IModel
 
 			foreach(group; groups)
 				group.CallStepKernel(time, StepWorkgroupSize);
-				
-			if(t == prof_t)
-				perf.EndSample();
-				
+			
+			version(AMDPerf)
 			if(t == prof_t)
 			{
+				perf.EndSample();
 				perf.EndSP();
 				Stdout(perf.GetSessionData(id));
 			}
@@ -352,31 +353,33 @@ class CCLModel(float_t) : IModel
 		Initialized = false;
 	}
 	
-	void MemsetFloatBuffer(ref cl_mem buffer, int count, double value)
+	override
+	void MemsetFloatBuffer(cl_mem buffer, int count, double value)
 	{
 		assert(FloatMemsetKernel);
 		
 		with(FloatMemsetKernel)
 		{
-			SetGlobalArg(0, &buffer);
+			SetGlobalArg(0, buffer);
 			float_t val = value;
-			SetGlobalArg(1, &val);
-			SetGlobalArg(2, &count);
+			SetGlobalArg(1, val);
+			SetGlobalArg(2, count);
 			size_t total_size = count;
 			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
 			assert(err == CL_SUCCESS);
 		}
 	}
 	
-	void MemsetIntBuffer(ref cl_mem buffer, int count, int value)
+	override
+	void MemsetIntBuffer(cl_mem buffer, int count, int value)
 	{
 		assert(IntMemsetKernel);
 		
 		with(IntMemsetKernel)
 		{
-			SetGlobalArg(0, &buffer);
-			SetGlobalArg(1, &value);
-			SetGlobalArg(2, &count);
+			SetGlobalArg(0, buffer);
+			SetGlobalArg(1, value);
+			SetGlobalArg(2, count);
 			size_t total_size = count;
 			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
 			assert(err == CL_SUCCESS);
@@ -451,38 +454,16 @@ class CCLModel(float_t) : IModel
 		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type, args);
 	}
 	
-	override
-	double TimeStepSize()
-	{
-		return TimeStepSizeVal;
-	}
-	
-	override
-	void TimeStepSize(double val)
-	{
-		TimeStepSizeVal = val;
-	}
-	
-	override
-	cl_program Program()
-	{
-		return ProgramVal;
-	}
-	
-	private
-	void Program(cl_program val)
-	{
-		ProgramVal = val;
-	}
-	
-	mixin(Prop!(CCLKernel, "FloatMemsetKernel", "override", "private"));
-	mixin(Prop!(CCLKernel, "IntMemsetKernel", "override", "private"));
-	mixin(Prop!(CCLBuffer!(int), "FiredSynIdxBuffer", "override", "private"));
-	mixin(Prop!(CCLBuffer!(int), "FiredSynBuffer", "override", "private"));
+	mixin(Prop!("double", "TimeStepSize", "override", "override"));
+	mixin(Prop!("cl_program", "Program", "override", "private"));
+	mixin(Prop!("CCLBuffer!(int)", "FiredSynIdxBuffer", "override", "private"));
+	mixin(Prop!("CCLBuffer!(int)", "FiredSynBuffer", "override", "private"));
+	mixin(Prop!("bool", "Initialized", "override", "private"));
+	mixin(Prop!("CCLCore", "Core", "override", "private"));
 	
 	cl_program ProgramVal;
-	CCLKernel FloatMemsetKernelVal;
-	CCLKernel IntMemsetKernelVal;
+	CCLKernel FloatMemsetKernel;
+	CCLKernel IntMemsetKernel;
 	
 	CCLBuffer!(int) FiredSynIdxBufferVal;
 	CCLBuffer!(int) FiredSynBufferVal;
@@ -500,10 +481,10 @@ class CCLModel(float_t) : IModel
 	
 	double TimeStepSizeVal = 1.0;
 	
-	CCLCore Core;
+	CCLCore CoreVal;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;
 	char[] Source;
 	
-	bool Initialized = false;
+	bool InitializedVal = false;
 	bool Generated = false;
 }

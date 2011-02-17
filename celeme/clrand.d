@@ -154,7 +154,7 @@ class CCLRandImpl(uint N) : CCLRand
 	int SetArgs(CCLKernel kernel, int arg_id)
 	{
 		uint a;
-		kernel.SetGlobalArg(arg_id, &State.Buffer);
+		kernel.SetGlobalArg(arg_id, State.Buffer);
 		return arg_id + 1;
 	}
 	

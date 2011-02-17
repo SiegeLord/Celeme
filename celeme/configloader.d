@@ -634,8 +634,8 @@ IModel LoadModel(char[] file, bool gpu = false)
 	
 	if(float_type == "float")
 		ret = new CCLModel!(float)(gpu);
-	//else if(float_type == "double")
-	//	ret = CreateCLModel!(double)(gpu);
+	else if(float_type == "double")
+		ret = new CCLModel!(double)(gpu);
 	else
 		throw new Exception("'" ~ float_type ~ "' is not a valid floating point type.");
 		

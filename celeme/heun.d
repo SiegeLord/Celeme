@@ -64,9 +64,8 @@ class CHeun(float_t) : CIntegrator!(float_t)
 		int parts = cast(int)(Group.TimeStepSize / dt + 0.5);
 		if(parts == 0)
 			parts++;
-		
-		float_t val = cast(float_t)(Group.TimeStepSize / parts);
-		kernel.SetGlobalArg(Group.IntegratorArgOffset, &val);
+
+		kernel.SetGlobalArg(Group.IntegratorArgOffset, cast(float_t)(Group.TimeStepSize / parts));
 	}
 	
 	override

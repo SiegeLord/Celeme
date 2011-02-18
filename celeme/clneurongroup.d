@@ -511,7 +511,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		assert(err == CL_SUCCESS);
 	}
 	
-	void CallStepKernel(double sim_time, size_t workgroup_size)
+	cl_event CallStepKernel(double sim_time, size_t workgroup_size)
 	{
 		assert(Model.Initialized);
 		
@@ -519,13 +519,17 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		if(total_num < Count)
 			total_num += workgroup_size;
 		
+		cl_event event;
+		
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
 
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, &event);
 			assert(err == CL_SUCCESS);
 		}
+		
+		return event;
 	}
 	
 	void CallDeliverKernel(double sim_time, size_t workgroup_size)

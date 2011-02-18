@@ -272,6 +272,8 @@ class CCLModel(float_t) : ICLModel
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
+		cl_event step_event = null;
+		
 		int t = CurStep;
 		/* Run the model */
 		while(t < num_timesteps)
@@ -284,10 +286,10 @@ class CCLModel(float_t) : ICLModel
 			version(AMDPerf)
 			{
 				perf.gpa_uint32 id;
-				const prof_t = 0;
+				const prof_t = 101;
 				if(t == prof_t)
 				{
-					perf.EnableCounters(1, "GPUBusy", "ALUBusy");
+					perf.EnableCounters(1, "Wavefronts", "FastPath", "CompletePath");
 					id = perf.BeginSP();
 					perf.BeginSample("Deliver");
 				}
@@ -296,7 +298,7 @@ class CCLModel(float_t) : ICLModel
 			foreach(group; groups)
 				group.CallDeliverKernel(time, DeliverWorkgroupSize);
 			
-			version(AMDPerf)	
+			version(AMDPerf)
 			if(t == prof_t)
 			{
 				perf.EndSample();
@@ -304,24 +306,43 @@ class CCLModel(float_t) : ICLModel
 			}
 
 			foreach(group; groups)
-				group.CallStepKernel(time, StepWorkgroupSize);
+			{
+				auto event = group.CallStepKernel(time, StepWorkgroupSize);
+				version(AMDPerf)
+				if(t == prof_t)
+					step_event = event;
+			}
 			
 			version(AMDPerf)
 			if(t == prof_t)
 			{
 				perf.EndSample();
 				perf.EndSP();
-				Stdout(perf.GetSessionData(id));
+				Stdout(perf.GetSessionData(id)).nl;
 			}
 				
 			foreach(group; groups)
 				group.UpdateRecorders(t, t == num_timesteps - 1);
 			t++;
 		}
-			
+
 		CurStep = t;
 
 		Core.Finish();
+		
+		cl_ulong start, end;
+		
+		version(AMDPerf)
+		if(step_event !is null)
+		{
+			auto ret = clGetEventProfilingInfo(step_event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
+			assert(ret == CL_SUCCESS);
+			ret = clGetEventProfilingInfo(step_event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
+			assert(ret == CL_SUCCESS);
+			
+			println("Step time: {:f8}", cast(double)(end - start) / (1.0e9));
+		}
+		
 		/* Check for errors */
 		foreach(group; groups)
 		{

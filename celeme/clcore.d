@@ -224,7 +224,9 @@ class CCLCore
 		}
 
 		/* Create a command commands */
-		Commands = clCreateCommandQueue(Context, Devices[0], 0, &err);
+		int flags = 0;
+		version(AMDPerf) flags = CL_QUEUE_PROFILING_ENABLE;
+		Commands = clCreateCommandQueue(Context, Devices[0], flags, &err);
 		if(!Commands)
 		{
 			throw new Exception("Failed to create a command queue!");

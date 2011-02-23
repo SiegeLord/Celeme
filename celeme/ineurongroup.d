@@ -115,4 +115,9 @@ interface INeuronGroup
 	 * Returns the number of neurons in this group
 	 */
 	int Count();
+		
+	/**
+	 * Seeds the random number generator.
+	 */
+	void Seed(int seed);
 }

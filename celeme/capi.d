@@ -523,6 +523,17 @@ void celeme_set_min_dt(INeuronGroup group, double min_dt);
  */
 int celeme_get_count(INeuronGroup group);
 
+/**
+ * Seeds the random number generator.
+ * 
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Seed, INeuronGroup.Seed)
+ * 
+ * C signature:
+ * ---
+ * int celeme_seed(CELEME_NEURON_GROUP* group, int seed);
+ * ---
+ */
+int celeme_seed(INeuronGroup group);
 }
 else
 {
@@ -688,6 +699,9 @@ mixin(GroupFunc!("get_count", "int", "Count",
 	"", 
 	"", "0"));
 	
+mixin(GroupFunc!("seed", "void", "Seed", 
+	", int seed", 
+	"seed", ""));	
 }
 
 /*

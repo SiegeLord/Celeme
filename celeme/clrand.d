@@ -91,6 +91,11 @@ class CCLRand
 		return arg_id;
 	}
 	
+	void Seed(int n)
+	{
+		
+	}
+	
 	void Seed()
 	{
 		
@@ -136,21 +141,25 @@ class CCLRandImpl(uint N) : CCLRand
 		return ret;
 	}
 	
+	override
 	char[] GetLoadCode()
 	{
 		return GetTypeString() ~ " rand_state = rand_state_buf[i];";
 	}
 	
+	override
 	char[] GetSaveCode()
 	{
 		return "rand_state_buf[i] = rand_state;";
 	}
 	
+	override
 	char[] GetArgsCode()
 	{
 		return "__global " ~ GetTypeString() ~ "* rand_state_buf,";
 	}
 	
+	override
 	int SetArgs(CCLKernel kernel, int arg_id)
 	{
 		uint a;
@@ -158,6 +167,14 @@ class CCLRandImpl(uint N) : CCLRand
 		return arg_id + 1;
 	}
 	
+	override
+	void Seed(int n)
+	{
+		rand.seed({return n;});
+		Seed();
+	}
+	
+	override
 	void Seed()
 	{
 		auto arr = State.Map(CL_MAP_WRITE);
@@ -176,11 +193,13 @@ class CCLRandImpl(uint N) : CCLRand
 		State.UnMap(arr);
 	}
 	
+	override
 	void Shutdown()
 	{
 		State.Release();
 	}
 	
+	override
 	int NumArgs()
 	{
 		return 1;

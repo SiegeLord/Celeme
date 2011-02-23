@@ -1474,6 +1474,13 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		return ValueBuffers.length + Constants.length + ArgOffsetStep + rand_offset;
 	}
 	
+	override
+	void Seed(int seed)
+	{
+		if(RandLen)
+			Rand.Seed(seed);
+	}
+	
 	cl_program Program()
 	{
 		return Model.Program;

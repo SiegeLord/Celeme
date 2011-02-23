@@ -164,11 +164,28 @@ PyObject* SNeuronGroup_record_events(SNeuronGroup *self, PyObject* args, PyObjec
 	return ret;
 }
 
+extern (C)
+PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["seed", null];
+	int seed;
+
+	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &seed))
+		return null;
+	
+	celeme_seed(self.Group, seed);
+	
+	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 PyMethodDef[] SNeuronGroup_methods = 
 [
     {"StopRecording", cast(PyCFunction)&SNeuronGroup_stop_recording, METH_VARARGS | METH_KEYWORDS, "Stop recording from a particular neuron."},
     {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Record the temporal evolution of a state variable in a neuron."},
     {"RecordEvents", cast(PyCFunction)&SNeuronGroup_record_events, METH_VARARGS | METH_KEYWORDS, "Record the threshold crossings of a particular threshold in a neuron."},
+    {"Seed", cast(PyCFunction)&SNeuronGroup_seed, METH_VARARGS | METH_KEYWORDS, "Set the seed for the random number generator."},
     {null}  /* Sentinel */
 ];
 

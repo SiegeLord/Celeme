@@ -1,4 +1,4 @@
-["capi",1,[],[1,788],[
+["capi",1,[],[1,802],[
 ["celeme_init",12,[32],[66,79],[]],
 ["celeme_shutdown",12,[32],[90,102],[]],
 ["celeme_get_error",12,[32],[115,121],[]],
@@ -29,7 +29,8 @@
 ["celeme_get_min_dt",12,[32],[500,500],[]],
 ["celeme_set_min_dt",12,[32],[512,512],[]],
 ["celeme_get_count",12,[32],[524,524],[]],
-["celeme_get_recorder_name",12,[32],[707,718],[]],
-["celeme_get_recorder_length",12,[32],[730,741],[]],
-["celeme_get_recorder_time",12,[32],[753,764],[]],
-["celeme_get_recorder_data",12,[32],[776,787],[]]]]
+["celeme_seed",12,[32],[536,536],[]],
+["celeme_get_recorder_name",12,[32],[721,732],[]],
+["celeme_get_recorder_length",12,[32],[744,755],[]],
+["celeme_get_recorder_time",12,[32],[767,778],[]],
+["celeme_get_recorder_data",12,[32],[790,801],[]]]]

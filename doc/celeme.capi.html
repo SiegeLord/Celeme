@@ -435,7 +435,20 @@
 <span class="k">int</span> <span class="i">celeme_get_count</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L707">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_seed" href="htmlsrc/celeme.capi.html#L536">celeme_seed</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_seed" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Seeds the random number generator.</div></div>
+<p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Seed">INeuronGroup.Seed</a>
+ 
+ C signature:
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex32" name="L1_ex32">1</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="k">int</span> <span class="i">celeme_seed</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">seed</span>);</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L721">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the recorder name.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Name">CRecorder.Name</a>
@@ -443,12 +456,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex32" name="L1_ex32">1</a>
+<pre><a href="#L1_ex33" name="L1_ex33">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">const</span> <span class="k">char</span>* <span class="i">celeme_get_recorder_name</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L730">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L744">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the length of the recorder data.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Length">CRecorder.Length</a>
@@ -456,12 +469,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex33" name="L1_ex33">1</a>
+<pre><a href="#L1_ex34" name="L1_ex34">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">size_t</span> <span class="i">celeme_get_recorder_length</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L753">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L767">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded time points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.T">CRecorder.T</a>
@@ -469,12 +482,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex34" name="L1_ex34">1</a>
+<pre><a href="#L1_ex35" name="L1_ex35">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">double</span>* <span class="i">celeme_get_recorder_time</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L776">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L790">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded data points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Data">CRecorder.Data</a>
@@ -482,7 +495,7 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex35" name="L1_ex35">1</a>
+<pre><a href="#L1_ex36" name="L1_ex36">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">double</span>* <span class="i">celeme_get_recorder_data</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
@@ -490,7 +503,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Thu Feb 17 17:25:53 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sun Feb 27 16:15:25 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

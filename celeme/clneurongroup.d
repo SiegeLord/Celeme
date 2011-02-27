@@ -500,39 +500,35 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 	}
 	
-	void CallInitKernel(size_t workgroup_size)
+	void CallInitKernel(size_t workgroup_size, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
-		auto err = clEnqueueNDRangeKernel(Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+		auto err = clEnqueueNDRangeKernel(Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
 		assert(err == CL_SUCCESS);
 	}
 	
-	cl_event CallStepKernel(double sim_time, size_t workgroup_size)
+	void CallStepKernel(double sim_time, size_t workgroup_size, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
-		
-		cl_event event;
-		
+
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
 
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, &event);
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
 			assert(err == CL_SUCCESS);
 		}
-		
-		return event;
 	}
 	
-	void CallDeliverKernel(double sim_time, size_t workgroup_size)
+	void CallDeliverKernel(double sim_time, size_t workgroup_size, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
@@ -550,7 +546,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				SetLocalArg(ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
 			}
 
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, null);
+			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
 			assert(err == CL_SUCCESS);
 		}
 	}

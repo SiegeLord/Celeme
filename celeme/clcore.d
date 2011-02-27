@@ -225,7 +225,7 @@ class CCLCore
 
 		/* Create a command commands */
 		int flags = 0;
-		version(AMDPerf) flags = CL_QUEUE_PROFILING_ENABLE;
+		version(Perf) flags = CL_QUEUE_PROFILING_ENABLE;
 		Commands = clCreateCommandQueue(Context, Devices[0], flags, &err);
 		if(!Commands)
 		{

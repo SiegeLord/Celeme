@@ -7,13 +7,13 @@ from glob import glob
 
 opencl_path = '/usr/local/atistream/lib/x86_64'
 amd_perf_str = ''
-amd_perf_str = '-d-version=AMDPerf -L-lGPUPerfAPICL'
+#amd_perf_str = '-d-version=AMDPerf -L-lGPUPerfAPICL'
 
 def shell(cmd):
 	return call(cmd, shell=True)
 
 def dbuild():
-	return shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest ' + amd_perf_str)
+	return shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest -d-version=Perf ' + amd_perf_str)
 
 if len(argv) > 1:
 	if argv[1] == 'lib':

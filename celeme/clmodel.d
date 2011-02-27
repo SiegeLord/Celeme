@@ -272,7 +272,12 @@ class CCLModel(float_t) : ICLModel
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
-		cl_event step_event = null;
+		version(Perf)
+		{
+			cl_event step_event = null;
+			cl_event deliver_event = null;
+			const prof_t = 112;
+		}
 		
 		int t = CurStep;
 		/* Run the model */
@@ -286,7 +291,6 @@ class CCLModel(float_t) : ICLModel
 			version(AMDPerf)
 			{
 				perf.gpa_uint32 id;
-				const prof_t = 101;
 				if(t == prof_t)
 				{
 					perf.EnableCounters(1, "Wavefronts", "FastPath", "CompletePath");
@@ -295,34 +299,52 @@ class CCLModel(float_t) : ICLModel
 				}
 			}
 
+			/* Call the deliver kernerl */
 			foreach(group; groups)
-				group.CallDeliverKernel(time, DeliverWorkgroupSize);
+			{
+				cl_event* event_ptr;
+				version(Perf)
+				{
+					if(t == prof_t)
+						event_ptr = &deliver_event;
+				}
+				group.CallDeliverKernel(time, DeliverWorkgroupSize, event_ptr);
+			}
 			
 			version(AMDPerf)
-			if(t == prof_t)
 			{
-				perf.EndSample();
-				perf.BeginSample("Step");
+				if(t == prof_t)
+				{
+					perf.EndSample();
+					perf.BeginSample("Step");
+				}
 			}
 
+			/* Call the step kernerl */
 			foreach(group; groups)
 			{
-				auto event = group.CallStepKernel(time, StepWorkgroupSize);
-				version(AMDPerf)
-				if(t == prof_t)
-					step_event = event;
+				cl_event* event_ptr;
+				version(Perf)
+				{
+					if(t == prof_t)
+						event_ptr = &step_event;
+				}
+				group.CallStepKernel(time, StepWorkgroupSize, event_ptr);
 			}
 			
 			version(AMDPerf)
-			if(t == prof_t)
 			{
-				perf.EndSample();
-				perf.EndSP();
-				Stdout(perf.GetSessionData(id)).nl;
+				if(t == prof_t)
+				{
+					perf.EndSample();
+					perf.EndSP();
+					Stdout(perf.GetSessionData(id)).nl;
+				}
 			}
 				
 			foreach(group; groups)
 				group.UpdateRecorders(t, t == num_timesteps - 1);
+
 			t++;
 		}
 
@@ -330,17 +352,23 @@ class CCLModel(float_t) : ICLModel
 
 		Core.Finish();
 		
-		cl_ulong start, end;
-		
-		version(AMDPerf)
-		if(step_event !is null)
+		version(Perf)
 		{
-			auto ret = clGetEventProfilingInfo(step_event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
-			assert(ret == CL_SUCCESS);
-			ret = clGetEventProfilingInfo(step_event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
-			assert(ret == CL_SUCCESS);
+			double get_dur(cl_event event)
+			{
+				cl_ulong start, end;
+				auto ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
+				assert(ret == CL_SUCCESS);
+				ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
+				assert(ret == CL_SUCCESS);
+				
+				return cast(double)(end - start) / (1.0e9);
+			}
 			
-			println("Step time: {:f8}", cast(double)(end - start) / (1.0e9));
+			if(step_event !is null)
+				println("Step time: {:f8}", get_dur(step_event));
+			if(deliver_event !is null)
+				println("Deliver time: {:f8}", get_dur(deliver_event));
 		}
 		
 		/* Check for errors */

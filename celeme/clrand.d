@@ -170,7 +170,7 @@ class CCLRandImpl(uint N) : CCLRand
 	override
 	void Seed(int n)
 	{
-		rand.seed({return n;});
+		rand.seed({return cast(uint)n;});
 		Seed();
 	}
 	

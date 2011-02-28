@@ -274,9 +274,10 @@ class CCLModel(float_t) : ICLModel
 		
 		version(Perf)
 		{
+			double step_total = 0;
+			double deliver_total = 0;
 			cl_event step_event = null;
 			cl_event deliver_event = null;
-			const prof_t = 112;
 		}
 		
 		int t = CurStep;
@@ -284,13 +285,11 @@ class CCLModel(float_t) : ICLModel
 		while(t < num_timesteps)
 		{
 			double time = TimeStepSize * t;
-			/* Called first because it resets the record index to 0,
-			 * so the update recorders wouldn't get anything if it was right 
-			 * before it */
 			
 			version(AMDPerf)
 			{
 				perf.gpa_uint32 id;
+				const prof_t = 112;
 				if(t == prof_t)
 				{
 					perf.EnableCounters(1, "Wavefronts", "FastPath", "CompletePath");
@@ -299,14 +298,16 @@ class CCLModel(float_t) : ICLModel
 				}
 			}
 
-			/* Call the deliver kernerl */
+			/* Call the deliver kernel.
+			 * Called first because it resets the record index to 0,
+			 * so the update recorders wouldn't get anything if it was right 
+			 * before it */
 			foreach(group; groups)
 			{
 				cl_event* event_ptr;
 				version(Perf)
 				{
-					if(t == prof_t)
-						event_ptr = &deliver_event;
+					event_ptr = &deliver_event;
 				}
 				group.CallDeliverKernel(time, DeliverWorkgroupSize, event_ptr);
 			}
@@ -326,8 +327,7 @@ class CCLModel(float_t) : ICLModel
 				cl_event* event_ptr;
 				version(Perf)
 				{
-					if(t == prof_t)
-						event_ptr = &step_event;
+					event_ptr = &step_event;
 				}
 				group.CallStepKernel(time, StepWorkgroupSize, event_ptr);
 			}
@@ -340,6 +340,27 @@ class CCLModel(float_t) : ICLModel
 					perf.EndSP();
 					Stdout(perf.GetSessionData(id)).nl;
 				}
+			}
+			
+			version(Perf)
+			{
+				Core.Finish();
+				
+				double get_dur(cl_event event)
+				{
+					cl_ulong start, end;
+					auto ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
+					assert(ret == CL_SUCCESS);
+					ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
+					assert(ret == CL_SUCCESS);
+					
+					return cast(double)(end - start) / (1.0e9);
+				}
+				
+				if(step_event !is null)
+					step_total += get_dur(step_event);
+				if(deliver_event !is null)
+					deliver_total += get_dur(deliver_event);
 			}
 				
 			foreach(group; groups)
@@ -354,21 +375,8 @@ class CCLModel(float_t) : ICLModel
 		
 		version(Perf)
 		{
-			double get_dur(cl_event event)
-			{
-				cl_ulong start, end;
-				auto ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
-				assert(ret == CL_SUCCESS);
-				ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
-				assert(ret == CL_SUCCESS);
-				
-				return cast(double)(end - start) / (1.0e9);
-			}
-			
-			if(step_event !is null)
-				println("Step time: {:f8}", get_dur(step_event));
-			if(deliver_event !is null)
-				println("Deliver time: {:f8}", get_dur(deliver_event));
+			println("Step time: {:f8}", step_total);
+			println("Deliver time: {:f8}", deliver_total);
 		}
 		
 		/* Check for errors */

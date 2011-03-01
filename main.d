@@ -29,9 +29,18 @@ import celeme.util;
 import tango.time.StopWatch;
 import tango.io.Stdout;
 import tango.math.random.Random;
+import tango.text.Arguments;
 
-void main()
+void main(char[][] arg_list)
 {
+	bool record = true;
+	bool save_to_file = false;
+	
+	auto args = new Arguments;
+	args("run-only").aliased('r').bind({record = false;});
+	args("save").aliased('s').bind({save_to_file = true;});
+	args.parse(arg_list);
+	
 	StopWatch timer;
 	
 	timer.start;
@@ -74,7 +83,6 @@ void main()
 	
 	return;+/
 	
-	bool record = true;
 	CRecorder v_rec1;
 	CRecorder v_rec2;
 	CRecorder v_rec3;
@@ -106,6 +114,11 @@ void main()
 		auto plot = new C2DPlot;
 		with(plot)
 		{
+			if(save_to_file)
+			{
+				Terminal = "pngcairo";
+				OutputFile = "plot.png";
+			}
 			Title(GetGitRevisionHash());
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");

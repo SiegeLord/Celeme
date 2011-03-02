@@ -1,0 +1,21 @@
+Short term things:
+
+- Currently all the kernels use the complete path for all memory accesses due to atomics. My tests have shown that removing the atomics doesn't actually help all that much: at most 15% performance increase. Still, something to look at in the future.
+
+- It should be possible to set the workgroup sizes on a per-neuron group basis
+
+- Caching for successive accesses to the global/syn-global/connection arrays
+
+- Decording of error codes returned from kernels
+
+- Figure out exactly why performance is not so hot (or maybe it is hot, but I don't really understand it)
+
+- Think about caching kernels (might not be needed for Python port, as it has interactive coding)
+
+- Test on NVidia hardware
+
+Long term things:
+
+- Multiple compartments per cell
+
+- Figure out a solution for needless simulation of spike traces (e.g. add a mechanism to pause a neuron or something)

@@ -28,6 +28,7 @@ import celeme.ineurongroup;
 
 import tango.text.Util;
 import tango.io.Stdout;
+import tango.time.StopWatch;
 
 version (AMDPerf)
 import perf = celeme.amdperf;
@@ -272,6 +273,12 @@ class CCLModel(float_t) : ICLModel
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
 		
+		StopWatch timer;
+		double step_est = 0;
+		double deliver_est = 0;
+		double record_est = 0;
+		double finish_est = 0;
+		
 		version(Perf)
 		{
 			double step_total = 0;
@@ -302,6 +309,7 @@ class CCLModel(float_t) : ICLModel
 			 * Called first because it resets the record index to 0,
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
+			timer.start;
 			foreach(group; groups)
 			{
 				cl_event* event_ptr;
@@ -311,6 +319,7 @@ class CCLModel(float_t) : ICLModel
 				}
 				group.CallDeliverKernel(time, DeliverWorkgroupSize, event_ptr);
 			}
+			deliver_est += timer.stop;
 			
 			version(AMDPerf)
 			{
@@ -321,7 +330,8 @@ class CCLModel(float_t) : ICLModel
 				}
 			}
 
-			/* Call the step kernerl */
+			/* Call the step kernel */
+			timer.start;
 			foreach(group; groups)
 			{
 				cl_event* event_ptr;
@@ -331,6 +341,7 @@ class CCLModel(float_t) : ICLModel
 				}
 				group.CallStepKernel(time, StepWorkgroupSize, event_ptr);
 			}
+			step_est += timer.stop;
 			
 			version(AMDPerf)
 			{
@@ -362,22 +373,34 @@ class CCLModel(float_t) : ICLModel
 				if(deliver_event !is null)
 					deliver_total += get_dur(deliver_event);
 			}
-				
+			
+			timer.start;	
 			foreach(group; groups)
 				group.UpdateRecorders(t, t == num_timesteps - 1);
+			record_est += timer.stop;
 
 			t++;
 		}
 
 		CurStep = t;
-
+		
+		timer.start;
 		Core.Finish();
+		finish_est = timer.stop;
 		
 		version(Perf)
 		{
-			println("Step time: {:f8}", step_total);
-			println("Deliver time: {:f8}", deliver_total);
+			println("True run times:");
+			println("\tStep time: {:f8}", step_total);
+			println("\tDeliver time: {:f8}", deliver_total);
 		}
+		
+		println("Estimates:");
+		println("\tStep: {:f8}", step_est);
+		println("\tDeliver: {:f8}", deliver_est);
+		println("\tRecord: {:f8}", record_est);
+		println("\tFinish: {:f8}", finish_est);
+		println("\tSum: {:f8}", step_est + deliver_est + record_est + finish_est);
 		
 		/* Check for errors */
 		foreach(group; groups)

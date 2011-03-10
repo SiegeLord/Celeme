@@ -32,5 +32,8 @@ if len(argv) > 1:
 			shell('./main ' + join(argv[2:], ' '))
 	elif argv[1] == 'c':
 		shell('gcc test.c -o test -L/usr/local/d/ -L. -lceleme -ltango_nomain -lm -ldl -lpthread -L' + opencl_path + ' -lOpenCL -std=c99')
+	elif argv[1] == 'clean':
+		shell('rm ./.objs/*.o')
+		dbuild()
 else:
 	dbuild()

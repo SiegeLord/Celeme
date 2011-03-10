@@ -102,7 +102,7 @@ void main(char[][] arg_list)
 	//model.Run(tstop);
 	model.ResetRun();
 	model.InitRun();
-	model.RunUntil(cast(int)(50 * t_scale));
+	//model.RunUntil(cast(int)(50 * t_scale));
 	model.RunUntil(tstop + 1);
 	Stdout.formatln("Run time: {}", timer.stop);
 	

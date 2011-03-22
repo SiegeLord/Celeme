@@ -15,7 +15,7 @@ def shell(cmd):
 	return call(cmd, shell=True)
 
 def dbuild():
-	return shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest ' + perf_str + ' ' + amd_perf_str)
+	return shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -g -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest ' + perf_str + ' ' + amd_perf_str)
 
 if len(argv) > 1:
 	if argv[1] == 'lib':

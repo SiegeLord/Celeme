@@ -67,9 +67,7 @@ class CEventSourceBuffer
 	this(CCLCore core, int nrn_count)
 	{
 		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
-		auto buff = FreeIdx.Map(CL_MAP_WRITE);
-		buff[] = 0;
-		FreeIdx.UnMap(buff);
+		FreeIdx[] = 0;
 	}
 	
 	void Release()
@@ -86,9 +84,7 @@ class CSynapseBuffer
 	this(CCLCore core, int offset, int count, int nrn_count)
 	{
 		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
-		auto buff = FreeIdx.Map(CL_MAP_WRITE);
-		buff[] = 0;
-		FreeIdx.UnMap(buff);
+		FreeIdx[] = 0;
 		SlotOffset = offset;
 		Count = count;
 	}

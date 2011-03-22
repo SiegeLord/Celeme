@@ -167,7 +167,23 @@ class CCLBuffer(T) : CCLBufferBase
 		clEnqueueUnmapMemObject(Core.Commands, Buffer, arr.ptr, 0, null, null);
 	}
 	
-	T ReadOne(size_t idx)
+	T opSliceAssign(T val)
+	{
+		auto arr = MapWrite();
+		arr[] = val;
+		UnMap(arr);
+		return val;
+	}
+	
+	T opSliceAssign(T val, size_t start, size_t end)
+	{
+		auto arr = MapWrite(start, end - start);
+		arr[] = val;
+		UnMap(arr);
+		return val;
+	}
+	
+	T opIndex(size_t idx)
 	{
 		assert(idx >= 0 && idx < Length);
 		
@@ -177,20 +193,14 @@ class CCLBuffer(T) : CCLBufferBase
 		return ret;
 	}
 	
-	void Write(T val, size_t offset = 0, size_t length = 0)
-	{
-		auto arr = MapWrite();
-		arr[] = val;
-		UnMap(arr);
-	}
-	
-	void WriteOne(size_t idx, T val)
+	T opIndexAssign(T val, size_t idx)
 	{
 		assert(idx >= 0 && idx < Length);
 		
 		auto arr = MapWrite(idx, 1);
 		arr[0] = val;
 		UnMap(arr);
+		return val;
 	}
 }
 

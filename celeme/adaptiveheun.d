@@ -53,7 +53,7 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 	override
 	void Reset()
 	{
-		DtBuffer.Write(Group.MinDt);
+		DtBuffer[] = Group.MinDt;
 	}
 	
 	override

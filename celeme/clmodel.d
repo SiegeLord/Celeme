@@ -203,9 +203,7 @@ class CCLModel(float_t) : ICLModel
 		 * it gets reset automatically there */
 		if(NumDestSynapses)
 		{
-			auto arr = FiredSynIdxBuffer.Map(CL_MAP_WRITE);
-			arr[] = -1;
-			FiredSynIdxBuffer.UnMap(arr);
+			FiredSynIdxBuffer[] = -1;
 		}
 		
 		Initialized = true;

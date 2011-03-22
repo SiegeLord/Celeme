@@ -177,7 +177,8 @@ class CCLRandImpl(uint N) : CCLRand
 	override
 	void Seed()
 	{
-		auto arr = State.Map(CL_MAP_WRITE);
+		auto arr = State.MapWrite();
+		scope(exit) State.UnMap(arr);
 		foreach(ref el; arr)
 		{
 			static if(N == 1)
@@ -190,7 +191,6 @@ class CCLRandImpl(uint N) : CCLRand
 					el[ii] = rand.uniform!(int);
 			}
 		}
-		State.UnMap(arr);
 	}
 	
 	override

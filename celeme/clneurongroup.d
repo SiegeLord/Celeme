@@ -413,8 +413,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		Core.Finish();
 		
-		RecordFlagsBuffer.Write(0);
-		DestSynBuffer.Write(cl_int2(-1, -1));
+		RecordFlagsBuffer[] = 0;
+		DestSynBuffer[] = cl_int2(-1, -1);
 		
 		foreach(conn; Connectors)
 			conn.Initialize;
@@ -446,28 +446,24 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Rand.Seed();
 		
 		/* Initialize the buffers */
-		ErrorBuffer.Write(0);
-		RecordIdxBuffer.WriteOne(0, 0);
+		ErrorBuffer[] = 0;
+		RecordIdxBuffer[0] = 0;
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart.Write(-1);
-			CircBufferEnd.Write(0);
+			CircBufferStart[] = -1;
+			CircBufferEnd[] = 0;
 		}
 		
 		/* Write the default values to the global buffers*/
 		foreach(buffer; ValueBuffers)
 		{
-			auto arr = buffer.Buffer.Map(CL_MAP_WRITE);
-			arr[] = buffer.DefaultValue;
-			buffer.Buffer.UnMap(arr);
+			buffer.Buffer[] = buffer.DefaultValue;
 		}
 		
 		foreach(buffer; SynGlobalBuffers)
 		{
-			auto arr = buffer.Buffer.Map(CL_MAP_WRITE);
-			arr[] = buffer.DefaultValue;
-			buffer.Buffer.UnMap(arr);
+			buffer.Buffer[] = buffer.DefaultValue;
 		}
 		Core.Finish();
 		
@@ -1142,7 +1138,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			return ValueBuffers[*idx_ptr].Buffer.ReadOne(idx);
+			return ValueBuffers[*idx_ptr].Buffer[idx];
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1158,7 +1154,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		auto idx_ptr = name in ValueBufferRegistry;
 		if(idx_ptr !is null)
 		{
-			ValueBuffers[*idx_ptr].Buffer.WriteOne(idx, val);
+			ValueBuffers[*idx_ptr].Buffer[idx] = val;
 			return val;
 		}
 		
@@ -1185,7 +1181,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			
 			auto idx = num_syns_per_nrn * nrn_idx + syn_idx;
 			
-			return buffer.ReadOne(idx);
+			return buffer[idx];
 		}
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
@@ -1208,7 +1204,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			
 			auto idx = num_syns_per_nrn * nrn_idx + syn_idx;
 			
-			buffer.WriteOne(idx, val);
+			buffer[idx] = val;
 			
 			return val;
 		}
@@ -1259,10 +1255,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		{
 			if((RecordRate && ((timestep + 1) % RecordRate == 0)) || last)
 			{
-				int num_written = RecordIdxBuffer.ReadOne(0);
+				int num_written = RecordIdxBuffer[0];
 				if(num_written)
 				{
-					auto output = RecordBuffer.Map(CL_MAP_READ, 0, num_written);
+					auto output = RecordBuffer.MapRead(0, num_written);
+					scope(exit) RecordBuffer.UnMap(output);
 					//Stdout.formatln("num_written: {} {}", num_written, output.length);
 					foreach(quad; output)
 					{
@@ -1273,12 +1270,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 						else
 							Recorders[id].AddDatapoint(quad[1], quad[2]);
 					}
-					RecordBuffer.UnMap(output);
 				}
 			}
 			/* The one for the normal RecordRate triggers is done inside the deliver kernel */
 			if(last)
-				RecordIdxBuffer.WriteOne(0, 0);
+				RecordIdxBuffer[0] = 0;
 		}
 	}
 	
@@ -1295,7 +1291,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 		
 		/* Offset the index by 1 */
-		RecordFlagsBuffer.WriteOne(neuron_id, 1 + *idx_ptr);
+		RecordFlagsBuffer[neuron_id] = 1 + *idx_ptr;
 		
 		auto rec = new CRecorder(Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
 		Recorders[neuron_id] = rec;
@@ -1312,7 +1308,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		EventRecorderIds ~= neuron_id;
 		/* Offset the index by 1 */
-		RecordFlagsBuffer.WriteOne(neuron_id, thresh_id + ThreshRecordOffset);
+		RecordFlagsBuffer[neuron_id] = thresh_id + ThreshRecordOffset;
 		
 		return EventRecorder;
 	}
@@ -1333,7 +1329,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		EventRecorderIds.length = EventRecorderIds.remove(neuron_id);
 		
-		RecordFlagsBuffer.WriteOne(neuron_id, 0);
+		RecordFlagsBuffer[neuron_id] = 0;
 	}
 	
 	void CheckErrors()
@@ -1372,8 +1368,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		int src_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
-		DestSynBuffer.WriteOne(src_syn_id, cl_int2(dest_neuron_id, dest_slot));
-		//auto arr = DestSynBuffer.Map(CL_MAP_READ);
+		DestSynBuffer[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
 	}
 	
 	int GetSrcSlot(int src_nrn_id, int event_source)
@@ -1381,14 +1376,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(src_nrn_id >= 0 && src_nrn_id < Count);
 		assert(event_source >= 0 && event_source < NumEventSources);
 		
-		auto idx = EventSourceBuffers[event_source].FreeIdx.ReadOne(src_nrn_id);
+		auto idx = EventSourceBuffers[event_source].FreeIdx[src_nrn_id];
 		
 		if(idx >= NumSrcSynapses)
 			return -1;
 		
 		idx++;
 		
-		EventSourceBuffers[event_source].FreeIdx.WriteOne(src_nrn_id, idx);
+		EventSourceBuffers[event_source].FreeIdx[src_nrn_id] = idx;
 		
 		return idx - 1;
 	}
@@ -1398,14 +1393,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(dest_nrn_id >= 0 && dest_nrn_id < Count);
 		assert(dest_syn_type >= 0 && dest_syn_type < SynapseBuffers.length);
 		
-		auto idx = SynapseBuffers[dest_syn_type].FreeIdx.ReadOne(dest_nrn_id);
+		auto idx = SynapseBuffers[dest_syn_type].FreeIdx[dest_nrn_id];
 		
 		if(idx >= SynapseBuffers[dest_syn_type].Count)
 			return -1;
 		
 		idx++;
 		
-		SynapseBuffers[dest_syn_type].FreeIdx.WriteOne(dest_nrn_id, idx);
+		SynapseBuffers[dest_syn_type].FreeIdx[dest_nrn_id] = idx;
 		
 		return idx - 1;
 	}

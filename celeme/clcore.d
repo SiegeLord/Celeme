@@ -134,32 +134,32 @@ class CCLBuffer(T) : CCLBufferBase
 		assert(err == CL_SUCCESS);
 	}
 	
-	T[] MapWrite(size_t offset = 0, size_t length = 0)
+	T[] MapWrite(size_t start = 0, size_t end = 0)
 	{
-		return Map(CL_MAP_WRITE, offset, length);
+		return Map(CL_MAP_WRITE, start, end);
 	}
 	
-	T[] MapReadWrite(size_t offset = 0, size_t length = 0)
+	T[] MapReadWrite(size_t start = 0, size_t end = 0)
 	{
-		return Map(CL_MAP_WRITE | CL_MAP_READ, offset, length);
+		return Map(CL_MAP_WRITE | CL_MAP_READ, start, end);
 	}
 	
-	T[] MapRead(size_t offset = 0, size_t length = 0)
+	T[] MapRead(size_t start = 0, size_t end = 0)
 	{
-		return Map(CL_MAP_READ, offset, length);
+		return Map(CL_MAP_READ, start, end);
 	}
 	
-	T[] Map(cl_map_flags flags, size_t offset = 0, size_t length = 0)
+	T[] Map(cl_map_flags flags, size_t start = 0, size_t end = 0)
 	{
-		assert(offset >= 0 && offset < Length);
-		assert(length <= Length - offset);
+		assert(start >= 0 && end <= Length);
+		assert(end >= start);
 		
-		if(length <= 0)
-			length = Length;
+		if(end <= 0)
+			end = Length;
 		int err;
-		T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, flags, offset * T.sizeof, length * T.sizeof, 0, null, null, &err);
+		T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, flags, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
 		assert(err == CL_SUCCESS);
-		return ret[0..length];
+		return ret[0..end - start];
 	}
 	
 	void UnMap(T[] arr)
@@ -177,7 +177,7 @@ class CCLBuffer(T) : CCLBufferBase
 	
 	T opSliceAssign(T val, size_t start, size_t end)
 	{
-		auto arr = MapWrite(start, end - start);
+		auto arr = MapWrite(start, end);
 		arr[] = val;
 		UnMap(arr);
 		return val;
@@ -187,7 +187,7 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = MapRead(idx, 1);
+		auto arr = MapRead(idx, idx + 1);
 		auto ret = arr[0];
 		UnMap(arr);
 		return ret;
@@ -197,7 +197,7 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = MapWrite(idx, 1);
+		auto arr = MapWrite(idx, idx + 1);
 		arr[0] = val;
 		UnMap(arr);
 		return val;

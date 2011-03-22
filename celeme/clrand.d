@@ -178,7 +178,7 @@ class CCLRandImpl(uint N) : CCLRand
 	void Seed()
 	{
 		auto arr = State.MapWrite();
-		scope(exit) State.UnMap(arr);
+		scope(exit) State.UnMap();
 		foreach(ref el; arr)
 		{
 			static if(N == 1)

@@ -24,6 +24,7 @@ import opencl.cl;
 
 import tango.io.Stdout;
 import tango.util.Convert;
+import tango.util.MinMax;
 
 version (AMDPerf)
 import perf = celeme.amdperf;
@@ -102,11 +103,6 @@ class CCLKernel
 
 class CCLBufferBase
 {
-	void Release()
-	{
-		clReleaseMemObject(Buffer);
-	}
-	
 	cl_mem Buffer()
 	{
 		return BufferVal;
@@ -124,10 +120,13 @@ protected:
 
 class CCLBuffer(T) : CCLBufferBase
 {
-	this(CCLCore core, size_t length)
+	this(CCLCore core, size_t length, size_t cache_size = 1)
 	{
 		Core = core;
 		LengthVal = length;
+		CacheSize = cache_size;
+		if(CacheSize < 1)
+			CacheSize = 1;
 		
 		int err;
 		BufferVal = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
@@ -149,29 +148,56 @@ class CCLBuffer(T) : CCLBufferBase
 		return Map(CL_MAP_READ, start, end);
 	}
 	
-	T[] Map(cl_map_flags flags, size_t start = 0, size_t end = 0)
+	T[] Map(cl_map_flags mode, size_t start = 0, size_t end = 0)
 	{
 		assert(start >= 0 && end <= Length);
 		assert(end >= start);
 		
 		if(end <= 0)
 			end = Length;
-		int err;
-		T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, flags, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
-		assert(err == 0, GetCLErrorString(err));
-		return ret[0..end - start];
+			
+		if((mode & MappedMode) && start >= MappedOffset && end <= MappedOffset + Mapped.length)
+		{
+			return Mapped[start - MappedOffset..end - MappedOffset];
+		}
+		else
+		{
+			UnMap();
+
+			int err;
+			T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, mode, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
+			assert(err == 0, GetCLErrorString(err));
+			
+			MappedMode = mode;
+			MappedOffset = start;
+			Mapped = ret[0..end - start];
+			return Mapped;
+		}
 	}
 	
-	void UnMap(T[] arr)
+	void Release()
 	{
-		clEnqueueUnmapMemObject(Core.Commands, Buffer, arr.ptr, 0, null, null);
+		UnMap();
+		clReleaseMemObject(Buffer);
+	}
+	
+	void UnMap()
+	{
+		if(Mapped.length)
+		{
+			clEnqueueUnmapMemObject(Core.Commands, Buffer, Mapped.ptr, 0, null, null);
+			
+			Mapped.length = 0;
+			MappedOffset = 0;
+			MappedMode = 0;
+		}
 	}
 	
 	T opSliceAssign(T val)
 	{
 		auto arr = MapWrite();
 		arr[] = val;
-		UnMap(arr);
+		UnMap();
 		return val;
 	}
 	
@@ -179,7 +205,7 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		auto arr = MapWrite(start, end);
 		arr[] = val;
-		UnMap(arr);
+		UnMap();
 		return val;
 	}
 	
@@ -187,9 +213,14 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = MapRead(idx, idx + 1);
-		auto ret = arr[0];
-		UnMap(arr);
+		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
+			MapRead(idx, min(idx + CacheSize, Length));
+		
+		auto ret = Mapped[idx - MappedOffset];
+		
+		if(CacheSize == 1)
+			UnMap();
+
 		return ret;
 	}
 	
@@ -197,11 +228,21 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = MapWrite(idx, idx + 1);
-		arr[0] = val;
-		UnMap(arr);
+		if(!(CL_MAP_WRITE & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
+			MapWrite(idx, min(idx + CacheSize, Length));
+		
+		Mapped[idx - MappedOffset] = val;
+		
+		if(CacheSize == 1)
+			UnMap();
+
 		return val;
 	}
+protected:
+	size_t CacheSize = 1;
+	T[] Mapped;
+	size_t MappedOffset;
+	int MappedMode = 0;
 }
 
 class CCLCore
@@ -342,9 +383,9 @@ class CCLCore
 		return ret;
 	}
 	
-	CCLBuffer!(T) CreateBufferEx(T)(size_t length)
+	CCLBuffer!(T) CreateBufferEx(T)(size_t length, size_t cache_size = 1)
 	{
-		return new CCLBuffer!(T)(this, length);
+		return new CCLBuffer!(T)(this, length, cache_size);
 	}
 	
 	CCLKernel CreateKernel(cl_program program, char[] name)

@@ -1259,7 +1259,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 				if(num_written)
 				{
 					auto output = RecordBuffer.MapRead(0, num_written);
-					scope(exit) RecordBuffer.UnMap(output);
+					scope(exit) RecordBuffer.UnMap();
 					//Stdout.formatln("num_written: {} {}", num_written, output.length);
 					foreach(quad; output)
 					{
@@ -1337,7 +1337,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(Model.Initialized);
 		
 		auto errors = ErrorBuffer.MapRead();
-		scope(exit) ErrorBuffer.UnMap(errors);
+		scope(exit) ErrorBuffer.UnMap();
 		
 		bool found_errors = false;
 		if(errors[0])

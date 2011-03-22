@@ -28,7 +28,7 @@ class CValueBuffer(T)
 	this(CValue val, CCLCore core, size_t count)
 	{
 		DefaultValue = val.Value;
-		Buffer = core.CreateBufferEx!(T)(count);
+		Buffer = core.CreateBuffer!(T)(count);
 	}
 	
 	double opAssign(double val)
@@ -50,7 +50,7 @@ class CSynGlobalBuffer(T)
 	this(CValue val, CCLCore core, size_t num_syn)
 	{
 		DefaultValue = val.Value;
-		Buffer = core.CreateBufferEx!(T)(num_syn);
+		Buffer = core.CreateBuffer!(T)(num_syn);
 	}
 	
 	void Release()
@@ -66,7 +66,7 @@ class CEventSourceBuffer
 {
 	this(CCLCore core, int nrn_count)
 	{
-		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
+		FreeIdx = core.CreateBuffer!(int)(nrn_count);
 		FreeIdx[] = 0;
 	}
 	
@@ -83,7 +83,7 @@ class CSynapseBuffer
 {
 	this(CCLCore core, int offset, int count, int nrn_count)
 	{
-		FreeIdx = core.CreateBufferEx!(int)(nrn_count);
+		FreeIdx = core.CreateBuffer!(int)(nrn_count);
 		FreeIdx[] = 0;
 		SlotOffset = offset;
 		Count = count;

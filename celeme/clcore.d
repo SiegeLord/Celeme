@@ -375,15 +375,7 @@ class CCLCore
 		}
 	}
 	
-	cl_mem CreateBuffer(size_t size)
-	{
-		int err;
-		auto ret = clCreateBuffer(Context, CL_MEM_READ_WRITE, size, null, &err);
-		assert(err == 0, GetCLErrorString(err)); 
-		return ret;
-	}
-	
-	CCLBuffer!(T) CreateBufferEx(T)(size_t length, size_t cache_size = 1)
+	CCLBuffer!(T) CreateBuffer(T)(size_t length, size_t cache_size = 1)
 	{
 		return new CCLBuffer!(T)(this, length, cache_size);
 	}

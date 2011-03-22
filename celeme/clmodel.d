@@ -122,16 +122,16 @@ class CCLModel(float_t) : ICLModel
 		
 		if(NumDestSynapses)
 		{
-			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(NumNeurons);
-			FiredSynBuffer = Core.CreateBufferEx!(int)(NumDestSynapses);
+			FiredSynIdxBuffer = Core.CreateBuffer!(int)(NumNeurons);
+			FiredSynBuffer = Core.CreateBuffer!(int)(NumDestSynapses);
 		}
 		else
 		{
 			/*
 			 * Dummies for parameters
 			 */
-			FiredSynIdxBuffer = Core.CreateBufferEx!(int)(1);
-			FiredSynBuffer = Core.CreateBufferEx!(int)(1);
+			FiredSynIdxBuffer = Core.CreateBuffer!(int)(1);
+			FiredSynBuffer = Core.CreateBuffer!(int)(1);
 		}
 		
 		static if(is(float_t == double))

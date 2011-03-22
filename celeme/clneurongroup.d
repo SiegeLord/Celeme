@@ -288,19 +288,19 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart = Core.CreateBufferEx!(int)(NumEventSources * Count);
-			CircBufferEnd = Core.CreateBufferEx!(int)(NumEventSources * Count);
-			CircBuffer = Core.CreateBufferEx!(float_t)(CircBufferSize * NumEventSources * Count);
+			CircBufferStart = Core.CreateBuffer!(int)(NumEventSources * Count);
+			CircBufferEnd = Core.CreateBuffer!(int)(NumEventSources * Count);
+			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * Count);
 		}
 		
-		ErrorBuffer = Core.CreateBufferEx!(int)(Count + 1);
-		RecordFlagsBuffer = Core.CreateBufferEx!(int)(Count);
-		RecordBuffer = Core.CreateBufferEx!(float_t4)(RecordLength);
-		RecordIdxBuffer = Core.CreateBufferEx!(int)(1);
+		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1);
+		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count);
+		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength);
+		RecordIdxBuffer = Core.CreateBuffer!(int)(1);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBufferEx!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)

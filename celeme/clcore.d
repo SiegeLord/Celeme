@@ -397,10 +397,10 @@ class CCLCore
 	{
 		clFinish(Commands);
 	}
-	cl_command_queue Commands;
+	
 protected:
 	cl_context Context;
-	
+	cl_command_queue Commands;
 	cl_platform_id Platform;
 	cl_device_id Device;
 	bool GPU = false;

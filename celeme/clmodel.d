@@ -196,8 +196,8 @@ class CCLModel(float_t) : ICLModel
 		assert(Generated);
 		assert(!Initialized);
 		
-		FloatMemsetKernel = new CCLKernel(Program, "float_memset");
-		IntMemsetKernel = new CCLKernel(Program, "int_memset");
+		FloatMemsetKernel = Core.CreateKernel(Program, "float_memset");
+		IntMemsetKernel = Core.CreateKernel(Program, "int_memset");
 		
 		/* Set it to -1, so that when the neuron step functions are called,
 		 * it gets reset automatically there */
@@ -444,9 +444,7 @@ class CCLModel(float_t) : ICLModel
 			float_t val = value;
 			SetGlobalArg(1, val);
 			SetGlobalArg(2, count);
-			size_t total_size = count;
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
-			assert(err == CL_SUCCESS);
+			Launch([count]);
 		}
 	}
 	
@@ -460,9 +458,7 @@ class CCLModel(float_t) : ICLModel
 			SetGlobalArg(0, buffer);
 			SetGlobalArg(1, value);
 			SetGlobalArg(2, count);
-			size_t total_size = count;
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_size, null, 0, null, null);
-			assert(err == CL_SUCCESS);
+			Launch([count]);
 		}
 	}
 	

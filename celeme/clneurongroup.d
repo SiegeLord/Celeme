@@ -330,7 +330,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		int arg_id;
 		/* Step kernel */
 		auto program = Program;
-		StepKernel = new CCLKernel(program, Name ~ "_step");
+		StepKernel = Core.CreateKernel(program, Name ~ "_step");
 		
 		with(StepKernel)
 		{
@@ -369,7 +369,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 		
 		/* Init kernel */
-		InitKernel = new CCLKernel(Program, Name ~ "_init");
+		InitKernel = Core.CreateKernel(Program, Name ~ "_init");
 		with(InitKernel)
 		{
 			/* Nothing to skip, so set it at 0 */
@@ -387,7 +387,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 		
 		/* Deliver kernel */
-		DeliverKernel = new CCLKernel(Program, Name ~ "_deliver");
+		DeliverKernel = Core.CreateKernel(Program, Name ~ "_deliver");
 		
 		with(DeliverKernel)
 		{
@@ -507,8 +507,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
-		auto err = clEnqueueNDRangeKernel(Core.Commands, InitKernel.Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
-		assert(err == CL_SUCCESS);
+		
+		InitKernel.Launch([total_num], [workgroup_size], ret_event);
 	}
 	
 	void CallStepKernel(double sim_time, size_t workgroup_size, cl_event* ret_event = null)
@@ -522,9 +522,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
-			assert(err == CL_SUCCESS);
+			Launch([total_num], [workgroup_size], ret_event);
 		}
 	}
 	
@@ -545,9 +543,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				/* Local fire table */
 				SetLocalArg(ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
 			}
-
-			auto err = clEnqueueNDRangeKernel(Core.Commands, Kernel, 1, null, &total_num, &workgroup_size, 0, null, ret_event);
-			assert(err == CL_SUCCESS);
+			
+			Launch([total_num], [workgroup_size], ret_event);
 		}
 	}
 	

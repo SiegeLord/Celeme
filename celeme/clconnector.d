@@ -119,7 +119,7 @@ class CCLConnector(float_t)
 	
 	void Initialize()
 	{
-		ConnectKernel = new CCLKernel(Group.Program, Group.Name ~ "_" ~ Name ~ "_connect");
+		ConnectKernel = Group.Core.CreateKernel(Group.Program, Group.Name ~ "_" ~ Name ~ "_connect");
 	}
 	
 	void CreateKernel(CConnector conn)
@@ -230,11 +230,7 @@ class CCLConnector(float_t)
 			SetGlobalArg(arg_id++, error_buffer);
 		}
 		
-		size_t total_num = src_nrn_range[1] - src_nrn_range[0];
-		
-		auto err = clEnqueueNDRangeKernel(Group.Core.Commands, ConnectKernel.Kernel, 1, null, &total_num, null, 0, null, null);
-
-		assert(err == CL_SUCCESS);
+		ConnectKernel.Launch([src_nrn_range[1] - src_nrn_range[0]]);
 	}
 	
 	double opIndex(char[] name)

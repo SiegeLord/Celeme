@@ -30,13 +30,13 @@ import perf = celeme.amdperf;
 
 class CCLKernel
 {
-	this(cl_program program, char[] name)
+	this(CCLCore core, cl_program program, char[] name)
 	{
-		Program = program;
+		Core = core;
 		Name = name;
 		
 		int err;
-		Kernel = clCreateKernel(Program, Name.c_str(), &err);
+		Kernel = clCreateKernel(program, Name.c_str(), &err);
 		if(err != CL_SUCCESS)
 		{
 			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");
@@ -77,12 +77,17 @@ class CCLKernel
 		}
 	}
 	
+	void Launch(size_t[] num_work_items, size_t[] workgroup_size = null, cl_event* event = null)
+	{
+		Core.LaunchKernel(this, num_work_items, workgroup_size, event);
+	}
+	
 	void Release()
 	{
 		clReleaseKernel(Kernel);
 	}
 	
-	cl_program Program;
+	CCLCore Core;
 	cl_kernel Kernel;
 	char[] Name;
 }
@@ -164,13 +169,14 @@ class CCLCore
 		assert(err == CL_SUCCESS);
 		assert(num_platforms);
 		
-		Platforms.length = num_platforms;
-		err = clGetPlatformIDs(num_platforms, Platforms.ptr, null);
+		cl_platform_id[] platforms;
+		platforms.length = num_platforms;
+		err = clGetPlatformIDs(num_platforms, platforms.ptr, null);
 		assert(err == CL_SUCCESS);
 		
 		if(verbose)
 		{
-			foreach(ii, platform; Platforms)
+			foreach(ii, platform; platforms)
 			{
 				char[] get_param(cl_platform_info param)
 				{
@@ -192,21 +198,24 @@ class CCLCore
 			}
 		}
 		
+		Platform = platforms[0];
+		
 		/* Get devices */
 		uint num_devices;
 		auto device_type = GPU ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU;
-		err = clGetDeviceIDs(Platforms[0], device_type, 0, null, &num_devices);
+		err = clGetDeviceIDs(Platform, device_type, 0, null, &num_devices);
 		if(err == CL_DEVICE_NOT_FOUND)
 			throw new Exception("This platform does not support " ~ (GPU ? "GPU" : "CPU") ~ " devices!");
 		assert(err == CL_SUCCESS);
 		
-		Devices.length = num_devices;
-		clGetDeviceIDs(Platforms[0], device_type, num_devices, Devices.ptr, null);
+		cl_device_id[] devices;
+		devices.length = num_devices;
+		clGetDeviceIDs(Platform, device_type, num_devices, devices.ptr, null);
 		assert(err == CL_SUCCESS);
 		
 		if(verbose)
 		{
-			foreach(ii, device; Devices)
+			foreach(ii, device; devices)
 			{
 				Stdout.formatln("Device {}:", ii);
 				Stdout.formatln("\tCL_DEVICE_ADDRESS_BITS:\n\t\t{}", GetDeviceParam!(uint)(device, CL_DEVICE_ADDRESS_BITS));
@@ -216,8 +225,10 @@ class CCLCore
 			}
 		}
 		
+		Device = devices[0];
+		
 		/* Create a compute context */
-		Context = clCreateContext(null, 1, &Devices[0], null, null, &err);
+		Context = clCreateContext(null, 1, &Device, null, null, &err);
 		if(!Context)
 		{
 			throw new Exception("Failed to create a compute context!");
@@ -226,7 +237,7 @@ class CCLCore
 		/* Create a command commands */
 		int flags = 0;
 		version(Perf) flags = CL_QUEUE_PROFILING_ENABLE;
-		Commands = clCreateCommandQueue(Context, Devices[0], flags, &err);
+		Commands = clCreateCommandQueue(Context, Device, flags, &err);
 		if(!Commands)
 		{
 			throw new Exception("Failed to create a command queue!");
@@ -237,7 +248,7 @@ class CCLCore
 			perf.OpenContext(Commands);
 	}
 	
-	T GetDeviceParam(T)(cl_device_id device, cl_device_info param)
+	private T GetDeviceParam(T)(cl_device_id device, cl_device_info param)
 	{
 		static if(is(T : char[]))
 		{
@@ -291,6 +302,19 @@ class CCLCore
 		return new CCLBuffer!(T)(this, length);
 	}
 	
+	CCLKernel CreateKernel(cl_program program, char[] name)
+	{
+		return new CCLKernel(this, program, name);
+	}
+	
+	void LaunchKernel(CCLKernel kernel, size_t[] num_work_items, size_t[] workgroup_size = null, cl_event* event = null)
+	{
+		if(workgroup_size != null)
+			assert(num_work_items.length == workgroup_size.length, "Mismatched dimensions.");
+		auto err = clEnqueueNDRangeKernel(Commands, kernel.Kernel, num_work_items.length, null, num_work_items.ptr, workgroup_size.ptr, 0, null, event);
+		assert(err == CL_SUCCESS);
+	}
+	
 	cl_program BuildProgram(char[] source)
 	{
 		int err;
@@ -304,9 +328,9 @@ class CCLCore
 		{
 			size_t ret_len;
 			char[] buffer;
-			clGetProgramBuildInfo(program, Devices[0], CL_PROGRAM_BUILD_LOG, 0, null, &ret_len);
+			clGetProgramBuildInfo(program, Device, CL_PROGRAM_BUILD_LOG, 0, null, &ret_len);
 			buffer.length = ret_len;
-			clGetProgramBuildInfo(program, Devices[0], CL_PROGRAM_BUILD_LOG, buffer.length, buffer.ptr, null);
+			clGetProgramBuildInfo(program, Device, CL_PROGRAM_BUILD_LOG, buffer.length, buffer.ptr, null);
 			if(buffer.length > 1)
 				Stdout(buffer[0..$-1]).nl;
 			
@@ -320,10 +344,11 @@ class CCLCore
 	{
 		clFinish(Commands);
 	}
-	
-	cl_context Context;
 	cl_command_queue Commands;
-	cl_platform_id[] Platforms;
-	cl_device_id[] Devices;
+protected:
+	cl_context Context;
+	
+	cl_platform_id Platform;
+	cl_device_id Device;
 	bool GPU = false;
 }

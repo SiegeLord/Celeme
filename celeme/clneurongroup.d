@@ -288,12 +288,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
-			CircBufferEnd = Core.CreateBuffer(NumEventSources * Count * int.sizeof);
-			CircBuffer = Core.CreateBuffer(CircBufferSize * NumEventSources * Count * float_t.sizeof);
+			CircBufferStart = Core.CreateBufferEx!(int)(NumEventSources * Count);
+			CircBufferEnd = Core.CreateBufferEx!(int)(NumEventSources * Count);
+			CircBuffer = Core.CreateBufferEx!(float_t)(CircBufferSize * NumEventSources * Count);
 		}
 		
-		ErrorBuffer = Core.CreateBuffer((Count + 1) * int.sizeof);
+		ErrorBuffer = Core.CreateBufferEx!(int)(Count + 1);
 		RecordFlagsBuffer = Core.CreateBufferEx!(int)(Count);
 		RecordBuffer = Core.CreateBufferEx!(float_t4)(RecordLength);
 		RecordIdxBuffer = Core.CreateBufferEx!(int)(1);
@@ -337,13 +337,13 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
 			SetGlobalArg(arg_id++, ErrorBuffer);
-			SetGlobalArg(arg_id++, RecordFlagsBuffer.Buffer);
-			SetGlobalArg(arg_id++, RecordIdxBuffer.Buffer);
-			SetGlobalArg(arg_id++, RecordBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordFlagsBuffer);
+			SetGlobalArg(arg_id++, RecordIdxBuffer);
+			SetGlobalArg(arg_id++, RecordBuffer);
 			SetGlobalArg(arg_id++, RecordLength);
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
+				SetGlobalArg(arg_id++, buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(RandLen)
@@ -358,11 +358,11 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			}
 			if(NumDestSynapses)
 			{
-				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer.Buffer);
-				SetGlobalArg(arg_id++, Model.FiredSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer);
+				SetGlobalArg(arg_id++, Model.FiredSynBuffer);
 				foreach(buffer; SynGlobalBuffers)
 				{
-					SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
+					SetGlobalArg(arg_id++, buffer.Buffer);
 				}
 			}
 			SetGlobalArg(arg_id++, CountVal);
@@ -376,12 +376,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			arg_id = 0;
 			foreach(buffer; ValueBuffers)
 			{
-				SetGlobalArg(arg_id++, buffer.Buffer.Buffer);
+				SetGlobalArg(arg_id++, buffer.Buffer);
 			}
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
 			{
-				SetGlobalArg(arg_id++, DestSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, DestSynBuffer);
 			}
 			SetGlobalArg(arg_id++, CountVal);
 		}
@@ -394,7 +394,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			/* Set the arguments. Start at 1 to skip the t argument*/
 			arg_id = 1;
 			SetGlobalArg(arg_id++, ErrorBuffer);
-			SetGlobalArg(arg_id++, RecordIdxBuffer.Buffer);
+			SetGlobalArg(arg_id++, RecordIdxBuffer);
 			SetGlobalArg(arg_id++, RecordRate);
 			if(NeedSrcSynCode)
 			{
@@ -404,17 +404,17 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				SetGlobalArg(arg_id++, CircBufferStart);
 				SetGlobalArg(arg_id++, CircBufferEnd);
 				SetGlobalArg(arg_id++, CircBuffer);
-				SetGlobalArg(arg_id++, DestSynBuffer.Buffer);
-				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer.Buffer);
-				SetGlobalArg(arg_id++, Model.FiredSynBuffer.Buffer);
+				SetGlobalArg(arg_id++, DestSynBuffer);
+				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer);
+				SetGlobalArg(arg_id++, Model.FiredSynBuffer);
 			}
 			SetGlobalArg(arg_id++, CountVal);
 		}
 		
 		Core.Finish();
 		
-		Model.MemsetIntBuffer(RecordFlagsBuffer.Buffer, Count, 0);
-		Model.MemsetIntBuffer(DestSynBuffer.Buffer, 2 * Count * NumSrcSynapses * NumEventSources, -1);
+		RecordFlagsBuffer.Write(0);
+		DestSynBuffer.Write(cl_int2(-1, -1));
 		
 		foreach(conn; Connectors)
 			conn.Initialize;
@@ -446,14 +446,13 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Rand.Seed();
 		
 		/* Initialize the buffers */
-		auto error_buffer = ErrorBuffer;
-		Model.MemsetIntBuffer(error_buffer, Count + 1, 0);
+		ErrorBuffer.Write(0);
 		RecordIdxBuffer.WriteOne(0, 0);
 		
 		if(NeedSrcSynCode)
 		{
-			Model.MemsetIntBuffer(CircBufferStart, Count * NumEventSources, -1);
-			Model.MemsetIntBuffer(CircBufferEnd, Count * NumEventSources, 0);
+			CircBufferStart.Write(-1);
+			CircBufferEnd.Write(0);
 		}
 		
 		/* Write the default values to the global buffers*/
@@ -1236,10 +1235,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		foreach(buffer; EventSourceBuffers)
 			buffer.Release();
 
-		clReleaseMemObject(CircBufferStart);
-		clReleaseMemObject(CircBufferEnd);
-		clReleaseMemObject(CircBuffer);
-		clReleaseMemObject(ErrorBuffer);
+		CircBufferStart.Release();
+		CircBufferEnd.Release();
+		CircBuffer.Release();
+		ErrorBuffer.Release();
 		RecordFlagsBuffer.Release();
 		RecordBuffer.Release();
 		RecordIdxBuffer.Release();
@@ -1341,8 +1340,8 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		assert(Model.Initialized);
 		
-		auto errors = new int[](Count + 1);
-		clEnqueueReadBuffer(Core.Commands, ErrorBuffer, CL_TRUE, 0, (Count + 1) * int.sizeof, errors.ptr, 0, null, null);
+		auto errors = ErrorBuffer.MapRead();
+		scope(exit) ErrorBuffer.UnMap(errors);
 		
 		bool found_errors = false;
 		if(errors[0])
@@ -1516,7 +1515,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	mixin(Prop!("CSynapseBuffer[]", "SynapseBuffers", "override", "private"));
 	mixin(Prop!("CCLBuffer!(cl_int2)", "DestSynBuffer", "override", "private"));
 	mixin(Prop!("int", "NrnOffset", "override", "private"));
-	mixin(Prop!("cl_mem", "ErrorBuffer", "override", "private"));
+	mixin(Prop!("CCLBuffer!(int)", "ErrorBuffer", "override", "private"));
 	mixin(Prop!("CCLRand", "Rand", "override", "private"));
 	mixin(Prop!("int", "RandLen", "override", "private"));
 	
@@ -1547,11 +1546,10 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLKernel StepKernel;
 	CCLKernel DeliverKernel;
 	
-	/* TODO: Convert these to CCLBuffers */
-	cl_mem CircBufferStart;
-	cl_mem CircBufferEnd;
-	cl_mem CircBuffer;
-	cl_mem ErrorBufferVal;
+	CCLBuffer!(int) CircBufferStart;
+	CCLBuffer!(int) CircBufferEnd;
+	CCLBuffer!(float_t) CircBuffer;
+	CCLBuffer!(int) ErrorBufferVal;
 	CCLBuffer!(int) RecordFlagsBuffer;
 	CCLBuffer!(float_t4) RecordBuffer;
 	CCLBuffer!(int) RecordIdxBuffer;

@@ -38,7 +38,7 @@ interface ICLNeuronGroup : INeuronGroup
 	CEventSourceBuffer[] EventSourceBuffers();
 	CSynapseBuffer[] SynapseBuffers();
 	CCLBuffer!(cl_int2) DestSynBuffer();
-	cl_mem ErrorBuffer();
+	CCLBuffer!(int) ErrorBuffer();
 	cl_program Program();
 	
 	CCLCore Core();

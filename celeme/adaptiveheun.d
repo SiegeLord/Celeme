@@ -47,13 +47,13 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 			Tolerances ~= state.Tolerance;
 		}
 		
-		DtBuffer = Group.Core.CreateBuffer(Group.Count * float_t.sizeof);
+		DtBuffer = Group.Core.CreateBufferEx!(float_t)(Group.Count);
 	}
 	
 	override
 	void Reset()
 	{
-		Group.MemsetFloatBuffer(DtBuffer, Group.Count, Group.MinDt);
+		DtBuffer.Write(Group.MinDt);
 	}
 	
 	override
@@ -251,10 +251,10 @@ if(cur_time < timestep && cur_time + dt >= timestep)
 	override
 	void Shutdown()
 	{
-		clReleaseMemObject(DtBuffer);
+		DtBuffer.Release();
 	}
 	
-	cl_mem DtBuffer;
+	CCLBuffer!(float_t) DtBuffer;
 	double[] Tolerances;
 	int[char[]] ToleranceRegistry;
 }

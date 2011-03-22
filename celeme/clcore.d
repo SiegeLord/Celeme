@@ -58,10 +58,18 @@ class CCLKernel
 		       && !is(T == cl_float4)
 		       && !is(T == cl_double4)
 		       && !is(T == cl_mem)
+		       && !is(T : CCLBufferBase)
 		       )
 			static assert(0, "Invalid argument to SetGlobalArg.");
 
-		auto err = clSetKernelArg(Kernel, argnum, T.sizeof, &arg);
+		static if(is(T : CCLBufferBase))
+		{
+			auto buf = arg.Buffer;
+			auto err = clSetKernelArg(Kernel, argnum, arg.Buffer.sizeof, &buf);
+		}
+		else
+			auto err = clSetKernelArg(Kernel, argnum, T.sizeof, &arg);
+
 		if(err != CL_SUCCESS)
 		{
 			throw new Exception("Failed to set a global argument " ~ to!(char[])(argnum) ~ " of kernel '" ~ Name ~ "'.");
@@ -92,16 +100,53 @@ class CCLKernel
 	char[] Name;
 }
 
-class CCLBuffer(T)
+class CCLBufferBase
+{
+	void Release()
+	{
+		clReleaseMemObject(Buffer);
+	}
+	
+	cl_mem Buffer()
+	{
+		return BufferVal;
+	}
+	
+	size_t Length()
+	{
+		return LengthVal;
+	}
+protected:
+	CCLCore Core;
+	cl_mem BufferVal;
+	size_t LengthVal;
+}
+
+class CCLBuffer(T) : CCLBufferBase
 {
 	this(CCLCore core, size_t length)
 	{
 		Core = core;
-		Length = length;
+		LengthVal = length;
 		
 		int err;
-		Buffer = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, Length * T.sizeof, null, &err);
+		BufferVal = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
 		assert(err == CL_SUCCESS);
+	}
+	
+	T[] MapWrite(size_t offset = 0, size_t length = 0)
+	{
+		return Map(CL_MAP_WRITE, offset, length);
+	}
+	
+	T[] MapReadWrite(size_t offset = 0, size_t length = 0)
+	{
+		return Map(CL_MAP_WRITE | CL_MAP_READ, offset, length);
+	}
+	
+	T[] MapRead(size_t offset = 0, size_t length = 0)
+	{
+		return Map(CL_MAP_READ, offset, length);
 	}
 	
 	T[] Map(cl_map_flags flags, size_t offset = 0, size_t length = 0)
@@ -126,29 +171,27 @@ class CCLBuffer(T)
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = Map(CL_MAP_READ, idx, 1);
+		auto arr = MapRead(idx, 1);
 		auto ret = arr[0];
 		UnMap(arr);
 		return ret;
+	}
+	
+	void Write(T val, size_t offset = 0, size_t length = 0)
+	{
+		auto arr = MapWrite();
+		arr[] = val;
+		UnMap(arr);
 	}
 	
 	void WriteOne(size_t idx, T val)
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		auto arr = Map(CL_MAP_WRITE, idx, 1);
+		auto arr = MapWrite(idx, 1);
 		arr[0] = val;
 		UnMap(arr);
 	}
-	
-	void Release()
-	{
-		clReleaseMemObject(Buffer);
-	}
-	
-	CCLCore Core;
-	cl_mem Buffer;
-	size_t Length;
 }
 
 class CCLCore

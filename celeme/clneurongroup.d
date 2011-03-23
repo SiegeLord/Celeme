@@ -414,7 +414,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		Core.Finish();
 		
 		RecordFlagsBuffer[] = 0;
-		DestSynBuffer[] = cl_int2(-1, -1);
+		DestSynBuffer()[] = cl_int2(-1, -1);
 		
 		foreach(conn; Connectors)
 			conn.Initialize;
@@ -446,7 +446,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Rand.Seed();
 		
 		/* Initialize the buffers */
-		ErrorBuffer[] = 0;
+		ErrorBuffer()[] = 0;
 		RecordIdxBuffer[0] = 0;
 		
 		if(NeedSrcSynCode)
@@ -1368,7 +1368,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		int src_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 		
-		DestSynBuffer[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
+		DestSynBuffer()[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
 	}
 	
 	int GetSrcSlot(int src_nrn_id, int event_source)
@@ -1383,7 +1383,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		idx++;
 		
-		EventSourceBuffers[event_source].FreeIdx[src_nrn_id] = idx;
+		EventSourceBuffers()[event_source].FreeIdx[src_nrn_id] = idx;
 		
 		return idx - 1;
 	}
@@ -1400,7 +1400,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		
 		idx++;
 		
-		SynapseBuffers[dest_syn_type].FreeIdx[dest_nrn_id] = idx;
+		SynapseBuffers()[dest_syn_type].FreeIdx[dest_nrn_id] = idx;
 		
 		return idx - 1;
 	}

@@ -35,36 +35,6 @@ import perf = celeme.amdperf;
 
 import opencl.cl;
 
-char[] FloatMemsetKernelTemplate = "
-__kernel void float_memset(
-		__global $num_type$* buffer,
-		const $num_type$ value,
-		const int count
-	)
-{
-	int i = get_global_id(0);
-	if(i < count)
-	{
-		buffer[i] = value;
-	}
-}
-";
-
-char[] IntMemsetKernelTemplate = "
-__kernel void int_memset(
-		__global int* buffer,
-		const int value,
-		const int count
-	)
-{
-	int i = get_global_id(0);
-	if(i < count)
-	{
-		buffer[i] = value;
-	}
-}
-";
-
 class CCLModel(float_t) : ICLModel
 {
 	static if(is(float_t == float))
@@ -170,9 +140,7 @@ class CCLModel(float_t) : ICLModel
 			if(have_rand)
 				Source ~= RandCode[ii];
 		}
-			
-		Source ~= FloatMemsetKernelTemplate;
-		Source ~= IntMemsetKernelTemplate;
+
 		foreach(group; NeuronGroups)
 		{
 			Source ~= group.StepKernelSource;
@@ -182,7 +150,7 @@ class CCLModel(float_t) : ICLModel
 				Source ~= conn.KernelCode;
 		}
 		Source = Source.substitute("$num_type$", NumStr);
-		//Stdout(Source).nl;
+		Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		Generated = true;
 		
@@ -195,9 +163,6 @@ class CCLModel(float_t) : ICLModel
 	{
 		assert(Generated);
 		assert(!Initialized);
-		
-		FloatMemsetKernel = Core.CreateKernel(Program, "float_memset");
-		IntMemsetKernel = Core.CreateKernel(Program, "int_memset");
 		
 		/* Set it to -1, so that when the neuron step functions are called,
 		 * it gets reset automatically there */
@@ -418,9 +383,6 @@ class CCLModel(float_t) : ICLModel
 		{				
 			clReleaseProgram(Program);
 			
-			FloatMemsetKernel.Release();
-			IntMemsetKernel.Release();
-			
 			FiredSynBuffer.Release();
 			FiredSynIdxBuffer.Release();
 		}
@@ -429,35 +391,6 @@ class CCLModel(float_t) : ICLModel
 		
 		Generated = false;
 		Initialized = false;
-	}
-	
-	override
-	void MemsetFloatBuffer(cl_mem buffer, int count, double value)
-	{
-		assert(FloatMemsetKernel);
-		
-		with(FloatMemsetKernel)
-		{
-			SetGlobalArg(0, buffer);
-			float_t val = value;
-			SetGlobalArg(1, val);
-			SetGlobalArg(2, count);
-			Launch([count]);
-		}
-	}
-	
-	override
-	void MemsetIntBuffer(cl_mem buffer, int count, int value)
-	{
-		assert(IntMemsetKernel);
-		
-		with(IntMemsetKernel)
-		{
-			SetGlobalArg(0, buffer);
-			SetGlobalArg(1, value);
-			SetGlobalArg(2, count);
-			Launch([count]);
-		}
 	}
 	
 	/*
@@ -536,8 +469,6 @@ class CCLModel(float_t) : ICLModel
 	mixin(Prop!("CCLCore", "Core", "override", "private"));
 	
 	cl_program ProgramVal;
-	CCLKernel FloatMemsetKernel;
-	CCLKernel IntMemsetKernel;
 	
 	CCLBuffer!(int) FiredSynIdxBufferVal;
 	CCLBuffer!(int) FiredSynBufferVal;

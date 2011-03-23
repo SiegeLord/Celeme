@@ -1486,12 +1486,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
-	void MemsetFloatBuffer(cl_mem buffer, int count, double value)
-	{
-		Model.MemsetFloatBuffer(buffer, count, value);
-	}
-	
-	override
 	bool Initialized()
 	{
 		return Model.Initialized;

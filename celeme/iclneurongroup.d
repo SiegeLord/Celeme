@@ -43,8 +43,6 @@ interface ICLNeuronGroup : INeuronGroup
 	
 	CCLCore Core();
 	
-	void MemsetFloatBuffer(cl_mem buffer, int count, double value);
-	
 	bool Initialized();
 	int IntegratorArgOffset();
 	double TimeStepSize();

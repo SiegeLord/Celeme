@@ -30,6 +30,4 @@ interface ICLModel : IModel
 	CCLCore Core();
 	CCLBuffer!(int) FiredSynIdxBuffer();
 	CCLBuffer!(int) FiredSynBuffer();
-	void MemsetFloatBuffer(cl_mem buffer, int count, double value);
-	void MemsetIntBuffer(cl_mem buffer, int count, int value);
 }

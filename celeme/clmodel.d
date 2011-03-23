@@ -110,7 +110,7 @@ class CCLModel(float_t) : ICLModel
 		
 		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt);
 		
-		NeuronGroups[type.Name] = group;
+		NeuronGroups[name] = group;
 	}
 	
 	override

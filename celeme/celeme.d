@@ -25,4 +25,5 @@ public import
 	celeme.recorder,
 	celeme.clcore,
 	celeme.capi,
-	celeme.configloader;
+	celeme.configloader,
+	celeme.celeme_util;

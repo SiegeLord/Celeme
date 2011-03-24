@@ -2,7 +2,7 @@ import pyceleme as pc
 import numpy as np
 import pylab as pl
 
-model = pc.Model("stuff.cfg")
+model = pc.Model("stuff.cfg", True)
 
 model.TimeStepSize = 1
 model.Generate(True, True)

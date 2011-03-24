@@ -16,42 +16,24 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.recorder;
+module celeme.celeme_util;
 
-import tango.io.Stdout;
+import celeme.recorder;
 
 /**
- * This class holds the time, tags and data poins. Essentially this is a growable
- * quad of arrays.
+ * A structure to hold time and data points.
  */
-class CRecorder
-{
-	this(char[] name = "", bool store_neuron_id = false)
-	{
-		Name = name;
-		StoreNeuronId = store_neuron_id;
-	}
-	
-	void Detach()
-	{
-		Length = 0;
-		TArray.length = DataArray.length = TagArray.length = 0;
-	}
-	
-	void AddDatapoint(double t, double data, int tag, int neuron_id = 0)
+struct SData
+{	
+	void AddDatapoint(double t, double data)
 	{
 		if(Length >= TArray.length)
 		{
 			TArray.length = cast(int)((Length + 1) * 1.5);
-			TagArray.length = DataArray.length = TArray.length;
-			if(StoreNeuronId)
-				NeuronIdArray.length = TArray.length;
+			DataArray.length = TArray.length;
 		}
 		TArray[Length] = t;
 		DataArray[Length] = data;
-		TagArray[Length] = tag;
-		if(StoreNeuronId)
-			NeuronIdArray[Length] = neuron_id;
 		Length++;
 	}
 	
@@ -71,40 +53,52 @@ class CRecorder
 		return DataArray[0..Length];
 	}
 	
-	/**
-	 * Returns the tag array.
-	 */
-	int[] Tags()
-	{
-		return TagArray[0..Length];
-	}
-	
-	/**
-	 * Returns the neuron id array (if any).
-	 */
-	int[] NeuronIds()
-	{
-		if(StoreNeuronId)
-			return NeuronIdArray[0..Length];
-		else
-			return null;
-	}
-	
 	double[] TArray;
-	int[] TagArray;
-	int[] NeuronIdArray;
 	double[] DataArray;
-	
-	/**
-	 * Name of this recorder, specifying what it was recording.
-	 */
-	char[] Name;
-	
 	/**
 	 * The length of the recorded data
 	 */
 	size_t Length = 0;
+}
+
+/**
+ * Given a recorder it decodes and extracts the datasets in it.
+ * 
+ * Params:
+ *     recoder = Data recorder
+ * Returns:
+ *     A double assosiative array of SData structures. First key is the neuron id, second key is tag.
+ */
+SData[int][int] ExtractData(CRecorder recorder)
+{
+	SData[int][int] ret;
 	
-protected:
-	bool StoreNeuronId = false;
+	foreach(ii, time; recorder.T)
+	{
+		double data = recorder.Data[ii];
+		int tag = recorder.Tags[ii];
+		int neuron_id = recorder.NeuronIds is null ? 0 : recorder.NeuronIds[ii];
+		
+		auto tag_array_ptr = neuron_id in ret;
+		if(tag_array_ptr is null)
+		{
+			SData d;
+			d.AddDatapoint(time, data);
+			ret[neuron_id][tag] = d;
+			continue;
+		}
+		
+		auto data_ptr = tag in *tag_array_ptr;
+		if(data_ptr is null)
+		{
+			SData d;
+			d.AddDatapoint(time, data);
+			(*tag_array_ptr)[tag] = d;
+			continue;
+		}
+		
+		data_ptr.AddDatapoint(time, data);
+	}
+	
+	return ret;
 }

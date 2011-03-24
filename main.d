@@ -30,6 +30,7 @@ import tango.time.StopWatch;
 import tango.io.Stdout;
 import tango.math.random.Random;
 import tango.text.Arguments;
+import tango.util.Convert;
 
 void main(char[][] arg_list)
 {
@@ -87,6 +88,8 @@ void main(char[][] arg_list)
 	if(record)
 	{
 		rec = model["Regular"].Record(0, 1);
+		rec = model["Regular"].Record(1, 1);
+		rec = model["Regular"].Record(2, 1);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
@@ -101,6 +104,8 @@ void main(char[][] arg_list)
 	Stdout.formatln("Run time: {}", timer.stop);
 	
 	timer.start;
+	
+	auto data_arrs = ExtractData(rec);
 	
 	if(record)
 	//if(false)
@@ -123,9 +128,16 @@ void main(char[][] arg_list)
 			Style("lines");
 			PointType(6);
 			Thickness(1);
-			Color([0,0,0]);
+			foreach(nrn_id, tag_arr; data_arrs)
+			{
+				foreach(data; tag_arr)
+				{
+					Plot(data.T, data.Data, to!(char[])(nrn_id));
+				}
+			}
+			/*Color([0,0,0]);
 			Plot(rec.T, rec.Data, rec.Name);
-			/*Color([255,0,0]);
+			Color([255,0,0]);
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 			Color([0,0,255]);
 			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);*/

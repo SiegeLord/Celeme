@@ -191,7 +191,8 @@ $num_type$ rand2(uint2* zp)
 	<span class="d StorageClass"><span class="k">override</span></span>
 	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">arr</span> = <span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">Map</span></span>(<span class="i">CL_MAP_WRITE</span>)</span>;</span></span>
+		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">arr</span> = <span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">MapWrite</span></span>()</span>;</span></span>
+		<span class="s ScopeGuard"><span class="k">scope</span>(<span class="i">exit</span>) <span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">UnMap</span></span>()</span>;</span></span>
 		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="k">ref</span> <span class="i">el</span></span></span>; <span class="e Identifier"><span class="i">arr</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s StaticIf"><span class="k">static</span> <span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">N</span></span> == <span class="e Int"><span class="n">1</span></span></span>)
@@ -204,7 +205,6 @@ $num_type$ rand2(uint2* zp)
 					<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">el</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Identifier"><span class="i">rand</span></span>.<span class="e TemplateInstance"><span class="i">uniform</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span></span>;</span></span></span>
 			}</span></span>
 		}</span></span></span>
-		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">State</span></span>.<span class="t Identifier"><span class="i">UnMap</span></span>(<span class="i">arr</span>);</span></span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>

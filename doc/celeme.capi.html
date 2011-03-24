@@ -357,9 +357,9 @@
 <span class="k">double</span> <span class="i">celeme_set_syn_global</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">int</span> <span class="i">syn_idx</span>, <span class="k">double</span> <span class="i">val</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="celeme_record" href="htmlsrc/celeme.capi.html#L464">celeme_record</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_idx</em>, char* <em>name</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_record" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="celeme_record" href="htmlsrc/celeme.capi.html#L464">celeme_record</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_idx</em>, int <em>flags</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_record" class="plink">¶</a></dt>
 <dd class="ddef">
-<div class="summary"><div class="cmnt">Record the temporal evolution of a state of a single neuron.</div></div>
+<div class="summary"><div class="cmnt">Set the recording flags of a single neuron.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Record">INeuronGroup.Record</a>
  
  C signature:
@@ -367,23 +367,10 @@
   <tr><td class="d_codelines">
 <pre><a href="#L1_ex26" name="L1_ex26">1</a>
 </pre></td><td class="d_codetext"><pre>
-<span class="i">CELEME_RECORDER</span>* <span class="i">celeme_record</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>);</pre>
+<span class="i">CELEME_RECORDER</span>* <span class="i">celeme_record</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">int</span> <span class="i">flags</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="celeme_record_events" href="htmlsrc/celeme.capi.html#L476">celeme_record_events</a><span class="params">(INeuronGroup <em>group</em>, int <em>neuron_id</em>, int <em>thresh_id</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_record_events" class="plink">¶</a></dt>
-<dd class="ddef">
-<div class="summary"><div class="cmnt">Record the events from a particular event source of a single neuron.</div></div>
-<p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.RecordEvents">INeuronGroup.RecordEvents</a>
- 
- C signature:
- <table class="d_code">
-  <tr><td class="d_codelines">
-<pre><a href="#L1_ex27" name="L1_ex27">1</a>
-</pre></td><td class="d_codetext"><pre>
-<span class="i">CELEME_RECORDER</span>* <span class="i">celeme_record_events</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">neuron_id</span>, <span class="k">int</span> <span class="i">thresh_id</span>);</pre>
-</td></tr>
-</table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_stop_recording" href="htmlsrc/celeme.capi.html#L488">celeme_stop_recording</a><span class="params">(INeuronGroup <em>group</em>, int <em>neuron_id</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_stop_recording" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_stop_recording" href="htmlsrc/celeme.capi.html#L476">celeme_stop_recording</a><span class="params">(INeuronGroup <em>group</em>, int <em>neuron_id</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_stop_recording" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Stop all recording in a particular neuron.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.StopRecording">INeuronGroup.StopRecording</a>
@@ -391,12 +378,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex28" name="L1_ex28">1</a>
+<pre><a href="#L1_ex27" name="L1_ex27">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">void</span> <span class="i">celeme_stop_recording</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">neuron_id</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_min_dt" href="htmlsrc/celeme.capi.html#L500">celeme_get_min_dt</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_min_dt" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_min_dt" href="htmlsrc/celeme.capi.html#L488">celeme_get_min_dt</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_min_dt" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the minimum dt.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.MinDt">INeuronGroup.MinDt</a>
@@ -404,12 +391,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex29" name="L1_ex29">1</a>
+<pre><a href="#L1_ex28" name="L1_ex28">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">double</span> <span class="i">celeme_get_min_dt</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_min_dt" href="htmlsrc/celeme.capi.html#L512">celeme_set_min_dt</a><span class="params">(INeuronGroup <em>group</em>, double <em>min_dt</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_min_dt" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_min_dt" href="htmlsrc/celeme.capi.html#L500">celeme_set_min_dt</a><span class="params">(INeuronGroup <em>group</em>, double <em>min_dt</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_min_dt" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the minimum dt.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.MinDt">INeuronGroup.MinDt</a>
@@ -417,12 +404,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex30" name="L1_ex30">1</a>
+<pre><a href="#L1_ex29" name="L1_ex29">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">void</span> <span class="i">celeme_set_min_dt</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">double</span> <span class="i">min_dt</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_count" href="htmlsrc/celeme.capi.html#L524">celeme_get_count</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_count" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_count" href="htmlsrc/celeme.capi.html#L512">celeme_get_count</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_count" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the number of neurons in this group.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Count">INeuronGroup.Count</a>
@@ -430,12 +417,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex31" name="L1_ex31">1</a>
+<pre><a href="#L1_ex30" name="L1_ex30">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">int</span> <span class="i">celeme_get_count</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_seed" href="htmlsrc/celeme.capi.html#L536">celeme_seed</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_seed" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_seed" href="htmlsrc/celeme.capi.html#L524">celeme_seed</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_seed" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Seeds the random number generator.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Seed">INeuronGroup.Seed</a>
@@ -443,12 +430,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex32" name="L1_ex32">1</a>
+<pre><a href="#L1_ex31" name="L1_ex31">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">int</span> <span class="i">celeme_seed</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">seed</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L721">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L705">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the recorder name.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Name">CRecorder.Name</a>
@@ -456,12 +443,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex33" name="L1_ex33">1</a>
+<pre><a href="#L1_ex32" name="L1_ex32">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">const</span> <span class="k">char</span>* <span class="i">celeme_get_recorder_name</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L744">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L728">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the length of the recorder data.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Length">CRecorder.Length</a>
@@ -469,12 +456,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex34" name="L1_ex34">1</a>
+<pre><a href="#L1_ex33" name="L1_ex33">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">size_t</span> <span class="i">celeme_get_recorder_length</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L767">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L751">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded time points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.T">CRecorder.T</a>
@@ -482,12 +469,12 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex35" name="L1_ex35">1</a>
+<pre><a href="#L1_ex34" name="L1_ex34">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">double</span>* <span class="i">celeme_get_recorder_time</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L790">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L774">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded data points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Data">CRecorder.Data</a>
@@ -495,15 +482,41 @@
  C signature:
  <table class="d_code">
   <tr><td class="d_codelines">
-<pre><a href="#L1_ex36" name="L1_ex36">1</a>
+<pre><a href="#L1_ex35" name="L1_ex35">1</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">double</span>* <span class="i">celeme_get_recorder_data</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_tags" href="htmlsrc/celeme.capi.html#L797">celeme_get_recorder_tags</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_tags" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get a pointer to an array of recorded data point tags.</div></div>
+<p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Tags">CRecorder.Tags</a>
+ 
+ C signature:
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex36" name="L1_ex36">1</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="k">double</span>* <span class="i">celeme_get_recorder_tags</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
+</td></tr>
+</table></div></dd>
+<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_neuron_ids" href="htmlsrc/celeme.capi.html#L820">celeme_get_recorder_neuron_ids</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_neuron_ids" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get a pointer to an array of recorded data point neuron ids.</div></div>
+<p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.NeuronIds">CRecorder.NeuronIds</a>
+ 
+ C signature:
+ <table class="d_code">
+  <tr><td class="d_codelines">
+<pre><a href="#L1_ex37" name="L1_ex37">1</a>
+</pre></td><td class="d_codetext"><pre>
+<span class="k">double</span>* <span class="i">celeme_get_recorder_neuron_ids</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd></dl>
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sun Feb 27 16:15:25 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Thu Mar 24 15:10:26 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

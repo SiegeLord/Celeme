@@ -1,6 +1,6 @@
-["configloader",1,[],[1,662],[
+["configloader",1,[],[1,664],[
 ["LoadMechanisms",12,[],[220,243],[]],
 ["LoadSynapses",12,[],[272,320],[]],
 ["LoadConnectors",12,[],[343,383],[]],
-["LoadNeuronTypes",12,[],[498,581],[]],
-["LoadModel",12,[],[618,661],[]]]]
+["LoadNeuronTypes",12,[],[498,583],[]],
+["LoadModel",12,[],[620,663],[]]]]

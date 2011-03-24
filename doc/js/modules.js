@@ -1,6 +1,6 @@
 var g_moduleList = [
   "celeme.adaptiveheun", "celeme.alignedarray", "celeme.amdperf", "celeme.capi",
-  "celeme.celeme", "celeme.clconnector", "celeme.clcore",
+  "celeme.celeme", "celeme.celeme_util", "celeme.clconnector", "celeme.clcore",
   "celeme.clmiscbuffers", "celeme.clmodel", "celeme.clneurongroup",
   "celeme.clrand", "celeme.config", "celeme.configloader", "celeme.frontend",
   "celeme.heun", "celeme.iclmodel", "celeme.iclneurongroup", "celeme.imodel",
@@ -16,6 +16,7 @@ var g_packageTree = new PackageTree(P('', [
     M('celeme.amdperf'),
     M('celeme.capi'),
     M('celeme.celeme'),
+    M('celeme.celeme_util'),
     M('celeme.clconnector'),
     M('celeme.clcore'),
     M('celeme.clmiscbuffers'),
@@ -40,4 +41,4 @@ var g_packageTree = new PackageTree(P('', [
 ])
 );
 
-var g_creationTime = 1298841325;
+var g_creationTime = 1300993826;

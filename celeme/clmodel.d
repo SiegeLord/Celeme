@@ -127,6 +127,27 @@ class CCLModel(float_t) : ICLModel
 			Source ~= "#define USE_ATOMIC_DELIVERY 0\n";
 		}
 		
+		Source ~= `
+		
+		#define record(flags, data, tag) \
+		if(record_flags & (flags)) \
+		{ \
+			int idx = atomic_inc(&record_idx[0]); \
+			if(idx >= record_buffer_size) \
+			{ \
+				error_buffer[i + 1] = 10; \
+				record_idx[0] = record_buffer_size - 1; \
+			} \
+			$num_type$4 record; \
+			record.s0 = cur_time + t; \
+			record.s1 = (data); \
+			record.s2 = tag; \
+			record.s3 = i; \
+			record_buffer[idx] = record; \
+		} \
+		
+		`;
+		
 		/* RNG */
 		bool need_rand = false;
 		foreach(have_rand; RandsUsed[1..$])

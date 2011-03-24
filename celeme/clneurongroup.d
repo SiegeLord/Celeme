@@ -76,27 +76,7 @@ $load_rand_state$
 $synapse_code$
 
 		while(cur_time < timestep)
-		{
-			/* Record if necessary */
-			if(record_flags && record_flags < $thresh_rec_offset$)
-			{
-				int idx = atomic_inc(&record_idx[0]);
-				if(idx >= record_buffer_size)
-				{
-					error_buffer[i + 1] = 10;
-					record_idx[0] = record_buffer_size - 1;
-				}
-				$num_type$4 record;
-				record.s0 = i;
-				record.s1 = cur_time + t;
-				record.s3 = 0;
-				switch(record_flags)
-				{
-$record_vals$
-				}
-				record_buffer[idx] = record;
-			}
-			
+		{	
 			$num_type$ error = 0;
 			
 			/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
@@ -315,7 +295,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		else
 			Integrator = new CHeun!(float_t)(this, type);
 		
-		EventRecorder = new CRecorder(Name ~ " events.");
+		CommonRecorder = new CRecorder(Name, true);
 		
 		/* Create kernel sources */
 		CreateStepKernel(type);
@@ -466,11 +446,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			buffer.Buffer[] = buffer.DefaultValue;
 		}
 		Core.Finish();
-		
-		foreach(recorder; Recorders)
-			recorder.Length = 0;
 			
-		EventRecorder.Length = 0;
+		CommonRecorder.Length = 0;
 	}
 	
 	void SetConstant(int idx)
@@ -706,22 +683,6 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$synapse_code$");
 		
-		/* Record vals */
-		source.Tab(5);
-		/* The indices are offset by 1, so that 0 can be used as a special
-		 * index indicating that nothing is to be recorded*/
-		int non_local_idx = 1; 
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= "case " ~ to!(char[])(non_local_idx) ~ ":";
-			source.Tab;
-			source ~= "record.s2 = " ~ name ~ ";";
-			source.DeTab;
-			source ~= "break;";
-			non_local_idx++;
-		}
-		source.Inject(kernel_source, "$record_vals$");
-		
 		/* Threshold pre-check */
 		source.Tab(3);
 		int thresh_idx = 0;
@@ -767,24 +728,7 @@ if(syn_table_end != syn_offset)
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime && !FixedStep)
 				source ~= "dt = $min_dt$f;";
-			
-			source.AddBlock(
-`if(record_flags >= $thresh_rec_offset$ && record_flags - $thresh_rec_offset$ == $thresh_idx$)
-{
-	int idx = atomic_inc(&record_idx[0]);
-	if(idx >= record_buffer_size)
-	{
-		error_buffer[i + 1] = 10;
-		record_idx[0] = record_buffer_size - 1;
-	}
 
-	$num_type$4 record;
-	record.s0 = i;
-	record.s1 = cur_time + t;
-	record.s2 = $thresh_idx$;
-	record.s3 = 1;
-	record_buffer[idx] = record;
-}`);
 			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
@@ -859,7 +803,6 @@ else //It is full, error
 		source.Inject(kernel_source, "$save_rand_state$");
 		
 		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "dt = $min_dt$f");
-		kernel_source = kernel_source.substitute("$thresh_rec_offset$", to!(char[])(non_local_idx));
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
 		
@@ -869,8 +812,6 @@ else //It is full, error
 			throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 		
 		kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
-		
-		ThreshRecordOffset = non_local_idx;
 		
 		StepKernelSource = kernel_source;
 	}
@@ -1251,7 +1192,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	{
 		assert(Model.Initialized);
 		
-		if(Recorders.length || EventRecorderIds.length)
+		if(CommonRecorderIds.length)
 		{
 			if((RecordRate && ((timestep + 1) % RecordRate == 0)) || last)
 			{
@@ -1265,10 +1206,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 					{
 						int id = cast(int)quad[0];
 						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-						if(quad[3] > 0)
-							EventRecorder.AddDatapoint(quad[1], id * NumThresholds + quad[2]);
-						else
-							Recorders[id].AddDatapoint(quad[1], quad[2]);
+						CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(int)quad[3]);
 					}
 				}
 			}
@@ -1279,38 +1217,16 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
-	CRecorder Record(int neuron_id, char[] name)
+	CRecorder Record(int neuron_id, int flags)
 	{
 		assert(Model.Initialized);
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		
-		/* TODO: This relies on states being first in the valuebuffer registry... */
-		auto idx_ptr = name in ValueBufferRegistry;
-		if(idx_ptr is null)
-			throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		CommonRecorderIds ~= neuron_id;
+		RecordFlagsBuffer[neuron_id] = flags;
 		
-		/* Offset the index by 1 */
-		RecordFlagsBuffer[neuron_id] = 1 + *idx_ptr;
-		
-		auto rec = new CRecorder(Name ~ "[" ~ to!(char[])(neuron_id) ~ "]." ~ name);
-		Recorders[neuron_id] = rec;
-		return rec;
-	}
-	
-	override
-	CRecorder RecordEvents(int neuron_id, int thresh_id)
-	{
-		assert(Model.Initialized);
-		assert(neuron_id >= 0);
-		assert(neuron_id < Count);
-		assert(thresh_id >= 0);
-		
-		EventRecorderIds ~= neuron_id;
-		/* Offset the index by 1 */
-		RecordFlagsBuffer[neuron_id] = thresh_id + ThreshRecordOffset;
-		
-		return EventRecorder;
+		return CommonRecorder;
 	}
 	
 	override
@@ -1320,14 +1236,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		
-		auto idx_ptr = neuron_id in Recorders;
-		if(idx_ptr !is null)
-		{
-			idx_ptr.Detach();
-			Recorders.remove(neuron_id);
-		}
-		
-		EventRecorderIds.length = EventRecorderIds.remove(neuron_id);
+		CommonRecorderIds.length = CommonRecorderIds.remove(neuron_id);
 		
 		RecordFlagsBuffer[neuron_id] = 0;
 	}
@@ -1507,12 +1416,11 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	mixin(Prop!("CCLBuffer!(int)", "ErrorBuffer", "override", "private"));
 	mixin(Prop!("CCLRand", "Rand", "override", "private"));
 	mixin(Prop!("int", "RandLen", "override", "private"));
-	
-	CRecorder[int] Recorders;
-	CRecorder EventRecorder;
+
+	CRecorder CommonRecorder;
 	
 	/* Holds the id's where we are recording events */
-	int[] EventRecorderIds;
+	int[] CommonRecorderIds;
 	
 	double[] Constants;
 	int[char[]] ConstantRegistry;
@@ -1558,8 +1466,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int SynOffset;
 	/* Offset for indexing into the model global indices */
 	int NrnOffsetVal;
-	
-	int ThreshRecordOffset = 0;
 	
 	CSynapseBuffer[] SynapseBuffersVal;
 	CEventSourceBuffer[] EventSourceBuffersVal;

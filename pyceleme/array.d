@@ -27,7 +27,9 @@ import tango.io.Stdout;
 struct SArray
 {
     mixin PyObject_HEAD;
-    double[] Data;
+    void* Data;
+    size_t Length;
+    char[] TypeStr;
 }
 
 extern (C)
@@ -64,17 +66,17 @@ PyObject* SArray_get_array_interface(SArray *self, void *closure)
 	
 	version(X86_64)
 	{
-		PyDict_SetItemString(ret, "shape", Py_BuildValue("(L)", cast(long)self.Data.length));
-		PyDict_SetItemString(ret, "data", Py_BuildValue("(L, i)", cast(long)self.Data.ptr, 1));
+		PyDict_SetItemString(ret, "shape", Py_BuildValue("(L)", cast(long)self.Length));
+		PyDict_SetItemString(ret, "data", Py_BuildValue("(L, i)", cast(long)self.Data, 1));
 	}
 	else
 	{
-		PyDict_SetItemString(ret, "shape", Py_BuildValue("(i)", cast(int)self.Data.length));
-		PyDict_SetItemString(ret, "data", Py_BuildValue("(i, i)", cast(int)self.Data.ptr, 1));
+		PyDict_SetItemString(ret, "shape", Py_BuildValue("(i)", cast(int)self.Length));
+		PyDict_SetItemString(ret, "data", Py_BuildValue("(i, i)", cast(int)self.Data, 1));
 	}
 
 	/* TODO: Endianness */
-	PyDict_SetItemString(ret, "typestr", PyString_FromString("<f8"));
+	PyDict_SetItemString(ret, "typestr", PyString_FromString(toStringz(self.TypeStr)));
 	PyDict_SetItemString(ret, "version", Py_BuildValue("i", 3));
 	
     return ret;

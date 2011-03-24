@@ -84,10 +84,9 @@ PyObject* SRecorder_get_t(SRecorder *self, void *closure)
 	auto ret = SArray_new(&SArrayType, null, null);
 	mixin(ErrorCheck("null"));
 	
-	auto len = celeme_get_recorder_length(self.Recorder);
-	auto t = celeme_get_recorder_time(self.Recorder);
-	
-	(cast(SArray*)ret).Data = t[0..len];
+	(cast(SArray*)ret).Data = celeme_get_recorder_time(self.Recorder);
+	(cast(SArray*)ret).Length = celeme_get_recorder_length(self.Recorder);
+	(cast(SArray*)ret).TypeStr = "<f8";
 	
     return ret;
 }
@@ -98,10 +97,35 @@ PyObject* SRecorder_get_data(SRecorder *self, void *closure)
 	auto ret = SArray_new(&SArrayType, null, null);
 	mixin(ErrorCheck("null"));
 	
-	auto len = celeme_get_recorder_length(self.Recorder);
-	auto data = celeme_get_recorder_data(self.Recorder);
+	(cast(SArray*)ret).Data = celeme_get_recorder_data(self.Recorder);
+	(cast(SArray*)ret).Length = celeme_get_recorder_length(self.Recorder);
+	(cast(SArray*)ret).TypeStr = "<f8";
 	
-	(cast(SArray*)ret).Data = data[0..len];
+    return ret;
+}
+
+extern(C)
+PyObject* SRecorder_get_tags(SRecorder *self, void *closure)
+{
+	auto ret = SArray_new(&SArrayType, null, null);
+	mixin(ErrorCheck("null"));
+	
+	(cast(SArray*)ret).Data = celeme_get_recorder_tags(self.Recorder);
+	(cast(SArray*)ret).Length = celeme_get_recorder_length(self.Recorder);
+	(cast(SArray*)ret).TypeStr = "<i4";
+	
+    return ret;
+}
+
+extern(C)
+PyObject* SRecorder_get_neuron_ids(SRecorder *self, void *closure)
+{
+	auto ret = SArray_new(&SArrayType, null, null);
+	mixin(ErrorCheck("null"));
+	
+	(cast(SArray*)ret).Data = celeme_get_recorder_neuron_ids(self.Recorder);
+	(cast(SArray*)ret).Length = celeme_get_recorder_length(self.Recorder);
+	(cast(SArray*)ret).TypeStr = "<i4";
 	
     return ret;
 }
@@ -112,6 +136,8 @@ PyGetSetDef[] SRecorder_getseters =
 	{"Name", cast(getter)&SRecorder_get_name, null, "Name", null},
 	{"T", cast(getter)&SRecorder_get_t, null, "Time", null},
 	{"Data", cast(getter)&SRecorder_get_data, null, "Data", null},
+	{"Tags", cast(getter)&SRecorder_get_tags, null, "Tags", null},
+	{"NeuronIds", cast(getter)&SRecorder_get_neuron_ids, null, "NeuronIds", null},
 	{null}  /* Sentinel */
 ];
 

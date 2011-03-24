@@ -77,8 +77,7 @@ double celeme_set_global(CELEME_NEURON_GROUP* group, const char* name, int idx, 
 double celeme_get_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx);
 double celeme_set_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx, double val);
 
-CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, int nrn_idx, const char* name);
-CELEME_RECORDER* celeme_record_events(CELEME_NEURON_GROUP* group, int neuron_id, int thresh_id);
+CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, int nrn_idx, int flags);
 
 void celeme_stop_recording(CELEME_NEURON_GROUP* group, int neuron_id);
 
@@ -94,5 +93,7 @@ const char* celeme_get_recorder_name(CELEME_RECORDER* recorder);
 size_t celeme_get_recorder_length(CELEME_RECORDER* recorder);
 double* celeme_get_recorder_time(CELEME_RECORDER* recorder);
 double* celeme_get_recorder_data(CELEME_RECORDER* recorder);
+int* celeme_get_recorder_tags(CELEME_RECORDER* recorder);
+int* celeme_get_recorder_neuron_ids(CELEME_RECORDER* recorder);
 
 #endif

@@ -129,33 +129,14 @@ PyObject* SNeuronGroup_stop_recording(SNeuronGroup *self, PyObject* args, PyObje
 extern (C)
 PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["neuron_id", "name", null];
+	char[][] kwlist = ["neuron_id", "flags", null];
 	int neuron_id;
-	char* name;
+	int flags;
 
-	if(!DParseTupleAndKeywords(args, kwds, "is", kwlist, &neuron_id, &name))
+	if(!DParseTupleAndKeywords(args, kwds, "ii", kwlist, &neuron_id, &flags))
 		return null;
 	
-	auto rec = cast(CRecorder)celeme_record(self.Group, neuron_id, name);
-	mixin(ErrorCheck("null"));
-	
-	auto ret = SRecorder_new(&SRecorderType, null, null);
-	(cast(SRecorder*)ret).Recorder = rec;
-	
-	return ret;
-}
-
-extern (C)
-PyObject* SNeuronGroup_record_events(SNeuronGroup *self, PyObject* args, PyObject* kwds)
-{
-	char[][] kwlist = ["neuron_id", "thresh_id", null];
-	int neuron_id;
-	int thresh_id;
-
-	if(!DParseTupleAndKeywords(args, kwds, "ii", kwlist, &neuron_id, &thresh_id))
-		return null;
-	
-	auto rec = celeme_record_events(self.Group, neuron_id, thresh_id);
+	auto rec = celeme_record(self.Group, neuron_id, flags);
 	mixin(ErrorCheck("null"));
 	
 	auto ret = SRecorder_new(&SRecorderType, null, null);
@@ -183,8 +164,7 @@ PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 PyMethodDef[] SNeuronGroup_methods = 
 [
     {"StopRecording", cast(PyCFunction)&SNeuronGroup_stop_recording, METH_VARARGS | METH_KEYWORDS, "Stop recording from a particular neuron."},
-    {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Record the temporal evolution of a state variable in a neuron."},
-    {"RecordEvents", cast(PyCFunction)&SNeuronGroup_record_events, METH_VARARGS | METH_KEYWORDS, "Record the threshold crossings of a particular threshold in a neuron."},
+    {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Set the record flags of a particular neuron."},
     {"Seed", cast(PyCFunction)&SNeuronGroup_seed, METH_VARARGS | METH_KEYWORDS, "Set the seed for the random number generator."},
     {null}  /* Sentinel */
 ];

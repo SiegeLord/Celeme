@@ -83,16 +83,10 @@ void main(char[][] arg_list)
 	
 	return;+/
 	
-	CRecorder v_rec1;
-	CRecorder v_rec2;
-	CRecorder v_rec3;
+	CRecorder rec;
 	if(record)
 	{
-		v_rec1 = model["Regular"].Record(1, "V");
-		v_rec2 = model["Regular"].Record(2, "V");
-		v_rec3 = model["Regular"].Record(3, "V");
-		//model["Burster"].RecordEvents(0, 1);
-		//v_rec2 = model["Burster"].EventRecorder;
+		rec = model["Regular"].Record(0, 1);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop);
@@ -130,17 +124,17 @@ void main(char[][] arg_list)
 			PointType(6);
 			Thickness(1);
 			Color([0,0,0]);
-			Plot(v_rec1.T, v_rec1.Data, v_rec1.Name);
-			Color([255,0,0]);
+			Plot(rec.T, rec.Data, rec.Name);
+			/*Color([255,0,0]);
 			Plot(v_rec2.T, v_rec2.Data, v_rec2.Name);
 			Color([0,0,255]);
-			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);
+			Plot(v_rec3.T, v_rec3.Data, v_rec3.Name);*/
 			Hold = false;
 		}
 
 		// 361 680
-		Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
-		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);
+		/*Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
+		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);*/
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop);
 }

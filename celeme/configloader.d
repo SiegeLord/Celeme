@@ -44,8 +44,8 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 		}
 	}
 	
-	mech.SetInitCode(mech_entry.ValueOf!(char[])("init", ""));
-	mech.SetPreStage(mech_entry.ValueOf!(char[])("pre_stage", ""));
+	mech.InitCode = mech_entry.ValueOf!(char[])("init_code", "");
+	mech.PreStageCode = mech_entry.ValueOf!(char[])("pre_stage", "");
 	
 	foreach(val_entries; mech_entry["state"])
 	{
@@ -155,7 +155,7 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  *     stage2 = "";
  *     
  *     // Init code
- *     init = "";
+ *     init_code = "";
  *     
  *     // Code run before the integration is performed
  *     pre_stage = "";
@@ -517,6 +517,8 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 			nrn_type.NumSrcSynapses = nrn_entry.ValueOf!(int)("num_src_synapses", 0);
 			nrn_type.RandLen = nrn_entry.ValueOf!(int)("rand_state_len", 0);
 			nrn_type.MinDt = nrn_entry.ValueOf!(double)("min_dt", 0.01);
+			nrn_type.PreStageCode = nrn_entry.ValueOf!(char[])("pre_stage", "");
+			nrn_type.InitCode = nrn_entry.ValueOf!(char[])("init_code", "");
 			
 			foreach(entries; nrn_entry["mechanism"])
 			{

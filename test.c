@@ -8,7 +8,7 @@ int main()
 	
 	celeme_init();
 	
-	CELEME_MODEL* model = celeme_load_model("stuff.cfg", false); CHECK;
+	CELEME_MODEL* model = celeme_load_model("stuff.cfg", true); CHECK;
 	
 	CELEME_NEURON_GROUP* group = celeme_get_neuron_group(model, "Regular"); CHECK;
 	
@@ -23,7 +23,7 @@ int main()
 	
 	int tstop = 1000;
 	
-	CELEME_RECORDER* rec = celeme_record(celeme_get_neuron_group(model, "Regular"), 0, "V");
+	CELEME_RECORDER* rec = celeme_record(celeme_get_neuron_group(model, "Regular"), 0, 1);
 	
 	celeme_reset_run(model);
 	celeme_init_run(model);

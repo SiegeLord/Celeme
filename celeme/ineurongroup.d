@@ -72,28 +72,15 @@ interface INeuronGroup
 	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx);
 	
 	/**
-	 * Record a state of a particular neuron. Only one state or threshold can be recorded at a time in
-	 * a single neuron.
-	 * 
-	 * Returns:
-	 *     A recorder that will hold time-state data points. A new recorder is made for
-	 *     each recorded state.
-	 */
-	CRecorder Record(int neuron_id, char[] name);
-	/**
-	 * Record the events coming from a particular threshold detector in this neuron.
-	 * Only one state or threshold can be recorded at a time.
+	 * Set the recording flags of a single neuron.
 	 * 
 	 * Params:
 	 *     neuron_id = Index of the neuron.
-	 *     thresh_id = Index of the threshold to record from.
+	 *     flags = flags to pass to the neuron.
 	 * Returns:
-	 *     A common recorder. The recorder will store times of all the events coming from all recorded
-	 *     neurons in the T array. The Data array will hold the global threshold index, identifying
-	 *     where the event came from. This is calculated like as follows:
-	 *     id = thresh_id + num_thresh * neuron_id.
+	 *     A common recorder that will hold data points consisting of the time, data and a tag as well as the neuron id.
 	 */
-	CRecorder RecordEvents(int neuron_id, int thresh_id);
+	CRecorder Record(int neuron_id, int flags);
 	/**
 	 * Stop recording everything
 	 */

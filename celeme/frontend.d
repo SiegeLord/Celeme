@@ -184,14 +184,24 @@ class CMechanism
 		Thresholds ~= thresh;
 	}
 	
-	void SetInitCode(char[] source)
+	void InitCode(char[] code)
 	{
-		Init = source;
+		InitCodeVal = code;
 	}
 	
-	void SetPreStage(char[] pre_stage)
+	char[] InitCode()
 	{
-		PreStage = pre_stage;
+		return InitCodeVal;
+	}
+	
+	void PreStageCode(char[] code)
+	{
+		PreStageCodeVal = code;
+	}
+	
+	char[] PreStageCode()
+	{
+		return PreStageCodeVal;
 	}
 	
 	CValue opIndex(char[] name)
@@ -225,9 +235,9 @@ class CMechanism
 		
 		ret.Externals = Externals.deep_dup();
 			
-		ret.Init = Init.dup;
+		ret.InitCode = InitCode.dup;
 		
-		ret.PreStage = PreStage.dup;
+		ret.PreStageCode = PreStageCode.dup;
 		ret.States = States.deep_dup();
 		ret.Globals = Globals.deep_dup();
 		ret.Locals = Locals.deep_dup();
@@ -241,7 +251,7 @@ class CMechanism
 	
 	/* Pre-stage is called only once per dt, before any of the stages are called.
 	 */
-	char[] PreStage;
+	char[] PreStageCodeVal;
 	
 	/* Mechanism evaluation proceeds in stages. Each mechanism's stage N is run at the same time,
 	 * and before stage N + 1. The suggested nature of operations that go in each stage is as follows:
@@ -258,7 +268,7 @@ class CMechanism
 	/* The init function gets called after each value gets the default value set to it. Thus, most init
 	 * functions should be empty OR set the state initial values given the globals
 	 */
-	char[] Init;
+	char[] InitCodeVal;
 	
 	/* States are the dynamical states. They have a first derivative (referred to as state_name' inside the
 	 * stage sources. You should never modify a state's value directly outside of a threshold. Or the init
@@ -655,12 +665,16 @@ class CNeuronType
 	char[] GetPreStageSource()
 	{
 		char[] ret;
+		if(PreStageCode.length)
+		{
+			ret ~= "{\n" ~ PreStageCode ~ "\n}\n";
+		}
 		foreach(ii, mech; Mechanisms)
 		{
-			if(mech.PreStage.length)
+			if(mech.PreStageCode.length)
 			{
 				auto prefix = MechanismPrefixes[ii];
-				auto pre_stage_src = mech.PreStage.dup;
+				auto pre_stage_src = mech.PreStageCode.dup;
 				if(prefix != "")
 				{
 					foreach(val; &mech.AllValues)
@@ -684,10 +698,10 @@ class CNeuronType
 		}
 		foreach(ii, mech; Mechanisms)
 		{
-			if(mech.Init.length)
+			if(mech.InitCode.length)
 			{
 				auto prefix = MechanismPrefixes[ii];
-				auto init_src = mech.Init.dup;
+				auto init_src = mech.InitCode.dup;
 				if(prefix != "")
 				{
 					foreach(val; &mech.AllValues)
@@ -702,9 +716,24 @@ class CNeuronType
 		return ret;
 	}
 	
-	void SetInitCode(char[] code)
+	void InitCode(char[] code)
 	{
-		InitCode = code;
+		InitCodeVal = code;
+	}
+	
+	char[] InitCode()
+	{
+		return InitCodeVal;
+	}
+	
+	void PreStageCode(char[] code)
+	{
+		PreStageCodeVal = code;
+	}
+	
+	char[] PreStageCode()
+	{
+		return PreStageCodeVal;
 	}
 	
 	CConnector[] Connectors;
@@ -714,7 +743,8 @@ class CNeuronType
 	CSynapse[char[]] SynGlobals;
 	SSynType[] SynapseTypes;
 	char[] Name;
-	char[] InitCode;
+	char[] InitCodeVal;
+	char[] PreStageCodeVal;
 	
 	/* Length of the random state: 0-4
 	 * 0 is no rand required */

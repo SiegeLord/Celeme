@@ -452,28 +452,16 @@ double celeme_get_syn_global(INeuronGroup group, char* name, int nrn_idx, int sy
 double celeme_set_syn_global(INeuronGroup group, char* name, int nrn_idx, int syn_idx, double val);
 
 /**
- * Record the temporal evolution of a state of a single neuron.
+ * Set the recording flags of a single neuron.
  * 
  * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Record, INeuronGroup.Record)
  * 
  * C signature:
  * ---
- * CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, int nrn_idx, const char* name);
+ * CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, int nrn_idx, int flags);
  * ---
  */
-CRecorder celeme_record(INeuronGroup group, int nrn_idx, char* name);
-
-/**
- * Record the events from a particular event source of a single neuron.
- * 
- * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.RecordEvents, INeuronGroup.RecordEvents)
- * 
- * C signature:
- * ---
- * CELEME_RECORDER* celeme_record_events(CELEME_NEURON_GROUP* group, int neuron_id, int thresh_id);
- * ---
- */
-CRecorder celeme_record_events(INeuronGroup group, int neuron_id, int thresh_id);
+CRecorder celeme_record(INeuronGroup group, int nrn_idx, int flags);
 
 /**
  * Stop all recording in a particular neuron.
@@ -676,12 +664,8 @@ mixin(GroupFunc!("set_syn_global", "double", "opIndexAssign",
 	"val, fromStringz(name), nrn_idx, syn_idx", "-1.0"));
 	
 mixin(GroupFunc!("record", "CRecorder", "Record", 
-	", int nrn_idx, char* name", 
-	"nrn_idx, fromStringz(name)", "null"));
-	
-mixin(GroupFunc!("record_events", "CRecorder", "RecordEvents", 
-	", int neuron_id, int thresh_id", 
-	"neuron_id, thresh_id", "null"));
+	", int nrn_idx, int flags", 
+	"nrn_idx, flags", "null"));
 	
 mixin(GroupFunc!("stop_recording", "void", "StopRecording", 
 	", int neuron_id", 
@@ -792,6 +776,55 @@ double* celeme_get_recorder_data(CRecorder recorder)
 	try
 	{
 		return recorder.Data.ptr;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+/**
+ * Get a pointer to an array of recorded data point tags.
+ * 
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.Tags, CRecorder.Tags)
+ * 
+ * C signature:
+ * ---
+ * double* celeme_get_recorder_tags(CELEME_RECORDER* recorder);
+ * ---
+ */
+int* celeme_get_recorder_tags(CRecorder recorder)
+{
+	try
+	{
+		return recorder.Tags.ptr;
+	}
+	catch(Exception e)
+	{
+		ErrorText = e.msg;
+	}
+	return null;
+}
+
+/**
+ * Get a pointer to an array of recorded data point neuron ids.
+ * 
+ * See_Also: $(SYMLINK2 celeme.recorder, CRecorder.NeuronIds, CRecorder.NeuronIds)
+ * 
+ * C signature:
+ * ---
+ * double* celeme_get_recorder_neuron_ids(CELEME_RECORDER* recorder);
+ * ---
+ */
+int* celeme_get_recorder_neuron_ids(CRecorder recorder)
+{
+	try
+	{
+		if(recorder.NeuronIds !is null)
+			return recorder.NeuronIds.ptr;
+		return
+			null;
 	}
 	catch(Exception e)
 	{

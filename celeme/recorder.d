@@ -21,31 +21,37 @@ module celeme.recorder;
 import tango.io.Stdout;
 
 /**
- * This class holds the time and data poins. Essentially this is a growable
- * pair of arrays.
+ * This class holds the time, tags and data poins. Essentially this is a growable
+ * triplet of arrays.
  */
 class CRecorder
 {
-	this(char[] name = "")
+	this(char[] name = "", bool store_neuron_id = false)
 	{
 		Name = name;
+		StoreNeuronId = false;
 	}
 	
 	void Detach()
 	{
 		Length = 0;
-		TArray.length = DataArray.length = 0;
+		TArray.length = DataArray.length = TagArray.length = 0;
 	}
 	
-	void AddDatapoint(double t, double data)
+	void AddDatapoint(double t, double data, int tag, int neuron_id = 0)
 	{
 		if(Length >= TArray.length)
 		{
 			TArray.length = cast(int)((Length + 1) * 1.5);
-			DataArray.length = TArray.length;
+			TagArray.length = DataArray.length = TArray.length;
+			if(StoreNeuronId)
+				NeuronIdArray.length = TArray.length;
 		}
 		TArray[Length] = t;
 		DataArray[Length] = data;
+		TagArray[Length] = tag;
+		if(StoreNeuronId)
+			NeuronIdArray[Length] = neuron_id;
 		Length++;
 	}
 	
@@ -65,7 +71,28 @@ class CRecorder
 		return DataArray[0..Length];
 	}
 	
+	/**
+	 * Returns the tag array.
+	 */
+	int[] Tags()
+	{
+		return TagArray[0..Length];
+	}
+	
+	/**
+	 * Returns the neuron id array (if any).
+	 */
+	int[] NeuronIds()
+	{
+		if(StoreNeuronId)
+			return NeuronIdArray[0..Length];
+		else
+			return null;
+	}
+	
 	double[] TArray;
+	int[] TagArray;
+	int[] NeuronIdArray;
 	double[] DataArray;
 	
 	/**
@@ -77,4 +104,7 @@ class CRecorder
 	 * The length of the recorded data
 	 */
 	size_t Length = 0;
+	
+protected:
+	bool StoreNeuronId = false;
 }

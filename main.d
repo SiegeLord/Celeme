@@ -105,11 +105,11 @@ void main(char[][] arg_list)
 	
 	timer.start;
 	
-	auto data_arrs = ExtractData(rec);
-	
 	if(record)
 	//if(false)
 	{
+		auto data_arrs = ExtractData(rec);	
+	
 		auto plot = new C2DPlot;
 		with(plot)
 		{

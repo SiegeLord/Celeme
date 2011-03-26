@@ -144,7 +144,14 @@ cur_time += dt;
 if(error == 0)
 	dt = timestep;
 else
-	dt *= 0.9f * rootn(error, -3.0f);
+{
+	/* Approximate the cube root using Halley's Method (error is usually between 0 and 10)*/
+	$num_type$ cr = (1.0f + 2 * error)/(2.0f + error);
+	$num_type$ cr3 = cr*cr*cr;
+	cr = cr * (cr3 + 2.0f * error)/(2.0f * cr3 + error);
+	dt *= 0.9f / cr;
+	/* dt *= 0.9f * rootn(error, -3.0f); */
+}
 ".dup;
 		/* Declare temp states */
 		foreach(name, state; &type.AllStates)

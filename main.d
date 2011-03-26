@@ -30,7 +30,7 @@ import tango.time.StopWatch;
 import tango.io.Stdout;
 import tango.math.random.Random;
 import tango.text.Arguments;
-import tango.util.Convert;
+import tango.text.convert.Format;
 
 void main(char[][] arg_list)
 {
@@ -46,7 +46,7 @@ void main(char[][] arg_list)
 	
 	timer.start;
 	
-	auto model = LoadModel("stuff.cfg", true);
+	auto model = LoadModel("stuff.cfg", false);
 	scope(exit) model.Shutdown();
 	
 	auto N = model["Regular"].Count;
@@ -126,13 +126,14 @@ void main(char[][] arg_list)
 			
 			Hold = true;
 			Style("lines");
+			//Style("linespoints");
 			PointType(6);
 			Thickness(1);
 			foreach(nrn_id, tag_arr; data_arrs)
 			{
-				foreach(data; tag_arr)
+				foreach(tag, data; tag_arr)
 				{
-					Plot(data.T, data.Data, to!(char[])(nrn_id));
+					Plot(data.T, data.Data, Format("{} : {}", nrn_id, tag));
 				}
 			}
 			/*Color([0,0,0]);

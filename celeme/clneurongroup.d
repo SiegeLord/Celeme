@@ -1228,6 +1228,9 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		DeliverKernel.Release();
 		
 		Integrator.Shutdown();
+		
+		if(RandLen)
+			Rand.Shutdown();
 	}
 	
 	void UpdateRecorders(int timestep, bool last = false)

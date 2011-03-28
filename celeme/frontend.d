@@ -79,6 +79,18 @@ struct SThreshold
 	}
 }
 
+struct SSynThreshold
+{
+	char[] State;
+	char[] Condition;
+	char[] Source;
+	
+	SSynThreshold dup()
+	{
+		return SSynThreshold(State.dup, Condition.dup, Source.dup);
+	}
+}
+
 char[] AddMechFunc(char[] name)()
 {
 	return 
@@ -319,9 +331,17 @@ class CSynapse : CMechanism
 		return false;
 	}
 	
-	void SetSynCode(char[] code)
+	mixin(Prop!("char[]", "SynCode"));
+	mixin(Prop!("char[]", "SynThreshCode"));
+	
+	void AddSynThreshold(char[] state, char[] condition, char[] source)
 	{
-		SynCode = code;
+		SSynThreshold thresh;
+		thresh.State = state;
+		thresh.Condition = condition;
+		thresh.Source = source;
+		
+		SynThresholds ~= thresh;
 	}
 	
 	int AllSynGlobals(int delegate(ref CValue value) dg)
@@ -360,7 +380,9 @@ class CSynapse : CMechanism
 		super.dup(ret);
 		
 		ret.SynGlobals = SynGlobals.deep_dup();
+		ret.SynThresholds = SynThresholds.deep_dup();
 		ret.SynCode = SynCode.dup;
+		ret.SynThreshCode = SynThreshCode.dup;
 		
 		return ret;
 	}
@@ -369,7 +391,10 @@ class CSynapse : CMechanism
 	 */
 	CValue[] SynGlobals;
 	
-	char[] SynCode;
+	char[] SynCodeVal;
+	char[] SynThreshCodeVal;
+	
+	SSynThreshold[] SynThresholds;
 }
 
 struct SSynType
@@ -603,6 +628,49 @@ class CNeuronType
 		return 0;
 	}
 	
+	/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */
+	int AllSynThresholds(int delegate(ref SSynThreshold thresh) dg)
+	{
+		foreach(ii, syn_type; SynapseTypes)
+		{
+			auto prefix = syn_type.Prefix;
+			bool need_prefix = prefix != "";
+			auto syn = syn_type.Synapse;
+			
+			foreach(thresh; syn.SynThresholds)
+			{
+				auto thresh2 = thresh;
+				if(need_prefix)
+				{
+					thresh2.State = thresh2.State.dup;
+					thresh2.Condition = thresh2.Condition.dup;
+					thresh2.Source = thresh2.Source.dup;
+					
+					/* If the state name is one of the states of the synapse, it gets a prefix...
+					 * otherwise, it's external, and it gets nothing */
+					foreach(state; &syn.AllStates)
+					{
+						if(state.Name == thresh2.State)
+						{
+							thresh2.State = prefix ~ "_" ~ thresh2.State;
+							break;
+						}
+					}
+					 
+					foreach(val; &syn.AllValues)
+					{
+						auto name = val.Name;
+						thresh2.Condition = thresh2.Condition.c_substitute(name, prefix ~ "_" ~ name);
+						thresh2.Source = thresh2.Source.c_substitute(name, prefix ~ "_" ~ name);
+					}
+				}
+				if(int ret = dg(thresh2))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
 	/* This one, unlike AllThresholds returns the raw thresholds 
 	 * TODO: Is this okay? */
 	int AllEventSources(int delegate(ref SThreshold thresh) dg)
@@ -716,25 +784,8 @@ class CNeuronType
 		return ret;
 	}
 	
-	void InitCode(char[] code)
-	{
-		InitCodeVal = code;
-	}
-	
-	char[] InitCode()
-	{
-		return InitCodeVal;
-	}
-	
-	void PreStageCode(char[] code)
-	{
-		PreStageCodeVal = code;
-	}
-	
-	char[] PreStageCode()
-	{
-		return PreStageCodeVal;
-	}
+	mixin(Prop!("char[]", "InitCode"));
+	mixin(Prop!("char[]", "PreStageCode"));
 	
 	CConnector[] Connectors;
 	CMechanism[char[]] Values;

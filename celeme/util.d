@@ -37,24 +37,53 @@ void println(T...)(char[] fmt, T args)
 	Stdout.formatln(fmt, args);
 }
 
+bool c_allowed_char(char c)
+{
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+}
+
+size_t c_find(char[] text, char[] pattern)
+{
+	char[] rem = text;
+	size_t start;
+	auto L = pattern.length;
+	while((start = rem.find(pattern)) != rem.length)
+	{
+		if((start > 0 && c_allowed_char(text[start - 1]))
+		     || (start + L < rem.length - 1 && c_allowed_char(text[start + L])))
+		{
+			rem = rem[start + L .. $];
+		}
+		else
+		{
+			return start;
+		}
+	}
+	return text.length;
+}
+
+unittest
+{
+	char[] a = "abeta beta gamma zeta";
+	
+	assert(a.c_find("beta") == 6);
+	assert(a.c_find("abeta") == 0);
+	assert(a.c_find("sda") == a.length);
+}
+
 /*
  * Like substitute, but using proper delimeters
  */
 char[] c_substitute(char[] text, char[] pattern, char[] what)
 {
-	bool allowed_char(char c)
-	{
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-	}
-	
 	char[] ret;
 	char[] rem = text;
-	int start;
+	size_t start;
 	auto L = pattern.length;
 	while((start = rem.find(pattern)) != rem.length)
 	{
-		if((start > 0 && allowed_char(rem[start - 1]))
-		     || (start + L < rem.length - 1 && allowed_char(rem[start + L])))
+		if((start > 0 && c_allowed_char(rem[start - 1]))
+		     || (start + L < rem.length - 1 && c_allowed_char(rem[start + L])))
 		{
 			ret ~= rem[0..start] ~ pattern;
 		}

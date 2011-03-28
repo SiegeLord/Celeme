@@ -289,11 +289,23 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 			
 			FillMechanism(syn, entry);
 			
-			auto code = entry.ValueOf!(char[])("syn_code", null);
-			if(code !is null)
+			syn.SynCode = entry.ValueOf!(char[])("syn_code", "");
+			
+			foreach(thresh_entry; entry["syn_threshold"])
 			{
-				//println("Code: {}", code);
-				syn.SetSynCode(code);
+				auto state = thresh_entry.ValueOf!(char[])("state", null);
+				if(state is null)
+					throw new Exception("All syn thresholds need a state.");
+					
+				auto condition = thresh_entry.ValueOf!(char[])("condition", null);
+				if(condition is null)
+					throw new Exception("All syn thresholds need a condition.");
+
+				auto code = thresh_entry.ValueOf!(char[])("code", "");
+				
+				syn.AddSynThreshold(state, condition, code);
+				
+				//println("SynThresh: {} {} -> {}", state, condition, code);
 			}
 			
 			foreach(val_entries; entry["syn_global"])

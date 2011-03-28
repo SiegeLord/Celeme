@@ -74,28 +74,41 @@ $load_vals$
 $load_rand_state$
 
 $synapse_code$
-
+		
 		while(cur_time < timestep)
-		{	
-			$num_type$ error = 0;
+		{
+			bool any_thresh = false;
 			
-			/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
+			/* Threshold statuses */
+$threshold_status$
+			
+			while(!any_thresh && cur_time < timestep)
+			{
+				/* Post-thresh integrator code */
+$integrator_post_thresh_code$
+
+				$num_type$ error = 0;
+			
+				/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
 $threshold_pre_check$
 
-			/* Declare local variables */
+				/* Declare local variables */
 $declare_locals$
 
-			/* Pre-stage code */
+				/* Pre-stage code */
 $pre_stage_code$
 
-			/* Integrator code */
+				/* Integrator code */
 $integrator_code$
+
+				/* Detect thresholds */
+$detect_thresholds$
+
+			}
 			
 			/* Handle thresholds */
 $thresholds$
 			
-			/* Post-thresh integrator code */
-$integrator_post_thresh_code$
 		}
 $integrator_save$
 $save_vals$
@@ -683,12 +696,24 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$synapse_code$");
 		
-		/* Threshold pre-check */
+		/* Threshold statuses */
 		source.Tab(3);
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
+			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_state = false;";
+			
+			thresh_idx++;
+		}
+		NumThresholds = thresh_idx;
+		source.Inject(kernel_source, "$threshold_status$");
+		
+		/* Threshold pre-check */
+		source.Tab(4);
+		thresh_idx = 0;
+		foreach(thresh; &type.AllThresholds)
+		{
+			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_pre_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
 			
 			thresh_idx++;
 		}
@@ -696,7 +721,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$threshold_pre_check$");
 		
 		/* Declare locals */
-		source.Tab(3);
+		source.Tab(4);
 		foreach(name, state; &type.AllLocals)
 		{
 			source ~= "$num_type$ " ~ name ~ ";";
@@ -704,22 +729,36 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$declare_locals$");
 		
 		/* Pre-stage code */
-		source.Tab(3);
+		source.Tab(4);
 		source.AddBlock(type.GetPreStageSource());
 		source.Inject(kernel_source, "$pre_stage_code$");
 		
 		/* Integrator code */
-		source.Tab(3);
+		source.Tab(4);
 		source.AddBlock(Integrator.GetIntegrateCode(type));
 		source.Inject(kernel_source, "$integrator_code$");
 		
-		/* Thresholds */
-		source.Tab(3);
+		/* Detect thresholds */
+		source.Tab(4);
 		int event_src_idx = 0;
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "if(!thresh_$thresh_idx$_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
+			source ~= "thresh_$thresh_idx$_state = !thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ ");";
+			source ~= "any_thresh |= thresh_$thresh_idx$_state;";
+			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			
+			thresh_idx++;
+		}
+		source.Inject(kernel_source, "$detect_thresholds$");
+		
+		/* Thresholds */
+		source.Tab(3);
+		event_src_idx = 0;
+		thresh_idx = 0;
+		foreach(thresh; &type.AllThresholds)
+		{
+			source ~= "if(thresh_$thresh_idx$_state)";
 			source ~= "{";
 			source.Tab;
 			
@@ -777,7 +816,7 @@ else //It is full, error
 		source.Inject(kernel_source, "$thresholds$");
 		
 		/* Integrator save */
-		source.Tab(3);
+		source.Tab(4);
 		source.AddBlock(Integrator.GetPostThreshCode(type));
 		source.Inject(kernel_source, "$integrator_post_thresh_code$");
 		

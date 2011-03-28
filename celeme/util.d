@@ -49,14 +49,14 @@ size_t c_find(char[] text, char[] pattern)
 	auto L = pattern.length;
 	while((start = rem.find(pattern)) != rem.length)
 	{
-		if((start > 0 && c_allowed_char(text[start - 1]))
-		     || (start + L < rem.length - 1 && c_allowed_char(text[start + L])))
+		if((start > 0 && c_allowed_char(rem[start - 1]))
+		     || (start + L < rem.length - 1 && c_allowed_char(rem[start + L])))
 		{
 			rem = rem[start + L .. $];
 		}
 		else
 		{
-			return start;
+			return start + text.length - rem.length;
 		}
 	}
 	return text.length;

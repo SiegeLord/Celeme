@@ -36,17 +36,19 @@ void main(char[][] arg_list)
 {
 	bool record = true;
 	bool save_to_file = false;
+	bool gpu = false;
 	
 	auto args = new Arguments;
 	args("run-only").aliased('r').bind({record = false;});
 	args("save").aliased('s').bind({save_to_file = true;});
+	args("gpu").aliased('g').bind({gpu = true;});
 	args.parse(arg_list);
 	
 	StopWatch timer;
 	
 	timer.start;
 	
-	auto model = LoadModel("stuff.cfg", false);
+	auto model = LoadModel("stuff.cfg", gpu);
 	scope(exit) model.Shutdown();
 	
 	auto N = model["Regular"].Count;

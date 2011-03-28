@@ -339,7 +339,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				SetGlobalArg(arg_id++, buffer.Buffer);
 			}
 			arg_id += Constants.length;
-			if(RandLen)
+			if(NeedRandArgs)
 				arg_id = Rand.SetArgs(StepKernel, arg_id);
 			arg_id = Integrator.SetArgs(StepKernel, arg_id);
 			if(NeedSrcSynCode)
@@ -557,12 +557,6 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 		source.Inject(kernel_source, "$constant_args$");
 		
-		/* Random state arguments */
-		source.Tab(2);
-		if(RandLen)
-			source.AddBlock(Rand.GetArgsCode());
-		source.Inject(kernel_source, "$random_state_args$");
-		
 		/* Integrator arguments */
 		source.Tab(2);
 		source.AddBlock(Integrator.GetArgsCode(type));
@@ -610,12 +604,6 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
 		}
 		source.Inject(kernel_source, "$load_vals$");
-		
-		/* Load rand state */
-		source.Tab(2);
-		if(RandLen)
-			source ~= Rand.GetLoadCode();
-		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Synapse code */
 		source.Tab(2);
@@ -835,22 +823,37 @@ else //It is full, error
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
+		/* Random stuff */
+		NeedRandArgs = kernel_source.containsPattern("rand()");
+		if(NeedRandArgs)
+		{
+			if(!RandLen)
+				throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
+				
+			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
+		}
+		
+		/* Load rand state */
+		source.Tab(2);
+		if(NeedRandArgs)
+			source ~= Rand.GetLoadCode();
+		source.Inject(kernel_source, "$load_rand_state$");
+		
+		/* Random state arguments */
+		source.Tab(2);
+		if(NeedRandArgs)
+			source.AddBlock(Rand.GetArgsCode());
+		source.Inject(kernel_source, "$random_state_args$");
+		
 		/* Save rand state */
 		source.Tab(2);
-		if(RandLen)
+		if(NeedRandArgs)
 			source ~= Rand.GetSaveCode();
 		source.Inject(kernel_source, "$save_rand_state$");
 		
 		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "dt = $min_dt$f");
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
-		
-		if(RandLen)
-			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
-		else if(kernel_source.containsPattern("rand()"))
-			throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
-		
-		kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
 		
 		StepKernelSource = kernel_source;
 	}
@@ -1511,6 +1514,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	int RandLenVal = 0;
 	CCLRand RandVal;
+	bool NeedRandArgs = false;
 	
 	CIntegrator!(float_t) Integrator;
 	

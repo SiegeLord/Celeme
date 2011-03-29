@@ -105,6 +105,8 @@ void main(char[][] arg_list)
 	model.RunUntil(tstop + 1);
 	Stdout.formatln("Run time: {}", timer.stop);
 	
+	Stdout(model["Regular"]["glu_counter", 0, 0]).nl;
+	
 	timer.start;
 	
 	if(record)

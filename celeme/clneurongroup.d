@@ -41,7 +41,7 @@ import tango.util.Convert;
 import tango.core.Array;
 
 const ArgOffsetStep = 6;
-char[] StepKernelTemplate = "
+char[] StepKernelTemplate = `
 __kernel void $type_name$_step
 	(
 		const $num_type$ t,
@@ -63,6 +63,7 @@ $syn_thresh_array_arg$
 {
 	int i = get_global_id(0);
 	$syn_threshold_status$
+	$primary_exit_condition_init$
 	if(i < count)
 	{
 		$num_type$ cur_time = 0;
@@ -76,7 +77,7 @@ $load_rand_state$
 
 $synapse_code$
 		
-		while(cur_time < timestep)
+		while($primary_exit_condition$)
 		{
 			bool any_thresh = false;
 			
@@ -113,17 +114,19 @@ $detect_syn_thresholds$
 			/* Handle thresholds */
 $thresholds$
 $syn_thresholds$
-			
+
+			/* Check exit condition */
+$primary_exit_condition_check$
 		}
 $integrator_save$
 $save_vals$
 $save_rand_state$
 	}
 }
-";
+`;
 
 const ArgOffsetInit = 0;
-char[] InitKernelTemplate = "
+char[] InitKernelTemplate = `
 __kernel void $type_name$_init
 	(
 $val_args$
@@ -145,7 +148,7 @@ $init_vals$
 $save_vals$
 	}
 }
-";
+`;
 
 const ArgOffsetDeliver = 4;
 const char[] DeliverKernelTemplate = "
@@ -706,6 +709,35 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$syn_threshold_status$");
 		
+		/* Primary exit condition */
+		source.Tab(1);
+		if(NumSynThresholds)
+		{
+			source ~= "__local int num_complete;";
+			source ~= "if(local_id == 0)";
+			source.Tab;
+			source ~= "num_complete = 0;";
+			source.DeTab;
+			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+		}
+		source.Inject(kernel_source, "$primary_exit_condition_init$");
+		
+		if(NumSynThresholds)
+			kernel_source = kernel_source.substitute("$primary_exit_condition$", "num_complete < local_size");
+		else
+			kernel_source = kernel_source.substitute("$primary_exit_condition$", "cur_time < timestep");
+		
+		source.Tab(3);
+		if(NumSynThresholds)
+		{
+			source ~= "if(cur_time >= timestep)";
+			source.Tab;
+			source ~= "atomic_inc(&num_complete);";
+			source.DeTab;
+			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+		}
+		source.Inject(kernel_source, "$primary_exit_condition_check$");
+		
 		source.Tab(2);
 		thresh_idx = 0;
 		if(NumSynThresholds)
@@ -920,7 +952,7 @@ else //It is full, error
 			source ~= "}";
 			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
 			source ~= "int syn_offset = nrn_id * $num_syn$;";
-			source ~= "for(int g_syn_i = syn_offset + local_id; i < $num_syn$ + syn_offset; i += local_size)";
+			source ~= "for(int g_syn_i = syn_offset + local_id; g_syn_i < $num_syn$ + syn_offset; g_syn_i += local_size)";
 			source ~= "{";
 			source.Tab;
 			

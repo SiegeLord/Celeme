@@ -171,7 +171,7 @@ class CCLModel(float_t) : ICLModel
 				Source ~= conn.KernelCode;
 		}
 		Source = Source.substitute("$num_type$", NumStr);
-		Stdout(Source).nl;
+		//Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		Generated = true;
 		

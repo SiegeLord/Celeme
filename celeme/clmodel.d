@@ -171,7 +171,7 @@ class CCLModel(float_t) : ICLModel
 				Source ~= conn.KernelCode;
 		}
 		Source = Source.substitute("$num_type$", NumStr);
-		//Stdout(Source).nl;
+		Stdout(Source).nl;
 		Program = Core.BuildProgram(Source);
 		Generated = true;
 		
@@ -301,7 +301,7 @@ class CCLModel(float_t) : ICLModel
 				{
 					event_ptr = &deliver_event;
 				}
-				group.CallDeliverKernel(time, DeliverWorkgroupSize, event_ptr);
+				group.CallDeliverKernel(time, event_ptr);
 			}
 			deliver_est += timer.stop;
 			
@@ -323,7 +323,7 @@ class CCLModel(float_t) : ICLModel
 				{
 					event_ptr = &step_event;
 				}
-				group.CallStepKernel(time, StepWorkgroupSize, event_ptr);
+				group.CallStepKernel(time, event_ptr);
 			}
 			step_est += timer.stop;
 			

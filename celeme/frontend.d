@@ -629,7 +629,7 @@ class CNeuronType
 	}
 	
 	/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */
-	int AllSynThresholds(int delegate(ref SSynThreshold thresh) dg)
+	int AllSynThresholdsEx(int delegate(ref SSynType type, ref SSynThreshold thresh) dg)
 	{
 		foreach(ii, syn_type; SynapseTypes)
 		{
@@ -663,12 +663,24 @@ class CNeuronType
 						thresh2.Condition = thresh2.Condition.c_substitute(name, prefix ~ "_" ~ name);
 						thresh2.Source = thresh2.Source.c_substitute(name, prefix ~ "_" ~ name);
 					}
+					
+					foreach(val; &syn.AllSynGlobals)
+					{
+						auto name = val.Name;
+						thresh2.Condition = thresh2.Condition.c_substitute(name, prefix ~ "_" ~ name);
+						thresh2.Source = thresh2.Source.c_substitute(name, prefix ~ "_" ~ name);
+					}
 				}
-				if(int ret = dg(thresh2))
+				if(int ret = dg(syn_type, thresh2))
 					return ret;
 			}
 		}
 		return 0;
+	}
+	
+	int AllSynThresholds(int delegate(ref SSynThreshold thresh) dg)
+	{
+		return AllSynThresholdsEx((ref SSynType type, ref SSynThreshold thresh) {return dg(thresh);});
 	}
 	
 	/* This one, unlike AllThresholds returns the raw thresholds 

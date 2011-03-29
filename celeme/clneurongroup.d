@@ -57,11 +57,12 @@ $integrator_args$
 $event_source_args$
 $synapse_args$
 $synapse_globals$
+$syn_thresh_array_arg$
 		const int count
 	)
 {
 	int i = get_global_id(0);
-	
+	$syn_threshold_status$
 	if(i < count)
 	{
 		$num_type$ cur_time = 0;
@@ -81,6 +82,7 @@ $synapse_code$
 			
 			/* Threshold statuses */
 $threshold_status$
+$syn_threshold_status_init$
 			
 			while(!any_thresh && cur_time < timestep)
 			{
@@ -91,6 +93,7 @@ $integrator_post_thresh_code$
 			
 				/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
 $threshold_pre_check$
+$syn_threshold_pre_check$
 
 				/* Declare local variables */
 $declare_locals$
@@ -103,11 +106,13 @@ $integrator_code$
 
 				/* Detect thresholds */
 $detect_thresholds$
+$detect_syn_thresholds$
 
 			}
 			
 			/* Handle thresholds */
 $thresholds$
+$syn_thresholds$
 			
 		}
 $integrator_save$
@@ -358,6 +363,10 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 					SetGlobalArg(arg_id++, buffer.Buffer);
 				}
 			}
+			foreach(_; range(NumSynThresholds))
+			{
+				SetLocalArg(arg_id++, int.sizeof * StepWorkgroupSize);
+			}
 			SetGlobalArg(arg_id++, CountVal);
 		}
 		
@@ -391,8 +400,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			SetGlobalArg(arg_id++, RecordRate);
 			if(NeedSrcSynCode)
 			{
-				/* Skip the fire table */
-				arg_id++;
+				/* Local fire table */
+				SetLocalArg(arg_id++, int.sizeof * DeliverWorkgroupSize * NumEventSources);
 				/* Set the event source args */
 				SetGlobalArg(arg_id++, CircBufferStart);
 				SetGlobalArg(arg_id++, CircBufferEnd);
@@ -496,40 +505,34 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		InitKernel.Launch([total_num], [workgroup_size], ret_event);
 	}
 	
-	void CallStepKernel(double sim_time, size_t workgroup_size, cl_event* ret_event = null)
+	void CallStepKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		size_t total_num = (Count / StepWorkgroupSize) * StepWorkgroupSize;
 		if(total_num < Count)
-			total_num += workgroup_size;
+			total_num += StepWorkgroupSize;
 
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			Launch([total_num], [workgroup_size], ret_event);
+			Launch([total_num], [StepWorkgroupSize], ret_event);
 		}
 	}
 	
-	void CallDeliverKernel(double sim_time, size_t workgroup_size, cl_event* ret_event = null)
+	void CallDeliverKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		size_t total_num = (Count / DeliverWorkgroupSize) * DeliverWorkgroupSize;
 		if(total_num < Count)
-			total_num += workgroup_size;
+			total_num += DeliverWorkgroupSize;
 		
 		with(DeliverKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
 			
-			if(NeedSrcSynCode)
-			{
-				/* Local fire table */
-				SetLocalArg(ArgOffsetDeliver, int.sizeof * workgroup_size * NumEventSources);
-			}
-			
-			Launch([total_num], [workgroup_size], ret_event);
+			Launch([total_num], [DeliverWorkgroupSize], ret_event);
 		}
 	}
 	
@@ -635,12 +638,6 @@ if(syn_table_end != syn_offset)
 				source ~= "int g_syn_i = syn_i - " ~ to!(char[])(syn_type_start) ~ " + i * " ~ to!(char[])(syn_type.NumSynapses) ~ ";";
 				auto prefix = syn_type.Prefix;
 				
-				foreach(val; &syn_type.Synapse.AllSynGlobals)
-				{
-					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
-					source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
-				}
-				
 				auto syn_code = syn_type.Synapse.SynCode;
 				if(syn_type.Prefix != "")
 				{
@@ -654,6 +651,14 @@ if(syn_table_end != syn_offset)
 						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
 					}
 				}
+				
+				foreach(val; &syn_type.Synapse.AllSynGlobals)
+				{
+					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+					if(syn_code.c_find(name) != syn_code.length)
+						source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
+				}
+				
 				source.AddBlock(syn_code);
 				
 				foreach(val; &syn_type.Synapse.AllSynGlobals)
@@ -661,7 +666,8 @@ if(syn_table_end != syn_offset)
 					if(!val.ReadOnly)
 					{
 						auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
-						source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+						if(syn_code.c_find(name) != syn_code.length)
+							source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
 					}
 				}
 				
@@ -684,9 +690,37 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$synapse_code$");
 		
+		/* Syn threshold statuses */
+		source.Tab(1);
+		int thresh_idx = 0;
+		foreach(thresh; &type.AllSynThresholds)
+		{
+			source ~= "__local int syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num;";
+			thresh_idx++;
+		}
+		NumSynThresholds = thresh_idx;
+		if(NumSynThresholds)
+		{
+			source ~= "int local_id = get_local_id(0);";
+			source ~= "int local_size = get_local_size(0);";
+		}
+		source.Inject(kernel_source, "$syn_threshold_status$");
+		
+		source.Tab(2);
+		thresh_idx = 0;
+		if(NumSynThresholds)
+		{
+			foreach(thresh; &type.AllSynThresholds)
+			{
+				source ~= "__local int* syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_arr,";
+				thresh_idx++;
+			}
+		}
+		source.Inject(kernel_source, "$syn_thresh_array_arg$");
+		
 		/* Threshold statuses */
 		source.Tab(3);
-		int thresh_idx = 0;
+		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
 			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_state = false;";
@@ -695,6 +729,25 @@ if(syn_table_end != syn_offset)
 		}
 		NumThresholds = thresh_idx;
 		source.Inject(kernel_source, "$threshold_status$");
+		
+		/* Syn threshold statuses init */
+		source.Tab(3);
+		thresh_idx = 0;
+		if(NumSynThresholds)
+		{
+			source ~= "if(local_id == 0)";
+			source ~= "{";
+			source.Tab;
+			foreach(thresh; &type.AllSynThresholds)
+			{
+				source ~= "syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num = 0;";
+				thresh_idx++;
+			}
+			source.DeTab;
+			source ~= "}";
+			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+		}
+		source.Inject(kernel_source, "$syn_threshold_status_init$");
 		
 		/* Threshold pre-check */
 		source.Tab(4);
@@ -705,8 +758,18 @@ if(syn_table_end != syn_offset)
 			
 			thresh_idx++;
 		}
-		NumThresholds = thresh_idx;
 		source.Inject(kernel_source, "$threshold_pre_check$");
+		
+		/* Syn threshold pre-check */
+		source.Tab(4);
+		thresh_idx = 0;
+		foreach(thresh; &type.AllSynThresholds)
+		{
+			source ~= "bool syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_pre_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
+			
+			thresh_idx++;
+		}
+		source.Inject(kernel_source, "$syn_threshold_pre_check$");
 		
 		/* Declare locals */
 		source.Tab(4);
@@ -739,6 +802,24 @@ if(syn_table_end != syn_offset)
 			thresh_idx++;
 		}
 		source.Inject(kernel_source, "$detect_thresholds$");
+		
+		/* Detect syn thresholds */
+		source.Tab(4);
+		thresh_idx = 0;
+		foreach(thresh; &type.AllSynThresholds)
+		{
+			source ~= "if(!syn_thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
+			source ~= "{";
+			source.Tab;
+			source ~= "any_thresh = true;";
+			source ~= "syn_thresh_$thresh_idx$_arr[atomic_inc(&syn_thresh_$thresh_idx$_num)] = i;";
+			source.DeTab;
+			source ~= "}";
+			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			
+			thresh_idx++;
+		}
+		source.Inject(kernel_source, "$detect_syn_thresholds$");
 		
 		/* Thresholds */
 		source.Tab(3);
@@ -802,6 +883,83 @@ else //It is full, error
 			thresh_idx++;
 		}
 		source.Inject(kernel_source, "$thresholds$");
+		
+		/* Syn thresholds */
+		source.Tab(3);
+		thresh_idx = 0;
+		foreach(syn_type, thresh; &type.AllSynThresholdsEx)
+		{
+			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+			source ~= "if(syn_thresh_$thresh_idx$_num > 0)";
+			source ~= "{";
+			source.Tab;
+			
+			source ~= "for(int ii = 0; ii < syn_thresh_$thresh_idx$_num; ii++)";
+			source ~= "{";
+			source.Tab;
+			source ~= "int nrn_id = syn_thresh_$thresh_idx$_arr[ii];";
+			char[] declare_locals;
+			char[] init_locals;
+			char[] thresh_src = thresh.Source.dup;
+			
+			foreach(name, val; &type.AllNonLocals)
+			{
+				if(thresh_src.c_find(name) != thresh_src.length)
+				{
+					declare_locals ~= "__local $num_type$ " ~ name ~ "_local;\n";
+					init_locals ~= name ~ "_local = " ~ name ~ ";\n";
+					thresh_src = thresh_src.c_substitute(name, name ~ "_local");
+				}
+			}
+			source.AddBlock(declare_locals);
+			source ~= "if(i == nrn_id)";
+			source ~= "{";
+			source.Tab;
+			source.AddBlock(init_locals);
+			source.DeTab;
+			source ~= "}";
+			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+			source ~= "int syn_offset = nrn_id * $num_syn$;";
+			source ~= "for(int g_syn_i = syn_offset + local_id; i < $num_syn$ + syn_offset; i += local_size)";
+			source ~= "{";
+			source.Tab;
+			
+			auto prefix = syn_type.Prefix;
+			/* Load syn globals */
+			foreach(val; &syn_type.Synapse.AllSynGlobals)
+			{
+				auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+				if(thresh_src.c_find(name) != thresh_src.length)
+					source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
+			}
+			
+			source.AddBlock(thresh_src);
+			
+			/* Save syn globals */
+			foreach(val; &syn_type.Synapse.AllSynGlobals)
+			{
+				if(!val.ReadOnly)
+				{
+					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
+					if(thresh_src.c_find(name) != thresh_src.length)
+						source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+				}
+			}
+			
+			source.DeTab;
+			source ~= "}";
+			
+			source.DeTab;
+			source ~= "}";
+			source.DeTab;
+			source ~= "}";
+			
+			source.Source = source.Source.substitute("$num_syn$", to!(char[])(syn_type.NumSynapses));
+			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			
+			thresh_idx++;
+		}
+		source.Inject(kernel_source, "$syn_thresholds$");
 		
 		/* Integrator save */
 		source.Tab(4);
@@ -1498,11 +1656,15 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
 	CCLBuffer!(cl_int2) DestSynBufferVal;
 	
+	int DeliverWorkgroupSize = 64;
+	int StepWorkgroupSize = 64;
+	
 	int RecordLength;
 	int RecordRate;
 	int CircBufferSize = 20;
 	int NumEventSourcesVal = 0;
 	int NumThresholds = 0;
+	int NumSynThresholds = 0;
 	
 	int NumSrcSynapsesVal; /* Number of pre-synaptic slots per event source */
 	int NumDestSynapses; /* Number of post-synaptic slots per neuron */

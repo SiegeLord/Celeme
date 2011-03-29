@@ -108,15 +108,13 @@ $integrator_code$
 				/* Detect thresholds */
 $detect_thresholds$
 $detect_syn_thresholds$
-
+/* Check exit condition */
+$primary_exit_condition_check$
 			}
 			
 			/* Handle thresholds */
 $thresholds$
 $syn_thresholds$
-
-			/* Check exit condition */
-$primary_exit_condition_check$
 		}
 $integrator_save$
 $save_vals$
@@ -734,7 +732,6 @@ if(syn_table_end != syn_offset)
 			source.Tab;
 			source ~= "atomic_inc(&num_complete);";
 			source.DeTab;
-			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_check$");
 		

@@ -168,7 +168,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L272">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L285">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load synapses from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of synapses.
@@ -193,6 +193,19 @@
 <a href="#L14_ex2" name="L14_ex2">14</a>
 <a href="#L15_ex2" name="L15_ex2">15</a>
 <a href="#L16_ex2" name="L16_ex2">16</a>
+<a href="#L17_ex2" name="L17_ex2">17</a>
+<a href="#L18_ex2" name="L18_ex2">18</a>
+<a href="#L19_ex2" name="L19_ex2">19</a>
+<a href="#L20_ex2" name="L20_ex2">20</a>
+<a href="#L21_ex2" name="L21_ex2">21</a>
+<a href="#L22_ex2" name="L22_ex2">22</a>
+<a href="#L23_ex2" name="L23_ex2">23</a>
+<a href="#L24_ex2" name="L24_ex2">24</a>
+<a href="#L25_ex2" name="L25_ex2">25</a>
+<a href="#L26_ex2" name="L26_ex2">26</a>
+<a href="#L27_ex2" name="L27_ex2">27</a>
+<a href="#L28_ex2" name="L28_ex2">28</a>
+<a href="#L29_ex2" name="L29_ex2">29</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">synapse</span> <span class="i">SynapseName</span>
 {
@@ -207,12 +220,25 @@
         <span class="lc">// Whether the syn global is read only or not</span>
         <span class="i">readonly</span> = <span class="k">false</span>;
     }
+
+    <span class="lc">// Syn thresholds (ran after the normal thresholds and cannot modify non-synglobals)</span>
+    <span class="i">syn_threshold</span>
+    {
+        <span class="lc">// State to track. Mandatory parameter.</span>
+        <span class="i">state</span>;
+
+        <span class="lc">// Condition to use as threshold. Mandatory parameter.</span>
+        <span class="i">condition</span>;
+
+        <span class="lc">// Code ran when the threshold is activated</span>
+        <span class="i">code</span> = <span class="sl">""</span>;
+    }
     <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
     <span class="i">syn_global</span> <span class="i">SynGlobalName2</span> = <span class="n">0</span>;
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L343">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L368">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load connectors from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of connectors.
@@ -245,7 +271,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L498">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L523">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load neuron types from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of neuron types.
@@ -395,7 +421,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L620">LoadModel</a><span class="params">(char[] <em>file</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L645">LoadModel</a><span class="params">(char[] <em>file</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Loads a model from a configuration file.
  
@@ -454,7 +480,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Thu Mar 24 15:10:26 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Wed Mar 30 12:40:06 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

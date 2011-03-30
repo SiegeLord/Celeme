@@ -158,19 +158,19 @@ $num_type$ rand2(uint2* zp)
 	<span class="d StorageClass"><span class="k">override</span></span>
 	<span class="d Function"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">GetLoadCode</span><span class="o Parameters">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span> ~ <span class="e String"><span class="sl">" rand_state = rand_state_buf[i];"</span></span></span>;</span>
+		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span> ~ <span class="e String"><span class="sl">" _rand_state = _rand_state_buf[i];"</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
 	<span class="d Function"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">GetSaveCode</span><span class="o Parameters">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">"rand_state_buf[i] = rand_state;"</span></span>;</span>
+		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">"_rand_state_buf[i] = _rand_state;"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
 	<span class="d Function"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">GetArgsCode</span><span class="o Parameters">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"__global "</span></span> ~ <span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span></span> ~ <span class="e String"><span class="sl">"* rand_state_buf,"</span></span></span>;</span>
+		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"__global "</span></span> ~ <span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span></span> ~ <span class="e String"><span class="sl">"* _rand_state_buf,"</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>

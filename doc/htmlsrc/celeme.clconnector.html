@@ -48,31 +48,31 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 <span class="e String"><span class="sl">`
 void $connector_name$_connect_impl
 	(
-		int src_event_source, 
+		int _src_event_source, 
 		int* src_slot,
-		int src_slot_max,
-		int dest_slot_max,
-		__global int* dest_syn_idxs,
-		__global int2* dest_syn_buffer,
-		__global int* error_buffer,
-		int dest_nrn_offset,
-		int dest_slot_offset,
+		int _src_slot_max,
+		int _dest_slot_max,
+		__global int* _dest_syn_idxs,
+		__global int2* _dest_syn_buffer,
+		__global int* _error_buffer,
+		int _dest_nrn_offset,
+		int _dest_slot_offset,
 		int src_nrn_id, 
 		int dest_nrn_id
 	)
 {
-	int dest_slot = atomic_inc(&amp;dest_syn_idxs[dest_nrn_id]);
+	int dest_slot = atomic_inc(&amp;_dest_syn_idxs[dest_nrn_id]);
 	
-	if(*src_slot &gt;= src_slot_max || dest_slot &gt;= dest_slot_max)
+	if(*src_slot &gt;= _src_slot_max || dest_slot &gt;= _dest_slot_max)
 	{
-		error_buffer[src_nrn_id + 1] = 99;
+		_error_buffer[src_nrn_id + 1] = 99;
 		return;
 	}
 	
-	int src_syn_id = (src_nrn_id * $num_event_sources$ + src_event_source) * src_slot_max + *src_slot;
+	int src_syn_id = (src_nrn_id * $num_event_sources$ + _src_event_source) * _src_slot_max + *src_slot;
 	
-	dest_syn_buffer[src_syn_id].s0 = dest_nrn_offset + dest_nrn_id;
-	dest_syn_buffer[src_syn_id].s1 = dest_slot + dest_slot_offset;
+	_dest_syn_buffer[src_syn_id].s0 = _dest_nrn_offset + dest_nrn_id;
+	_dest_syn_buffer[src_syn_id].s1 = dest_slot + _dest_slot_offset;
 	
 	(*src_slot)++;
 }
@@ -84,21 +84,21 @@ $random_state_args$
 		const int num_cycles,
 		const int src_start,
 		const int src_end,
-		const int src_event_source,
-		const int src_slot_max,
-		__global int* event_source_idxs,
+		const int _src_event_source,
+		const int _src_slot_max,
+		__global int* _event_source_idxs,
 		const int dest_start,
 		const int dest_end,
-		const int dest_slot_max,
-		__global int* dest_syn_idxs,
-		__global int2* dest_syn_buffer,
-		int dest_nrn_offset,
-		int dest_slot_offset,
-		__global int* error_buffer
+		const int _dest_slot_max,
+		__global int* _dest_syn_idxs,
+		__global int2* _dest_syn_buffer,
+		int _dest_nrn_offset,
+		int _dest_slot_offset,
+		__global int* _error_buffer
 	)
 {
 	int i = src_start + get_global_id(0);
-	int src_slot = event_source_idxs[i];
+	int src_slot = _event_source_idxs[i];
 	
 	/* Load random state */
 $load_rand_state$
@@ -108,7 +108,7 @@ $load_rand_state$
 $connector_code$
 	}
 	
-	event_source_idxs[i] = src_slot;
+	_event_source_idxs[i] = src_slot;
 	/* Save random state */
 $save_rand_state$
 }
@@ -143,13 +143,13 @@ $save_rand_state$
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">kernel_source</span> = <span class="e Identifier"><span class="i">ConnectorTemplate</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>		
 		
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">code</span> = <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Code</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>
-		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">code</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">substitute</span></span>(<span class="sl">"connect("</span>, <span class="sl">"$connector_name$_connect_impl(src_event_source, &amp;src_slot, src_slot_max, dest_slot_max, dest_syn_idxs, dest_syn_buffer, error_buffer, dest_nrn_offset, dest_slot_offset, "</span>)</span></span>;</span>
+		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">code</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">substitute</span></span>(<span class="sl">"connect("</span>, <span class="sl">"$connector_name$_connect_impl(_src_event_source, &amp;src_slot, _src_slot_max, _dest_slot_max, _dest_syn_idxs, _dest_syn_buffer, _error_buffer, _dest_nrn_offset, _dest_slot_offset, "</span>)</span></span>;</span>
 		
 		<span class="s If"><span class="k">if</span>(<span class="e Call"><span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">containsPattern</span></span>(<span class="sl">"rand()"</span>)</span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Not">!<span class="e Identifier"><span class="i">Group</span></span></span>.<span class="e Identifier"><span class="i">RandLen</span></span>)
 				<span class="s Scope"><span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"Found rand() but neuron group '"</span></span> ~ <span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span> ~ <span class="e String"><span class="sl">"' does not have random_state_len &gt; 0."</span></span></span>)</span>;</span></span></span>
-			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">code</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">substitute</span></span>(<span class="sl">"rand()"</span>, <span class="sl">"rand"</span> ~ <span class="i">to</span>!(<span class="k">char</span>[])(<span class="i">Group</span>.<span class="i">RandLen</span>) ~ <span class="sl">"(&amp;rand_state)"</span>)</span></span>;</span>
+			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">code</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">substitute</span></span>(<span class="sl">"rand()"</span>, <span class="sl">"rand"</span> ~ <span class="i">to</span>!(<span class="k">char</span>[])(<span class="i">Group</span>.<span class="i">RandLen</span>) ~ <span class="sl">"(&amp;_rand_state)"</span>)</span></span>;</span>
 			
 			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">NeedRand</span></span> = <span class="e Bool"><span class="k">true</span></span></span>;</span>
 		}</span></span></span>
@@ -218,28 +218,28 @@ $save_rand_state$
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">src_nrn_range</span>[<span class="n">0</span>])</span>;</span>
 			<span class="lc">//const int src_end,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">src_nrn_range</span>[<span class="n">1</span>])</span>;</span>
-			<span class="lc">//const int src_event_source,</span>
+			<span class="lc">//const int _src_event_source,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">src_event_source</span>)</span>;</span>
-			<span class="lc">//const int src_slot_max,</span>
+			<span class="lc">//const int _src_slot_max,</span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">num_src_synapses</span> = <span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">NumSrcSynapses</span></span>;</span></span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">num_src_synapses</span>)</span>;</span>
-			<span class="lc">//__global int* event_source_idxs,</span>
+			<span class="lc">//__global int* _event_source_idxs,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">Group</span>.<span class="i">EventSourceBuffers</span>[<span class="i">src_event_source</span>].<span class="i">FreeIdx</span>.<span class="i">Buffer</span>)</span>;</span>
 			<span class="lc">//const int dest_start,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest_nrn_range</span>[<span class="n">0</span>])</span>;</span>
 			<span class="lc">//const int dest_end,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest_nrn_range</span>[<span class="n">1</span>])</span>;</span>
-			<span class="lc">//const int dest_slot_max,</span>
+			<span class="lc">//const int _dest_slot_max,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest</span>.<span class="i">SynapseBuffers</span>[<span class="i">dest_syn_type</span>].<span class="i">Count</span>)</span>;</span>
-			<span class="lc">//__global int* dest_syn_idxs,</span>
+			<span class="lc">//__global int* _dest_syn_idxs,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest</span>.<span class="i">SynapseBuffers</span>[<span class="i">dest_syn_type</span>].<span class="i">FreeIdx</span>.<span class="i">Buffer</span>)</span>;</span>
-			<span class="lc">//__global int2* dest_syn_buffer,</span>
+			<span class="lc">//__global int2* _dest_syn_buffer,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">Group</span>.<span class="i">DestSynBuffer</span>.<span class="i">Buffer</span>)</span>;</span>
-			<span class="lc">//int dest_nrn_offset,</span>
+			<span class="lc">//int _dest_nrn_offset,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest</span>.<span class="i">NrnOffset</span>)</span>;</span>
-			<span class="lc">//int dest_slot_offset,</span>
+			<span class="lc">//int _dest_slot_offset,</span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">dest</span>.<span class="i">SynapseBuffers</span>[<span class="i">dest_syn_type</span>].<span class="i">SlotOffset</span>)</span>;</span>
-			<span class="lc">//__global int* error_buffer</span>
+			<span class="lc">//__global int* _error_buffer</span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">error_buffer</span> = <span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">ErrorBuffer</span></span>;</span></span>
 			<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">error_buffer</span>)</span>;</span>
 		}</span></span></span>

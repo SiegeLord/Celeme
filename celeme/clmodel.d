@@ -69,6 +69,11 @@ class CCLModel(float_t) : ICLModel
 			
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
+			
+		auto actual_number = (number / StepWorkgroupSize) * StepWorkgroupSize;
+		if(actual_number < number)
+			actual_number += StepWorkgroupSize;
+		number = actual_number;
 		
 		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
@@ -482,6 +487,18 @@ class CCLModel(float_t) : ICLModel
 		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type, args);
 	}
 	
+	override
+	int StepWorkgroupSize()
+	{
+		return 64;
+	}
+	
+	override
+	int DeliverWorkgroupSize()
+	{
+		return 64;
+	}
+	
 	mixin(Prop!("double", "TimeStepSize", "override", "override"));
 	mixin(Prop!("cl_program", "Program", "override", "private"));
 	mixin(Prop!("CCLBuffer!(int)", "FiredSynIdxBuffer", "override", "private"));
@@ -499,9 +516,6 @@ class CCLModel(float_t) : ICLModel
 	/* Total model number of dest synapses */
 	int NumDestSynapses = 0;
 	int NumNeurons = 0;
-	
-	int StepWorkgroupSize = 64;
-	int DeliverWorkgroupSize = 64;
 	
 	int CurStep = 0;
 	

@@ -33,7 +33,6 @@ interface ICLNeuronGroup : INeuronGroup
 	int NumEventSources();
 	int NumSrcSynapses();
 	int NrnOffset();
-	int TrueCount();
 	
 	CCLRand Rand();
 	CEventSourceBuffer[] EventSourceBuffers();

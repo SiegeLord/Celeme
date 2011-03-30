@@ -234,18 +234,14 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		NumSrcSynapses = type.NumSrcSynapses;
 		MinDt = type.MinDt;
 		
-		TrueCountVal = (Count / StepWorkgroupSize) * StepWorkgroupSize;
-		if(TrueCountVal < Count)
-			TrueCountVal += StepWorkgroupSize;
-		
 		RandLen = type.RandLen;
 		switch(RandLen)
 		{
 			case 1:
-				Rand = new CCLRandImpl!(1)(Core, TrueCount);
+				Rand = new CCLRandImpl!(1)(Core, Count);
 				break;
 			case 2:
-				Rand = new CCLRandImpl!(2)(Core, TrueCount);
+				Rand = new CCLRandImpl!(2)(Core, Count);
 				break;
 			case 3:
 				assert(0, "Unsupported rand length");
@@ -266,7 +262,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		foreach(name, state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
-			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, TrueCount);
+			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, Count);
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -277,14 +273,14 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
 				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
-				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, TrueCount * syn_type.NumSynapses);			
+				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, Count * syn_type.NumSynapses);			
 			}
 		}
 		
 		int syn_type_offset = 0;
 		foreach(syn_type; type.SynapseTypes)
 		{
-			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, TrueCount);
+			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count);
 			SynapseBuffers = SynapseBuffers ~ syn_buff;
 			
 			syn_type_offset += syn_type.NumSynapses;
@@ -292,24 +288,24 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		foreach(ii; range(NumEventSources))
 		{
-			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, TrueCount);
+			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, Count);
 		}
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart = Core.CreateBuffer!(int)(NumEventSources * TrueCount);
-			CircBufferEnd = Core.CreateBuffer!(int)(NumEventSources * TrueCount);
-			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * TrueCount);
+			CircBufferStart = Core.CreateBuffer!(int)(NumEventSources * Count);
+			CircBufferEnd = Core.CreateBuffer!(int)(NumEventSources * Count);
+			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * Count);
 		}
 		
-		ErrorBuffer = Core.CreateBuffer!(int)(TrueCount + 1);
-		RecordFlagsBuffer = Core.CreateBuffer!(int)(TrueCount);
+		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1);
+		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count);
 		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength);
 		RecordIdxBuffer = Core.CreateBuffer!(int)(1);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBuffer!(cl_int2)(TrueCount * NumEventSources * NumSrcSynapses);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -376,7 +372,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			}
 			foreach(_; range(NumSynThresholds))
 			{
-				SetLocalArg(arg_id++, int.sizeof * StepWorkgroupSize);
+				SetLocalArg(arg_id++, int.sizeof * Model.StepWorkgroupSize);
 			}
 			SetGlobalArg(arg_id++, Count);
 		}
@@ -412,7 +408,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			if(NeedSrcSynCode)
 			{
 				/* Local fire table */
-				SetLocalArg(arg_id++, int.sizeof * DeliverWorkgroupSize * NumEventSources);
+				SetLocalArg(arg_id++, int.sizeof * Model.DeliverWorkgroupSize * NumEventSources);
 				/* Set the event source args */
 				SetGlobalArg(arg_id++, CircBufferStart);
 				SetGlobalArg(arg_id++, CircBufferEnd);
@@ -509,8 +505,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (TrueCount / workgroup_size) * workgroup_size;
-		if(total_num < TrueCount)
+		size_t total_num = (Count / workgroup_size) * workgroup_size;
+		if(total_num < Count)
 			total_num += workgroup_size;
 		
 		InitKernel.Launch([total_num], [workgroup_size], ret_event);
@@ -523,7 +519,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			Launch([TrueCount], [StepWorkgroupSize], ret_event);
+			Launch([Count], [Model.StepWorkgroupSize], ret_event);
 		}
 	}
 	
@@ -531,15 +527,15 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (TrueCount / DeliverWorkgroupSize) * DeliverWorkgroupSize;
-		if(total_num < TrueCount)
-			total_num += DeliverWorkgroupSize;
+		size_t total_num = (Count / Model.DeliverWorkgroupSize) * Model.DeliverWorkgroupSize;
+		if(total_num < Count)
+			total_num += Model.DeliverWorkgroupSize;
 		
 		with(DeliverKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
 			
-			Launch([total_num], [DeliverWorkgroupSize], ret_event);
+			Launch([total_num], [Model.DeliverWorkgroupSize], ret_event);
 		}
 	}
 	
@@ -1632,12 +1628,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
-	int TrueCount()
-	{
-		return TrueCountVal;
-	}
-	
-	override
 	bool Initialized()
 	{
 		return Model.Initialized;
@@ -1676,7 +1666,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	char[] NameVal;
 	int CountVal = 0;
-	int TrueCountVal = 0;
 	ICLModel Model;
 	
 	char[] StepKernelSource;
@@ -1696,9 +1685,6 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	CCLBuffer!(int) RecordIdxBuffer;
 	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
 	CCLBuffer!(cl_int2) DestSynBufferVal;
-	
-	int DeliverWorkgroupSize = 64;
-	int StepWorkgroupSize = 64;
 	
 	int RecordLength;
 	int RecordRate;

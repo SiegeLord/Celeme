@@ -44,12 +44,12 @@ const ArgOffsetStep = 6;
 char[] StepKernelTemplate = `
 __kernel void $type_name$_step
 	(
-		const $num_type$ t,
-		__global int* error_buffer,
-		__global int* record_flags_buffer,
-		__global int* record_idx,
-		__global $num_type$4* record_buffer,
-		const int record_buffer_size,
+		const $num_type$ _t,
+		__global int* _error_buffer,
+		__global int* _record_flags_buffer,
+		__global int* _record_idx,
+		__global $num_type$4* _record_buffer,
+		const int _record_buffer_size,
 $val_args$
 $constant_args$
 $random_state_args$
@@ -67,11 +67,12 @@ $syn_threshold_status$
 
 $primary_exit_condition_init$
 
-	$num_type$ cur_time = 0;
+	$num_type$ _cur_time = 0;
 	const $num_type$ timestep = $time_step$;
-	int record_flags = record_flags_buffer[i];
+	int _record_flags = _record_flags_buffer[i];
 	
-	$num_type$ dt;
+	$num_type$ _dt;
+	$num_type$ t = _t;
 
 $integrator_load$
 
@@ -83,19 +84,20 @@ $synapse_code$
 		
 	while($primary_exit_condition$)
 	{
-		bool any_thresh = false;
+		bool _any_thresh = false;
 		
 		/* Threshold statuses */
 $threshold_status$
 
 $syn_threshold_status_init$
 			
-		while(!any_thresh && cur_time < timestep)
+		while(!_any_thresh && _cur_time < timestep)
 		{
+			t = _t + _cur_time;
 			/* Post-thresh integrator code */
 $integrator_post_thresh_code$
 
-			$num_type$ error = 0;
+			$num_type$ _error = 0;
 		
 			/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
 $threshold_pre_check$
@@ -161,31 +163,31 @@ const ArgOffsetDeliver = 4;
 const char[] DeliverKernelTemplate = "
 __kernel void $type_name$_deliver
 	(
-		const $num_type$ t,
-		__global int* error_buffer,
-		__global int* record_idx,
-		const int record_rate,
+		const $num_type$ _t,
+		__global int* _error_buffer,
+		__global int* _record_idx,
+		const int _record_rate,
 $event_source_args$
 		const uint count
 	)
 {
 	int i = get_global_id(0);
 	
-	if(i == 0 && record_rate && ((int)(t / $time_step$) % record_rate == 0))
+	if(i == 0 && _record_rate && ((int)(_t / $time_step$) % _record_rate == 0))
 	{
-		record_idx[0] = 0;
+		_record_idx[0] = 0;
 	}
 	
 #if PARALLEL_DELIVERY
-	int local_id = get_local_id(0);
+	int _local_id = get_local_id(0);
 
 #if USE_ATOMIC_DELIVERY
 	__local int fire_table_idx;
-	if(local_id == 0)
+	if(_local_id == 0)
 		fire_table_idx = 0;
 #else
 	for(int ii = 0; ii < $num_event_sources$; ii++)
-		fire_table[local_id * $num_event_sources$ + ii] = -1;
+		fire_table[_local_id * $num_event_sources$ + ii] = -1;
 
 	__local bool need_to_deliver;
 	need_to_deliver = false;
@@ -551,7 +553,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "__global $num_type$* " ~ name ~ "_buf,";
+			source ~= "__global $num_type$* _" ~ name ~ "_buf,";
 		}
 		source.Inject(kernel_source, "$val_args$");
 		
@@ -572,9 +574,9 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Tab(2);
 		if(NeedSrcSynCode)
 		{
-			source ~= "__global int* circ_buffer_start,";
-			source ~= "__global int* circ_buffer_end,";
-			source ~= "__global $num_type$* circ_buffer,";
+			source ~= "__global int* _circ_buffer_start,";
+			source ~= "__global int* _circ_buffer_end,";
+			source ~= "__global $num_type$* _circ_buffer,";
 		}
 		source.Inject(kernel_source, "$event_source_args$");
 		
@@ -582,8 +584,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Tab(2);
 		if(NumDestSynapses)
 		{
-			source ~= "__global int* fired_syn_idx_buffer,";
-			source ~= "__global int* fired_syn_buffer,";
+			source ~= "__global int* _fired_syn_idx_buffer,";
+			source ~= "__global int* _fired_syn_buffer,";
 		}
 		source.Inject(kernel_source, "$synapse_args$");
 		
@@ -593,7 +595,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		{
 			foreach(name, val; &type.AllSynGlobals)
 			{
-				source ~= "__global $num_type$* " ~ name ~ "_buf,";
+				source ~= "__global $num_type$* _" ~ name ~ "_buf,";
 			}
 		}
 		source.Inject(kernel_source, "$synapse_globals$");
@@ -607,7 +609,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Tab;
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
+			source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[i];";
 		}
 		source.Inject(kernel_source, "$load_vals$");
 		
@@ -617,13 +619,13 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		{
 			source.AddBlock(
 `
-const int syn_offset = $syn_offset$ + i * ` ~ to!(char[])(NumDestSynapses) ~ `;
-int syn_table_end = fired_syn_idx_buffer[i + $nrn_offset$];
-if(syn_table_end != syn_offset)
+const int _syn_offset = $syn_offset$ + i * ` ~ to!(char[])(NumDestSynapses) ~ `;
+int _syn_table_end = _fired_syn_idx_buffer[i + $nrn_offset$];
+if(_syn_table_end != _syn_offset)
 {
-	for(int syn_table_idx = syn_offset; syn_table_idx < syn_table_end; syn_table_idx++)
+	for(int _syn_table_idx = _syn_offset; _syn_table_idx < _syn_table_end; _syn_table_idx++)
 	{
-		int syn_i = fired_syn_buffer[syn_table_idx];
+		int syn_i = _fired_syn_buffer[_syn_table_idx];
 `);
 			source.Tab(2);
 			int syn_type_offset = 0;
@@ -638,7 +640,7 @@ if(syn_table_end != syn_offset)
 				source ~= cond;
 				source ~= "{";
 				source.Tab();
-				source ~= "int g_syn_i = syn_i - " ~ to!(char[])(syn_type_start) ~ " + i * " ~ to!(char[])(syn_type.NumSynapses) ~ ";";
+				source ~= "int _g_syn_i = syn_i - " ~ to!(char[])(syn_type_start) ~ " + i * " ~ to!(char[])(syn_type.NumSynapses) ~ ";";
 				auto prefix = syn_type.Prefix;
 				
 				auto syn_code = syn_type.Synapse.SynCode;
@@ -659,7 +661,7 @@ if(syn_table_end != syn_offset)
 				{
 					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 					if(syn_code.c_find(name) != syn_code.length)
-						source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
+						source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[_g_syn_i];";
 				}
 				
 				source.AddBlock(syn_code);
@@ -670,7 +672,7 @@ if(syn_table_end != syn_offset)
 					{
 						auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 						if(syn_code.c_find(name) != syn_code.length)
-							source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+							source ~= "_" ~ name ~ "_buf[_g_syn_i] = " ~ name ~ ";";
 					}
 				}
 				
@@ -682,8 +684,8 @@ if(syn_table_end != syn_offset)
 			source.DeTab;
 			source ~= "}";
 			if(!FixedStep)
-				source ~= "dt = $min_dt$f;";
-			source ~= "fired_syn_idx_buffer[i + $nrn_offset$] = syn_offset;";
+				source ~= "_dt = $min_dt$f;";
+			source ~= "_fired_syn_idx_buffer[i + $nrn_offset$] = _syn_offset;";
 			source.DeTab;
 			source ~= "}";
 			
@@ -697,14 +699,14 @@ if(syn_table_end != syn_offset)
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			source ~= "__local int syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num;";
+			source ~= "__local int _syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num;";
 			thresh_idx++;
 		}
 		NumSynThresholds = thresh_idx;
 		if(NumSynThresholds)
 		{
-			source ~= "int local_id = get_local_id(0);";
-			source ~= "int local_size = get_local_size(0);";
+			source ~= "int _local_id = get_local_id(0);";
+			source ~= "int _local_size = get_local_size(0);";
 		}
 		source.Inject(kernel_source, "$syn_threshold_status$");
 		
@@ -712,26 +714,26 @@ if(syn_table_end != syn_offset)
 		source.Tab;
 		if(NumSynThresholds)
 		{
-			source ~= "__local int num_complete;";
-			source ~= "if(local_id == 0)";
+			source ~= "__local int _num_complete;";
+			source ~= "if(_local_id == 0)";
 			source.Tab;
-			source ~= "num_complete = 0;";
+			source ~= "_num_complete = 0;";
 			source.DeTab;
 			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_init$");
 		
 		if(NumSynThresholds)
-			kernel_source = kernel_source.substitute("$primary_exit_condition$", "num_complete < local_size");
+			kernel_source = kernel_source.substitute("$primary_exit_condition$", "_num_complete < _local_size");
 		else
-			kernel_source = kernel_source.substitute("$primary_exit_condition$", "cur_time < timestep");
+			kernel_source = kernel_source.substitute("$primary_exit_condition$", "_cur_time < timestep");
 		
 		source.Tab(3);
 		if(NumSynThresholds)
 		{
-			source ~= "if(cur_time >= timestep)";
+			source ~= "if(_cur_time >= timestep)";
 			source.Tab;
-			source ~= "atomic_inc(&num_complete);";
+			source ~= "atomic_inc(&_num_complete);";
 			source.DeTab;
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_check$");
@@ -742,7 +744,7 @@ if(syn_table_end != syn_offset)
 		{
 			foreach(thresh; &type.AllSynThresholds)
 			{
-				source ~= "__local int* syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_arr,";
+				source ~= "__local int* _syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_arr,";
 				thresh_idx++;
 			}
 		}
@@ -765,12 +767,12 @@ if(syn_table_end != syn_offset)
 		thresh_idx = 0;
 		if(NumSynThresholds)
 		{
-			source ~= "if(local_id == 0)";
+			source ~= "if(_local_id == 0)";
 			source ~= "{";
 			source.Tab;
 			foreach(thresh; &type.AllSynThresholds)
 			{
-				source ~= "syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num = 0;";
+				source ~= "_syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num = 0;";
 				thresh_idx++;
 			}
 			source.DeTab;
@@ -826,7 +828,7 @@ if(syn_table_end != syn_offset)
 		foreach(thresh; &type.AllThresholds)
 		{
 			source ~= "thresh_$thresh_idx$_state = !thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ ");";
-			source ~= "any_thresh |= thresh_$thresh_idx$_state;";
+			source ~= "_any_thresh |= thresh_$thresh_idx$_state;";
 			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
 			
 			thresh_idx++;
@@ -841,8 +843,8 @@ if(syn_table_end != syn_offset)
 			source ~= "if(!syn_thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
 			source ~= "{";
 			source.Tab;
-			source ~= "any_thresh = true;";
-			source ~= "syn_thresh_$thresh_idx$_arr[atomic_inc(&syn_thresh_$thresh_idx$_num)] = i;";
+			source ~= "_any_thresh = true;";
+			source ~= "_syn_thresh_$thresh_idx$_arr[atomic_inc(&_syn_thresh_$thresh_idx$_num)] = i;";
 			source.DeTab;
 			source ~= "}";
 			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
@@ -865,37 +867,37 @@ if(syn_table_end != syn_offset)
 				source ~= "$num_type$ delay = 1.0f;";
 			source.AddBlock(thresh.Source);
 			if(thresh.ResetTime && !FixedStep)
-				source ~= "dt = $min_dt$f;";
+				source ~= "_dt = $min_dt$f;";
 
 			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
 			
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
 				char[] src = 
-`int idx_idx = $num_event_sources$ * i + $event_source_idx$;
-int buff_start = circ_buffer_start[idx_idx];
+`int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
+int _buff_start = _circ_buffer_start[_idx_idx];
 
-if(buff_start != circ_buffer_end[idx_idx])
+if(_buff_start != _circ_buffer_end[_idx_idx])
 {
-	const int circ_buffer_size = $circ_buffer_size$;
+	const int _circ_buffer_size = $circ_buffer_size$;
 	
-	int end_idx;
-	if(buff_start < 0) //It is empty
+	int _end_idx;
+	if(_buff_start < 0) //It is empty
 	{
-		circ_buffer_start[idx_idx] = 0;
-		circ_buffer_end[idx_idx] = 1;
-		end_idx = 1;
+		_circ_buffer_start[_idx_idx] = 0;
+		_circ_buffer_end[_idx_idx] = 1;
+		_end_idx = 1;
 	}
 	else
 	{
-		end_idx = circ_buffer_end[idx_idx] = (circ_buffer_end[idx_idx] + 1) % circ_buffer_size;
+		_end_idx = _circ_buffer_end[_idx_idx] = (_circ_buffer_end[_idx_idx] + 1) % _circ_buffer_size;
 	}
-	int buff_idx = (i * $num_event_sources$ + $event_source_idx$) * circ_buffer_size + end_idx - 1;
-	circ_buffer[buff_idx] = t + cur_time + delay;
+	int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _end_idx - 1;
+	_circ_buffer[_buff_idx] = t + delay;
 }
 else //It is full, error
 {
-	error_buffer[i + 1] = 100 + $event_source_idx$;
+	_error_buffer[i + 1] = 100 + $event_source_idx$;
 }
 `.dup;
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
@@ -920,14 +922,14 @@ else //It is full, error
 		foreach(syn_type, thresh; &type.AllSynThresholdsEx)
 		{
 			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
-			source ~= "if(syn_thresh_$thresh_idx$_num > 0)";
+			source ~= "if(_syn_thresh_$thresh_idx$_num > 0)";
 			source ~= "{";
 			source.Tab;
 			
-			source ~= "for(int ii = 0; ii < syn_thresh_$thresh_idx$_num; ii++)";
+			source ~= "for(int _ii = 0; _ii < _syn_thresh_$thresh_idx$_num; _ii++)";
 			source ~= "{";
 			source.Tab;
-			source ~= "int nrn_id = syn_thresh_$thresh_idx$_arr[ii];";
+			source ~= "int nrn_id = _syn_thresh_$thresh_idx$_arr[_ii];";
 			char[] declare_locals;
 			char[] init_locals;
 			char[] thresh_src = thresh.Source.dup;
@@ -949,8 +951,8 @@ else //It is full, error
 			source.DeTab;
 			source ~= "}";
 			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
-			source ~= "int syn_offset = nrn_id * $num_syn$;";
-			source ~= "for(int g_syn_i = syn_offset + local_id; g_syn_i < $num_syn$ + syn_offset; g_syn_i += local_size)";
+			source ~= "int _syn_offset = nrn_id * $num_syn$;";
+			source ~= "for(int _g_syn_i = _syn_offset + _local_id; _g_syn_i < $num_syn$ + _syn_offset; _g_syn_i += _local_size)";
 			source ~= "{";
 			source.Tab;
 			
@@ -960,7 +962,7 @@ else //It is full, error
 			{
 				auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 				if(thresh_src.c_find(name) != thresh_src.length)
-					source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[g_syn_i];";
+					source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[_g_syn_i];";
 			}
 			
 			source.AddBlock(thresh_src);
@@ -972,7 +974,7 @@ else //It is full, error
 				{
 					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 					if(thresh_src.c_find(name) != thresh_src.length)
-						source ~= name ~ "_buf[g_syn_i] = " ~ name ~ ";";
+						source ~= "_" ~ name ~ "_buf[_g_syn_i] = " ~ name ~ ";";
 				}
 			}
 			
@@ -1007,7 +1009,7 @@ else //It is full, error
 		foreach(name, state; &type.AllNonLocals)
 		{
 			if(!state.ReadOnly)
-				source ~= name ~ "_buf[i] = " ~ name ~ ";";
+				source ~= "_" ~ name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
@@ -1018,7 +1020,7 @@ else //It is full, error
 			if(!RandLen)
 				throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 				
-			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&rand_state)");
+			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&_rand_state)");
 		}
 		
 		/* Load rand state */
@@ -1039,7 +1041,7 @@ else //It is full, error
 			source ~= Rand.GetSaveCode();
 		source.Inject(kernel_source, "$save_rand_state$");
 		
-		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "dt = $min_dt$f");
+		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "_dt = $min_dt$f");
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
 		
@@ -1059,12 +1061,12 @@ else //It is full, error
 		if(NeedSrcSynCode)
 		{
 			source ~= "__local int* fire_table,";
-			source ~= "__global int* circ_buffer_start,";
-			source ~= "__global int* circ_buffer_end,";
-			source ~= "__global $num_type$* circ_buffer,";
-			source ~= "__global int2* dest_syn_buffer,";
-			source ~= "__global int* fired_syn_idx_buffer,";
-			source ~= "__global int* fired_syn_buffer,";
+			source ~= "__global int* _circ_buffer_start,";
+			source ~= "__global int* _circ_buffer_end,";
+			source ~= "__global $num_type$* _circ_buffer,";
+			source ~= "__global int2* _dest_syn_buffer,";
+			source ~= "__global int* _fired_syn_idx_buffer,";
+			source ~= "__global int* _fired_syn_buffer,";
 		}
 		source.Inject(kernel_source, "$event_source_args$");
 		
@@ -1079,42 +1081,42 @@ else //It is full, error
 				source.Tab;
 			
 				char[] src = `
-int idx_idx = $num_event_sources$ * i + $event_source_idx$;
-int buff_start = circ_buffer_start[idx_idx];
-if(buff_start >= 0) /* See if we have any spikes that we can check */
+int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
+int _buff_start = _circ_buffer_start[_idx_idx];
+if(_buff_start >= 0) /* See if we have any spikes that we can check */
 {
-	const int circ_buffer_size = $circ_buffer_size$;
-	int buff_idx = (i * $num_event_sources$ + $event_source_idx$) * circ_buffer_size + buff_start;
+	const int _circ_buffer_size = $circ_buffer_size$;
+	int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _buff_start;
 
-	if(t > circ_buffer[buff_idx])
+	if(_t > _circ_buffer[_buff_idx])
 	{
-		int buff_end = circ_buffer_end[idx_idx];
+		int buff_end = _circ_buffer_end[_idx_idx];
 #if PARALLEL_DELIVERY
 #if USE_ATOMIC_DELIVERY
 		fire_table[atomic_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;
 #else
-		fire_table[$num_event_sources$ * local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
+		fire_table[$num_event_sources$ * _local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
 		need_to_deliver = true;
 #endif
 #else
-		int syn_start = num_synapses * idx_idx;
+		int syn_start = num_synapses * _idx_idx;
 		for(int syn_id = 0; syn_id < num_synapses; syn_id++)
 		{
-			int2 dest = dest_syn_buffer[syn_id + syn_start];
+			int2 dest = _dest_syn_buffer[syn_id + syn_start];
 			if(dest.s0 >= 0)
 			{
 				/* Get the index into the global syn buffer */
-				int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
-				fired_syn_buffer[dest_syn] = dest.s1;
+				int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
+				_fired_syn_buffer[dest_syn] = dest.s1;
 			}
 		}
 #endif
-		buff_start = (buff_start + 1) % circ_buffer_size;
-		if(buff_start == buff_end)
+		_buff_start = (_buff_start + 1) % _circ_buffer_size;
+		if(_buff_start == buff_end)
 		{
-			buff_start = -1;
+			_buff_start = -1;
 		}
-		circ_buffer_start[idx_idx] = buff_start;
+		_circ_buffer_start[_idx_idx] = _buff_start;
 	}
 }
 `.dup;
@@ -1138,12 +1140,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	if(need_to_deliver)
 	{
 #endif
-		int local_size = get_local_size(0);
+		int _local_size = get_local_size(0);
 		int num_fired;
 #if USE_ATOMIC_DELIVERY
 		num_fired = fire_table_idx;
 #else
-		num_fired = local_size * $num_event_sources$;
+		num_fired = _local_size * $num_event_sources$;
 #endif
 
 		for(int ii = 0; ii < num_fired; ii++)
@@ -1154,14 +1156,14 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 #endif
 
 			int syn_start = num_synapses * fire_table[ii];
-			for(int syn_id = local_id; syn_id < num_synapses; syn_id += local_size)
+			for(int syn_id = _local_id; syn_id < num_synapses; syn_id += _local_size)
 			{
-				int2 dest = dest_syn_buffer[syn_id + syn_start];
+				int2 dest = _dest_syn_buffer[syn_id + syn_start];
 				if(dest.s0 >= 0)
 				{
 					/* Get the index into the global syn buffer */
-					int dest_syn = atomic_inc(&fired_syn_idx_buffer[dest.s0]);
-					fired_syn_buffer[dest_syn] = dest.s1;
+					int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
+					_fired_syn_buffer[dest_syn] = dest.s1;
 				}
 			}
 		}
@@ -1196,7 +1198,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "__global $num_type$* " ~ name ~ "_buf,";
+			source ~= "__global $num_type$* _" ~ name ~ "_buf,";
 		}
 		source.Inject(kernel_source, "$val_args$");
 		
@@ -1211,7 +1213,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		source.Tab(2);
 		if(NeedSrcSynCode)
 		{
-			source ~= "__global int2* dest_syn_buffer,";
+			source ~= "__global int2* _dest_syn_buffer,";
 		}
 		source.Inject(kernel_source, "$event_source_args$");
 		
@@ -1219,7 +1221,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
+			source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[i];";
 		}
 		source.Inject(kernel_source, "$load_vals$");
 		
@@ -1232,7 +1234,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= name ~ "_buf[i] = " ~ name ~ ";";
+			source ~= "_" ~ name ~ "_buf[i] = " ~ name ~ ";";
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
@@ -1596,7 +1598,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	int IntegratorArgOffset()
 	{
 		int rand_offset = 0;
-		if(RandLen)
+		if(NeedRandArgs)
 		{
 			rand_offset = Rand.NumArgs;
 		}

@@ -34,31 +34,31 @@ const ConnectorTemplate =
 `
 void $connector_name$_connect_impl
 	(
-		int src_event_source, 
+		int _src_event_source, 
 		int* src_slot,
-		int src_slot_max,
-		int dest_slot_max,
-		__global int* dest_syn_idxs,
-		__global int2* dest_syn_buffer,
-		__global int* error_buffer,
-		int dest_nrn_offset,
-		int dest_slot_offset,
+		int _src_slot_max,
+		int _dest_slot_max,
+		__global int* _dest_syn_idxs,
+		__global int2* _dest_syn_buffer,
+		__global int* _error_buffer,
+		int _dest_nrn_offset,
+		int _dest_slot_offset,
 		int src_nrn_id, 
 		int dest_nrn_id
 	)
 {
-	int dest_slot = atomic_inc(&dest_syn_idxs[dest_nrn_id]);
+	int dest_slot = atomic_inc(&_dest_syn_idxs[dest_nrn_id]);
 	
-	if(*src_slot >= src_slot_max || dest_slot >= dest_slot_max)
+	if(*src_slot >= _src_slot_max || dest_slot >= _dest_slot_max)
 	{
-		error_buffer[src_nrn_id + 1] = 99;
+		_error_buffer[src_nrn_id + 1] = 99;
 		return;
 	}
 	
-	int src_syn_id = (src_nrn_id * $num_event_sources$ + src_event_source) * src_slot_max + *src_slot;
+	int src_syn_id = (src_nrn_id * $num_event_sources$ + _src_event_source) * _src_slot_max + *src_slot;
 	
-	dest_syn_buffer[src_syn_id].s0 = dest_nrn_offset + dest_nrn_id;
-	dest_syn_buffer[src_syn_id].s1 = dest_slot + dest_slot_offset;
+	_dest_syn_buffer[src_syn_id].s0 = _dest_nrn_offset + dest_nrn_id;
+	_dest_syn_buffer[src_syn_id].s1 = dest_slot + _dest_slot_offset;
 	
 	(*src_slot)++;
 }
@@ -70,21 +70,21 @@ $random_state_args$
 		const int num_cycles,
 		const int src_start,
 		const int src_end,
-		const int src_event_source,
-		const int src_slot_max,
-		__global int* event_source_idxs,
+		const int _src_event_source,
+		const int _src_slot_max,
+		__global int* _event_source_idxs,
 		const int dest_start,
 		const int dest_end,
-		const int dest_slot_max,
-		__global int* dest_syn_idxs,
-		__global int2* dest_syn_buffer,
-		int dest_nrn_offset,
-		int dest_slot_offset,
-		__global int* error_buffer
+		const int _dest_slot_max,
+		__global int* _dest_syn_idxs,
+		__global int2* _dest_syn_buffer,
+		int _dest_nrn_offset,
+		int _dest_slot_offset,
+		__global int* _error_buffer
 	)
 {
 	int i = src_start + get_global_id(0);
-	int src_slot = event_source_idxs[i];
+	int src_slot = _event_source_idxs[i];
 	
 	/* Load random state */
 $load_rand_state$
@@ -94,7 +94,7 @@ $load_rand_state$
 $connector_code$
 	}
 	
-	event_source_idxs[i] = src_slot;
+	_event_source_idxs[i] = src_slot;
 	/* Save random state */
 $save_rand_state$
 }
@@ -129,13 +129,13 @@ class CCLConnector(float_t)
 		auto kernel_source = ConnectorTemplate.dup;		
 		
 		auto code = conn.Code.dup;
-		code = code.substitute("connect(", "$connector_name$_connect_impl(src_event_source, &src_slot, src_slot_max, dest_slot_max, dest_syn_idxs, dest_syn_buffer, error_buffer, dest_nrn_offset, dest_slot_offset, ");
+		code = code.substitute("connect(", "$connector_name$_connect_impl(_src_event_source, &src_slot, _src_slot_max, _dest_slot_max, _dest_syn_idxs, _dest_syn_buffer, _error_buffer, _dest_nrn_offset, _dest_slot_offset, ");
 		
 		if(code.containsPattern("rand()"))
 		{
 			if(!Group.RandLen)
 				throw new Exception("Found rand() but neuron group '" ~ Group.Name ~ "' does not have random_state_len > 0.");
-			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&rand_state)");
+			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&_rand_state)");
 			
 			NeedRand = true;
 		}
@@ -204,28 +204,28 @@ class CCLConnector(float_t)
 			SetGlobalArg(arg_id++, src_nrn_range[0]);
 			//const int src_end,
 			SetGlobalArg(arg_id++, src_nrn_range[1]);
-			//const int src_event_source,
+			//const int _src_event_source,
 			SetGlobalArg(arg_id++, src_event_source);
-			//const int src_slot_max,
+			//const int _src_slot_max,
 			auto num_src_synapses = Group.NumSrcSynapses;
 			SetGlobalArg(arg_id++, num_src_synapses);
-			//__global int* event_source_idxs,
+			//__global int* _event_source_idxs,
 			SetGlobalArg(arg_id++, Group.EventSourceBuffers[src_event_source].FreeIdx.Buffer);
 			//const int dest_start,
 			SetGlobalArg(arg_id++, dest_nrn_range[0]);
 			//const int dest_end,
 			SetGlobalArg(arg_id++, dest_nrn_range[1]);
-			//const int dest_slot_max,
+			//const int _dest_slot_max,
 			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].Count);
-			//__global int* dest_syn_idxs,
+			//__global int* _dest_syn_idxs,
 			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].FreeIdx.Buffer);
-			//__global int2* dest_syn_buffer,
+			//__global int2* _dest_syn_buffer,
 			SetGlobalArg(arg_id++, Group.DestSynBuffer.Buffer);
-			//int dest_nrn_offset,
+			//int _dest_nrn_offset,
 			SetGlobalArg(arg_id++, dest.NrnOffset);
-			//int dest_slot_offset,
+			//int _dest_slot_offset,
 			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].SlotOffset);
-			//__global int* error_buffer
+			//__global int* _error_buffer
 			auto error_buffer = Group.ErrorBuffer;
 			SetGlobalArg(arg_id++, error_buffer);
 		}

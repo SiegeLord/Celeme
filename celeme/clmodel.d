@@ -135,20 +135,20 @@ class CCLModel(float_t) : ICLModel
 		Source ~= `
 		
 		#define record(flags, data, tag) \
-		if(record_flags & (flags)) \
+		if(_record_flags & (flags)) \
 		{ \
-			int idx = atomic_inc(&record_idx[0]); \
-			if(idx >= record_buffer_size) \
+			int idx = atomic_inc(&_record_idx[0]); \
+			if(idx >= _record_buffer_size) \
 			{ \
-				error_buffer[i + 1] = 10; \
-				record_idx[0] = record_buffer_size - 1; \
+				_error_buffer[i + 1] = 10; \
+				_record_idx[0] = _record_buffer_size - 1; \
 			} \
 			$num_type$4 record; \
-			record.s0 = cur_time + t; \
+			record.s0 = t; \
 			record.s1 = (data); \
 			record.s2 = tag; \
 			record.s3 = i; \
-			record_buffer[idx] = record; \
+			_record_buffer[idx] = record; \
 		} \
 		
 		`;

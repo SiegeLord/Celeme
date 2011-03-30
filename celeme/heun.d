@@ -43,7 +43,7 @@ class CHeun(float_t) : CIntegrator!(float_t)
 	override
 	char[] GetLoadCode(CNeuronType type)
 	{
-		return "dt = dt_const;";
+		return "_dt = _dt_const;";
 	}
 	
 	override
@@ -71,7 +71,7 @@ class CHeun(float_t) : CIntegrator!(float_t)
 	override
 	char[] GetArgsCode(CNeuronType type)
 	{
-		return "const $num_type$ dt_const,";
+		return "const $num_type$ _dt_const,";
 	}
 	
 	override
@@ -108,26 +108,26 @@ $apply_derivs_2$
 $reset_state$
 
 /* Advance time*/
-cur_time += dt;
+_cur_time += _dt;
 ".dup;
 		/* Declare temp states */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ " ~ name ~ "_0 = " ~ name ~ ";";
+			source ~= "$num_type$ _" ~ name ~ "_0 = " ~ name ~ ";";
 		}
 		source.Inject(kernel_source, "$declare_temp_states$");
 		
 		/* Declare derivs 1 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ d" ~ name ~ "_dt_1;";
+			source ~= "$num_type$ _d" ~ name ~ "_dt_1;";
 		}
 		source.Inject(kernel_source, "$declare_derivs_1$");
 		
 		/* Declare derivs 2 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "$num_type$ d" ~ name ~ "_dt_2;";
+			source ~= "$num_type$ _d" ~ name ~ "_dt_2;";
 		}
 		source.Inject(kernel_source, "$declare_derivs_2$");
 		
@@ -135,7 +135,7 @@ cur_time += dt;
 		auto first_source = eval_source.dup;
 		foreach(name, state; &type.AllStates)
 		{
-			first_source = first_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_1");
+			first_source = first_source.c_substitute(name ~ "'", "_d" ~ name ~ "_dt_1");
 		}
 		source.AddBlock(first_source);
 		source.Inject(kernel_source, "$compute_derivs_1$");
@@ -143,7 +143,7 @@ cur_time += dt;
 		/* Apply derivs 1 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " += dt * d" ~ name ~ "_dt_1;";
+			source ~= name ~ " += _dt * _d" ~ name ~ "_dt_1;";
 		}
 		source.Inject(kernel_source, "$apply_derivs_1$");
 		
@@ -151,7 +151,7 @@ cur_time += dt;
 		auto second_source = eval_source.dup;
 		foreach(name, state; &type.AllStates)
 		{
-			second_source = second_source.c_substitute(name ~ "'", "d" ~ name ~ "_dt_2");
+			second_source = second_source.c_substitute(name ~ "'", "_d" ~ name ~ "_dt_2");
 		}
 		source.AddBlock(second_source);
 		source.Inject(kernel_source, "$compute_derivs_2$");
@@ -159,14 +159,14 @@ cur_time += dt;
 		/* Apply derivs 2 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ "_0 += dt / 2 * (d" ~ name ~ "_dt_1 + d" ~ name ~ "_dt_2);";
+			source ~= "_" ~ name ~ "_0 += _dt / 2 * (_d" ~ name ~ "_dt_1 + _d" ~ name ~ "_dt_2);";
 		}
 		source.Inject(kernel_source, "$apply_derivs_2$");
 		
 		/* Reset state */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " = " ~ name ~ "_0;";
+			source ~= name ~ " = _" ~ name ~ "_0;";
 		}
 		source.Inject(kernel_source, "$reset_state$");
 		

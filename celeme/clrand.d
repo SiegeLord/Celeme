@@ -144,19 +144,19 @@ class CCLRandImpl(uint N) : CCLRand
 	override
 	char[] GetLoadCode()
 	{
-		return GetTypeString() ~ " rand_state = rand_state_buf[i];";
+		return GetTypeString() ~ " _rand_state = _rand_state_buf[i];";
 	}
 	
 	override
 	char[] GetSaveCode()
 	{
-		return "rand_state_buf[i] = rand_state;";
+		return "_rand_state_buf[i] = _rand_state;";
 	}
 	
 	override
 	char[] GetArgsCode()
 	{
-		return "__global " ~ GetTypeString() ~ "* rand_state_buf,";
+		return "__global " ~ GetTypeString() ~ "* _rand_state_buf,";
 	}
 	
 	override

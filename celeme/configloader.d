@@ -264,6 +264,19 @@ CMechanism[char[]] LoadMechanisms(CConfigEntry root)
  *         // Whether the syn global is read only or not
  *         readonly = false;
  *     }
+ * 
+ *     // Syn thresholds (ran after the normal thresholds and cannot modify non-synglobals)
+ *     syn_threshold
+ *     {
+ *         // State to track. Mandatory parameter.
+ *         state;
+ *         
+ *         // Condition to use as threshold. Mandatory parameter.
+ *         condition;
+ *         
+ *         // Code ran when the threshold is activated
+ *         code = "";
+ *     }
  *     // Alternate syntax, the init is set to the assigned value
  *     syn_global SynGlobalName2 = 0;
  * }

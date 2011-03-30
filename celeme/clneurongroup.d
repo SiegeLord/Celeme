@@ -292,7 +292,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		foreach(ii; range(NumEventSources))
 		{
-			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, Count);
+			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, TrueCount);
 		}
 		
 		if(NeedSrcSynCode)
@@ -509,8 +509,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (Count / workgroup_size) * workgroup_size;
-		if(total_num < Count)
+		size_t total_num = (TrueCount / workgroup_size) * workgroup_size;
+		if(total_num < TrueCount)
 			total_num += workgroup_size;
 		
 		InitKernel.Launch([total_num], [workgroup_size], ret_event);

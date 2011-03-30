@@ -62,64 +62,73 @@ $syn_thresh_array_arg$
 	)
 {
 	int i = get_global_id(0);
-	$syn_threshold_status$
-	$primary_exit_condition_init$
-	if(i < count)
-	{
-		$num_type$ cur_time = 0;
-		const $num_type$ timestep = $time_step$;
-		int record_flags = record_flags_buffer[i];
-		
-		$num_type$ dt;
+
+$syn_threshold_status$
+
+$primary_exit_condition_init$
+
+	$num_type$ cur_time = 0;
+	const $num_type$ timestep = $time_step$;
+	int record_flags = record_flags_buffer[i];
+	
+	$num_type$ dt;
+
 $integrator_load$
+
 $load_vals$
+
 $load_rand_state$
 
 $synapse_code$
 		
-		while($primary_exit_condition$)
-		{
-			bool any_thresh = false;
-			
-			/* Threshold statuses */
+	while($primary_exit_condition$)
+	{
+		bool any_thresh = false;
+		
+		/* Threshold statuses */
 $threshold_status$
+
 $syn_threshold_status_init$
 			
-			while(!any_thresh && cur_time < timestep)
-			{
-				/* Post-thresh integrator code */
+		while(!any_thresh && cur_time < timestep)
+		{
+			/* Post-thresh integrator code */
 $integrator_post_thresh_code$
 
-				$num_type$ error = 0;
-			
-				/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
+			$num_type$ error = 0;
+		
+			/* See where the thresholded states are before changing them (doesn't work for synapse states)*/
 $threshold_pre_check$
+
 $syn_threshold_pre_check$
 
-				/* Declare local variables */
+			/* Declare local variables */
 $declare_locals$
 
-				/* Pre-stage code */
+			/* Pre-stage code */
 $pre_stage_code$
 
-				/* Integrator code */
+			/* Integrator code */
 $integrator_code$
 
-				/* Detect thresholds */
+			/* Detect thresholds */
 $detect_thresholds$
+
 $detect_syn_thresholds$
-/* Check exit condition */
+			/* Check exit condition */
 $primary_exit_condition_check$
-			}
-			
-			/* Handle thresholds */
-$thresholds$
-$syn_thresholds$
 		}
-$integrator_save$
-$save_vals$
-$save_rand_state$
+		
+		/* Handle thresholds */
+$thresholds$
+
+$syn_thresholds$
 	}
+$integrator_save$
+
+$save_vals$
+
+$save_rand_state$
 }
 `;
 
@@ -189,10 +198,7 @@ $event_source_args$
 	const int num_synapses = $num_synapses$;
 	(void)num_synapses;
 	
-	if(i < count)
-	{
 $event_source_code$
-	}
 
 $parallel_delivery_code$
 }
@@ -228,14 +234,18 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		NumSrcSynapses = type.NumSrcSynapses;
 		MinDt = type.MinDt;
 		
+		TrueCountVal = (Count / StepWorkgroupSize) * StepWorkgroupSize;
+		if(TrueCountVal < Count)
+			TrueCountVal += StepWorkgroupSize;
+		
 		RandLen = type.RandLen;
 		switch(RandLen)
 		{
 			case 1:
-				Rand = new CCLRandImpl!(1)(Core, Count);
+				Rand = new CCLRandImpl!(1)(Core, TrueCount);
 				break;
 			case 2:
-				Rand = new CCLRandImpl!(2)(Core, Count);
+				Rand = new CCLRandImpl!(2)(Core, TrueCount);
 				break;
 			case 3:
 				assert(0, "Unsupported rand length");
@@ -256,7 +266,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		foreach(name, state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
-			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, Count);
+			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, TrueCount);
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -267,14 +277,14 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
 				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
-				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, Count * syn_type.NumSynapses);			
+				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, TrueCount * syn_type.NumSynapses);			
 			}
 		}
 		
 		int syn_type_offset = 0;
 		foreach(syn_type; type.SynapseTypes)
 		{
-			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count);
+			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, TrueCount);
 			SynapseBuffers = SynapseBuffers ~ syn_buff;
 			
 			syn_type_offset += syn_type.NumSynapses;
@@ -287,19 +297,19 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			CircBufferStart = Core.CreateBuffer!(int)(NumEventSources * Count);
-			CircBufferEnd = Core.CreateBuffer!(int)(NumEventSources * Count);
-			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * Count);
+			CircBufferStart = Core.CreateBuffer!(int)(NumEventSources * TrueCount);
+			CircBufferEnd = Core.CreateBuffer!(int)(NumEventSources * TrueCount);
+			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * TrueCount);
 		}
 		
-		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1);
-		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count);
+		ErrorBuffer = Core.CreateBuffer!(int)(TrueCount + 1);
+		RecordFlagsBuffer = Core.CreateBuffer!(int)(TrueCount);
 		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength);
 		RecordIdxBuffer = Core.CreateBuffer!(int)(1);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(TrueCount * NumEventSources * NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -368,7 +378,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			{
 				SetLocalArg(arg_id++, int.sizeof * StepWorkgroupSize);
 			}
-			SetGlobalArg(arg_id++, CountVal);
+			SetGlobalArg(arg_id++, Count);
 		}
 		
 		/* Init kernel */
@@ -386,7 +396,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			{
 				SetGlobalArg(arg_id++, DestSynBuffer);
 			}
-			SetGlobalArg(arg_id++, CountVal);
+			SetGlobalArg(arg_id++, Count);
 		}
 		
 		/* Deliver kernel */
@@ -411,7 +421,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer);
 				SetGlobalArg(arg_id++, Model.FiredSynBuffer);
 			}
-			SetGlobalArg(arg_id++, CountVal);
+			SetGlobalArg(arg_id++, Count);
 		}
 		
 		Core.Finish();
@@ -509,15 +519,11 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	void CallStepKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
-		
-		size_t total_num = (Count / StepWorkgroupSize) * StepWorkgroupSize;
-		if(total_num < Count)
-			total_num += StepWorkgroupSize;
 
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			Launch([total_num], [StepWorkgroupSize], ret_event);
+			Launch([TrueCount], [StepWorkgroupSize], ret_event);
 		}
 	}
 	
@@ -525,8 +531,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (Count / DeliverWorkgroupSize) * DeliverWorkgroupSize;
-		if(total_num < Count)
+		size_t total_num = (TrueCount / DeliverWorkgroupSize) * DeliverWorkgroupSize;
+		if(total_num < TrueCount)
 			total_num += DeliverWorkgroupSize;
 		
 		with(DeliverKernel)
@@ -597,12 +603,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Inject(kernel_source, "$synapse_globals$");
 		
 		/* Integrator load */
-		source.Tab(2);
+		source.Tab;
 		source.AddBlock(Integrator.GetLoadCode(type));
 		source.Inject(kernel_source, "$integrator_load$");
 		
 		/* Load vals */
-		source.Tab(2);
+		source.Tab;
 		foreach(name, state; &type.AllNonLocals)
 		{
 			source ~= "$num_type$ " ~ name ~ " = " ~ name ~ "_buf[i];";
@@ -610,7 +616,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Inject(kernel_source, "$load_vals$");
 		
 		/* Synapse code */
-		source.Tab(2);
+		source.Tab;
 		if(NumDestSynapses)
 		{
 			source.AddBlock(
@@ -672,7 +678,7 @@ if(syn_table_end != syn_offset)
 					}
 				}
 				
-				source.DeTab();
+				source.DeTab;
 				source ~= "}";
 				
 				syn_type_start = syn_type_offset;
@@ -687,12 +693,11 @@ if(syn_table_end != syn_offset)
 			
 			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
 			source.Source = source.Source.substitute("$syn_offset$", to!(char[])(SynOffset));
-			source.DeTab(2);
 		}
 		source.Inject(kernel_source, "$synapse_code$");
 		
 		/* Syn threshold statuses */
-		source.Tab(1);
+		source.Tab;
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
@@ -708,7 +713,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$syn_threshold_status$");
 		
 		/* Primary exit condition */
-		source.Tab(1);
+		source.Tab;
 		if(NumSynThresholds)
 		{
 			source ~= "__local int num_complete;";
@@ -735,7 +740,7 @@ if(syn_table_end != syn_offset)
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_check$");
 		
-		source.Tab(2);
+		source.Tab;
 		thresh_idx = 0;
 		if(NumSynThresholds)
 		{
@@ -748,7 +753,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$syn_thresh_array_arg$");
 		
 		/* Threshold statuses */
-		source.Tab(3);
+		source.Tab(2);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
@@ -760,7 +765,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$threshold_status$");
 		
 		/* Syn threshold statuses init */
-		source.Tab(3);
+		source.Tab(2);
 		thresh_idx = 0;
 		if(NumSynThresholds)
 		{
@@ -779,7 +784,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$syn_threshold_status_init$");
 		
 		/* Threshold pre-check */
-		source.Tab(4);
+		source.Tab(3);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
@@ -790,7 +795,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$threshold_pre_check$");
 		
 		/* Syn threshold pre-check */
-		source.Tab(4);
+		source.Tab(3);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
@@ -801,7 +806,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$syn_threshold_pre_check$");
 		
 		/* Declare locals */
-		source.Tab(4);
+		source.Tab(3);
 		foreach(name, state; &type.AllLocals)
 		{
 			source ~= "$num_type$ " ~ name ~ ";";
@@ -809,17 +814,17 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$declare_locals$");
 		
 		/* Pre-stage code */
-		source.Tab(4);
+		source.Tab(3);
 		source.AddBlock(type.GetPreStageSource());
 		source.Inject(kernel_source, "$pre_stage_code$");
 		
 		/* Integrator code */
-		source.Tab(4);
+		source.Tab(3);
 		source.AddBlock(Integrator.GetIntegrateCode(type));
 		source.Inject(kernel_source, "$integrator_code$");
 		
 		/* Detect thresholds */
-		source.Tab(4);
+		source.Tab(3);
 		int event_src_idx = 0;
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
@@ -833,7 +838,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$detect_thresholds$");
 		
 		/* Detect syn thresholds */
-		source.Tab(4);
+		source.Tab(3);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
@@ -851,7 +856,7 @@ if(syn_table_end != syn_offset)
 		source.Inject(kernel_source, "$detect_syn_thresholds$");
 		
 		/* Thresholds */
-		source.Tab(3);
+		source.Tab(2);
 		event_src_idx = 0;
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
@@ -914,7 +919,7 @@ else //It is full, error
 		source.Inject(kernel_source, "$thresholds$");
 		
 		/* Syn thresholds */
-		source.Tab(3);
+		source.Tab(2);
 		thresh_idx = 0;
 		foreach(syn_type, thresh; &type.AllSynThresholdsEx)
 		{
@@ -991,18 +996,18 @@ else //It is full, error
 		source.Inject(kernel_source, "$syn_thresholds$");
 		
 		/* Integrator save */
-		source.Tab(4);
+		source.Tab(3);
 		source.AddBlock(Integrator.GetPostThreshCode(type));
 		source.Inject(kernel_source, "$integrator_post_thresh_code$");
 		
 		
 		/* Integrator save */
-		source.Tab(2);
+		source.Tab;
 		source.AddBlock(Integrator.GetSaveCode(type));
 		source.Inject(kernel_source, "$integrator_save$");
 		
 		/* Save values */
-		source.Tab(2);
+		source.Tab;
 		foreach(name, state; &type.AllNonLocals)
 		{
 			if(!state.ReadOnly)
@@ -1021,19 +1026,19 @@ else //It is full, error
 		}
 		
 		/* Load rand state */
-		source.Tab(2);
+		source.Tab;
 		if(NeedRandArgs)
 			source ~= Rand.GetLoadCode();
 		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Random state arguments */
-		source.Tab(2);
+		source.Tab;
 		if(NeedRandArgs)
 			source.AddBlock(Rand.GetArgsCode());
 		source.Inject(kernel_source, "$random_state_args$");
 		
 		/* Save rand state */
-		source.Tab(2);
+		source.Tab;
 		if(NeedRandArgs)
 			source ~= Rand.GetSaveCode();
 		source.Inject(kernel_source, "$save_rand_state$");
@@ -1068,7 +1073,7 @@ else //It is full, error
 		source.Inject(kernel_source, "$event_source_args$");
 		
 		/* Thresholds */
-		source.Tab(2);
+		source.Tab;
 		int event_src_idx = 0;
 		foreach(thresh; &type.AllEventSources)
 		{
@@ -1627,6 +1632,12 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	}
 	
 	override
+	int TrueCount()
+	{
+		return TrueCountVal;
+	}
+	
+	override
 	bool Initialized()
 	{
 		return Model.Initialized;
@@ -1665,6 +1676,7 @@ if(buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	char[] NameVal;
 	int CountVal = 0;
+	int TrueCountVal = 0;
 	ICLModel Model;
 	
 	char[] StepKernelSource;

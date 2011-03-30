@@ -47,7 +47,7 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 			Tolerances ~= state.Tolerance;
 		}
 		
-		DtBuffer = Group.Core.CreateBuffer!(float_t)(Group.Count);
+		DtBuffer = Group.Core.CreateBuffer!(float_t)(Group.TrueCount);
 	}
 	
 	override

@@ -42,6 +42,25 @@ import tango.core.Array;
 
 const ArgOffsetStep = 6;
 char[] StepKernelTemplate = `
+#undef record
+#define record(flags, data, tag) \
+if(_record_flags & (flags)) \
+{ \
+	int idx = atomic_inc(&_record_idx[0]); \
+	if(idx >= _record_buffer_size) \
+	{ \
+		_error_buffer[i + 1] = $record_error$; \
+		_record_idx[0] = _record_buffer_size - 1; \
+	} \
+	$num_type$4 record; \
+	record.s0 = t; \
+	record.s1 = (data); \
+	record.s2 = tag; \
+	record.s3 = i; \
+	_record_buffer[idx] = record; \
+} \
+
+
 __kernel void $type_name$_step
 	(
 		const $num_type$ _t,
@@ -205,6 +224,12 @@ $event_source_code$
 $parallel_delivery_code$
 }
 ";
+
+enum
+{
+	RECORD_ERROR = 1,
+	CIRC_BUFFER_ERROR = 2
+}
 
 class CNeuronGroup(float_t) : ICLNeuronGroup
 {
@@ -897,7 +922,7 @@ if(_buff_start != _circ_buffer_end[_idx_idx])
 }
 else //It is full, error
 {
-	_error_buffer[i + 1] = 100 + $event_source_idx$;
+	_error_buffer[i + 1] = $circ_buffer_error$ + $event_source_idx$;
 }
 `.dup;
 				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
@@ -1044,6 +1069,8 @@ else //It is full, error
 		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "_dt = $min_dt$f");
 		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
 		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
+		kernel_source = kernel_source.substitute("$record_error$", to!(char[])(RECORD_ERROR));
+		kernel_source = kernel_source.substitute("$circ_buffer_error$", to!(char[])(CIRC_BUFFER_ERROR));
 		
 		StepKernelSource = kernel_source;
 	}
@@ -1491,10 +1518,19 @@ if(_buff_start >= 0) /* See if we have any spikes that we can check */
 		}
 		foreach(ii, error; errors[1..$])
 		{
-			if(error)
+			found_errors |= error != 0;
+			if(error == RECORD_ERROR)
 			{
-				Stdout.formatln("Error: {} : {}", ii, error);
-				found_errors = true;
+				Stdout.formatln("Neuron {}: Record buffer too small", ii);
+				
+			}
+			else if(error >= CIRC_BUFFER_ERROR)
+			{
+				Stdout.formatln("Neuron {}: Event source {} exceeded the circular buffer capacity (spike rate too high)", ii, error - CIRC_BUFFER_ERROR);
+			}
+			else if(error != 0)
+			{
+				Stdout.formatln("Neuron {}: Unknown error code {}", ii, error);
 			}
 		}
 		

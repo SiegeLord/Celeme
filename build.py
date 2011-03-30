@@ -15,7 +15,9 @@ def shell(cmd):
 	return call(cmd, shell=True)
 
 def dbuild():
-	return shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -g -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest ' + perf_str + ' ' + amd_perf_str)
+	ret = shell('xfbuild +threads=6 +q +omain +cldc +xldc +xtango main.d -g -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -unittest ' + perf_str + ' ' + amd_perf_str)
+	shell('rm *.rsp')
+	return ret
 
 if len(argv) > 1:
 	if argv[1] == 'lib':
@@ -24,6 +26,7 @@ if len(argv) > 1:
 			ret = shell('ar -r libceleme.a .objs_celeme/*.o')
 	elif argv[1] == 'py':
 		shell('xfbuild +threads=6 +D=".deps_pyceleme" +O=".objs_pyceleme" +opy_celeme +cldc +xldc +xtango +xopencl +xceleme pyceleme/main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -L-L. -L-lceleme -L-lpython2.6 -I. -unittest')
+		shell('rm *.rsp')
 	elif argv[1] == 'doc':
 		shell('dil d doc/ --kandil -hl celeme/*.d -version=Doc')
 	elif argv[1] == 'run':

@@ -30,7 +30,16 @@
 <dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.Shutdown" href="htmlsrc/celeme.imodel.html#L43">Shutdown</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.Shutdown" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Shuts the model down, destroying all of its resources.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.AddNeuronGroup" href="htmlsrc/celeme.imodel.html#L54">AddNeuronGroup</a><span class="params">(CNeuronType <em>type</em>, int <em>number</em>, char[] <em>name</em> = <span class="defval"><span class="k">null</span></span>, bool <em>adaptive_dt</em> = <span class="defval"><span class="k">true</span></span>)</span> <a href="celeme.imodel.html#IModel.AddNeuronGroup" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.AddNeuronGroup" href="htmlsrc/celeme.imodel.html#L54">AddNeuronGroup</a><span class="params">(char[] <em>type_name</em>, int <em>number</em>, char[] <em>name</em> = <span class="defval"><span class="k">null</span></span>, bool <em>adaptive_dt</em> = <span class="defval"><span class="k">true</span></span>)</span> <a href="celeme.imodel.html#IModel.AddNeuronGroup" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Adds a new neuron group from an internal registry.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>type_name</em></td><td>Name of the neuron type to add</td></tr>
+<tr><td><em>number</em></td><td>Number of neurons to add of this type</td></tr>
+<tr><td><em>name</em></td><td>What name to use to override the type name</td></tr>
+<tr><td><em>adaptive_dt</em></td><td>Whether or not to use the adaptive timestep integration</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.AddNeuronGroup:2" href="htmlsrc/celeme.imodel.html#L65">AddNeuronGroup</a><span class="params">(CNeuronType <em>type</em>, int <em>number</em>, char[] <em>name</em> = <span class="defval"><span class="k">null</span></span>, bool <em>adaptive_dt</em> = <span class="defval"><span class="k">true</span></span>)</span> <a href="celeme.imodel.html#IModel.AddNeuronGroup:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Adds a new neuron group.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -39,7 +48,7 @@
 <tr><td><em>number</em></td><td>Number of neurons to add of this type</td></tr>
 <tr><td><em>name</em></td><td>What name to use to override the type name</td></tr>
 <tr><td><em>adaptive_dt</em></td><td>Whether or not to use the adaptive timestep integration</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.Generate" href="htmlsrc/celeme.imodel.html#L67">Generate</a><span class="params">(bool <em>parallel_delivery</em> = <span class="defval"><span class="k">true</span></span>, bool <em>atomic_delivery</em> = <span class="defval"><span class="k">true</span></span>, bool <em>initialize</em> = <span class="defval"><span class="k">true</span></span>)</span> <a href="celeme.imodel.html#IModel.Generate" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.Generate" href="htmlsrc/celeme.imodel.html#L78">Generate</a><span class="params">(bool <em>parallel_delivery</em> = <span class="defval"><span class="k">true</span></span>, bool <em>atomic_delivery</em> = <span class="defval"><span class="k">true</span></span>, bool <em>initialize</em> = <span class="defval"><span class="k">true</span></span>)</span> <a href="celeme.imodel.html#IModel.Generate" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Generates the model. You must generate it before you run it, or set any neuron-specific
  values.</div></div>
@@ -50,10 +59,10 @@
 <tr><td><em>atomic_delivery</em></td><td>Whether or not to use atomic delivery of events. Usually set to true.</td></tr>
 <tr><td><em>initialize</em></td><td>Whether or not to call the Initialize method after this method is done. Usually set
                   to true.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">INeuronGroup</span> <a class="symbol _function" name="IModel.opIndex" href="htmlsrc/celeme.imodel.html#L72">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.imodel.html#IModel.opIndex" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">INeuronGroup</span> <a class="symbol _function" name="IModel.opIndex" href="htmlsrc/celeme.imodel.html#L83">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.imodel.html#IModel.opIndex" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns a neuron group with the passed name.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.Run" href="htmlsrc/celeme.imodel.html#L82">Run</a><span class="params">(int <em>num_timesteps</em>)</span> <a href="celeme.imodel.html#IModel.Run" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.Run" href="htmlsrc/celeme.imodel.html#L93">Run</a><span class="params">(int <em>num_timesteps</em>)</span> <a href="celeme.imodel.html#IModel.Run" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Runs the model for a specified number of timesteps. Equivalent to this code:
  <table class="d_code">
@@ -67,19 +76,19 @@
 <span class="i">model</span>.<span class="i">RunUntil</span>(<span class="i">num_timesteps</span>);</pre>
 </td></tr>
 </table></div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.ResetRun" href="htmlsrc/celeme.imodel.html#L90">ResetRun</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.ResetRun" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.ResetRun" href="htmlsrc/celeme.imodel.html#L101">ResetRun</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.ResetRun" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Resets the buffers of the model, setting the internal time to 0. This clears the pending events, and resets all values to their
  default states. It also clears the recorders. The connections between neurons and the allocation
  of recorders are not affected, however. Note that this means that if you want to set any per-neuron
  values, you should do it after this method call (and possibly after InitRun method also).</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.InitRun" href="htmlsrc/celeme.imodel.html#L95">InitRun</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.InitRun" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.InitRun" href="htmlsrc/celeme.imodel.html#L106">InitRun</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.InitRun" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Calls the init code for each neuron group.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.RunUntil" href="htmlsrc/celeme.imodel.html#L100">RunUntil</a><span class="params">(int <em>num_timesteps</em>)</span> <a href="celeme.imodel.html#IModel.RunUntil" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.RunUntil" href="htmlsrc/celeme.imodel.html#L111">RunUntil</a><span class="params">(int <em>num_timesteps</em>)</span> <a href="celeme.imodel.html#IModel.RunUntil" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Runs the model until the internal clock equals the passed number of timesteps.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.SetConnection" href="htmlsrc/celeme.imodel.html#L116">SetConnection</a><span class="params">(char[] <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, int <em>src_slot</em>, char[] <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>, int <em>dest_slot</em>)</span> <a href="celeme.imodel.html#IModel.SetConnection" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.SetConnection" href="htmlsrc/celeme.imodel.html#L127">SetConnection</a><span class="params">(char[] <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, int <em>src_slot</em>, char[] <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>, int <em>dest_slot</em>)</span> <a href="celeme.imodel.html#IModel.SetConnection" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Sets a connection between two neurons in this model. This function ignores the used slots,
  and thus can be made to overwrite connections.</div></div>
@@ -93,7 +102,7 @@
 <tr><td><em>dest_nrn_id</em></td><td>Index of the destination neuron</td></tr>
 <tr><td><em>dest_syn_type</em></td><td>Index of the synapse to use</td></tr>
 <tr><td><em>dest_slot</em></td><td>Destination slot to use</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="IModel.Connect" href="htmlsrc/celeme.imodel.html#L133">Connect</a><span class="params">(char[] <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, char[] <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>)</span> <a href="celeme.imodel.html#IModel.Connect" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="IModel.Connect" href="htmlsrc/celeme.imodel.html#L144">Connect</a><span class="params">(char[] <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, char[] <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>)</span> <a href="celeme.imodel.html#IModel.Connect" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Adds a connection between two neurons. This function respects the used slots.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -106,7 +115,7 @@
 <tr><td><em>dest_syn_type</em></td><td>Index of the synapse to use</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">true if the connection was made succesfully, false otherwise. The connection might not be made
      because the maximum number of slots has been used.</div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.ApplyConnector" href="htmlsrc/celeme.imodel.html#L150">ApplyConnector</a><span class="params">(char[] <em>connector_name</em>, int <em>multiplier</em>, char[] <em>src_group</em>, int[2] <em>src_nrn_range</em>, int <em>src_event_source</em>, char[] <em>dest_group</em>, int[2] <em>dest_nrn_range</em>, int <em>dest_syn_type</em>, double[char[]] <em>args</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.imodel.html#IModel.ApplyConnector" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.ApplyConnector" href="htmlsrc/celeme.imodel.html#L161">ApplyConnector</a><span class="params">(char[] <em>connector_name</em>, int <em>multiplier</em>, char[] <em>src_group</em>, int[2] <em>src_nrn_range</em>, int <em>src_event_source</em>, char[] <em>dest_group</em>, int[2] <em>dest_nrn_range</em>, int <em>dest_syn_type</em>, double[char[]] <em>args</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.imodel.html#IModel.ApplyConnector" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Apply a connector to interconnect two ranges of neurons. This is the fastest method to connect neurons,
  as the connections are made in parallel. The source neuron's group connector is used, as well as the random state.</div></div>
@@ -121,12 +130,12 @@
 <tr><td><em>dest_nrn_range</em></td><td>Range of destination neurons to connect. The range is closed on the left and open on the right.</td></tr>
 <tr><td><em>dest_syn_type</em></td><td>Index of the synapse to use</td></tr>
 <tr><td><em>args</em></td><td>An associative array of arguments to pass to the connector</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="IModel.TimeStepSize" href="htmlsrc/celeme.imodel.html#L157">TimeStepSize</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.TimeStepSize" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="IModel.TimeStepSize" href="htmlsrc/celeme.imodel.html#L168">TimeStepSize</a><span class="params">()</span> <a href="celeme.imodel.html#IModel.TimeStepSize" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the timestep size of the model. The model is ran using fixed timesteps, although
  each neuron group may advance through each timestep in multiple sub-steps. This value
  corresponds to the minimum delay in the network.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.TimeStepSize:2" href="htmlsrc/celeme.imodel.html#L167">TimeStepSize</a><span class="params">(double <em>val</em>)</span> <a href="celeme.imodel.html#IModel.TimeStepSize:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="IModel.TimeStepSize:2" href="htmlsrc/celeme.imodel.html#L178">TimeStepSize</a><span class="params">(double <em>val</em>)</span> <a href="celeme.imodel.html#IModel.TimeStepSize:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Sets the timestep size of the model.
  The model is ran using fixed timesteps, although
@@ -137,7 +146,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Wed Mar 30 12:40:06 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sat Apr  9 15:58:21 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

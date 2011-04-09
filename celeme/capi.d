@@ -25,7 +25,7 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * 
  * ---
  * const char* error;
- * CELEME_MODEL* model = celeme_load_model("model.cfg", true);
+ * CELEME_MODEL* model = celeme_load_model("model.cfg", true, false);
  * if(error = celeme_get_error())
  *     printf("%s\n", error);
  * ---
@@ -151,14 +151,14 @@ void celeme_set_error(char* error)
  * 
  * C signature:
  * ---
- * CELEME_MODEL* celeme_load_model(const char* file, bool gpu);
+ * CELEME_MODEL* celeme_load_model(const char* file, bool gpu, bool double_precision);
  * ---
  */
-IModel celeme_load_model(char* file, bool gpu)
+IModel celeme_load_model(char* file, bool gpu, bool double_precision)
 {
 	try
 	{		
-		return LoadModel(fromStringz(file), gpu);
+		return LoadModel(fromStringz(file), gpu, double_precision);
 	}
 	catch(Exception e)
 	{
@@ -257,6 +257,18 @@ void celeme_initialize_model(IModel model);
  * ---
  */
 void celeme_generate_model(IModel model, bool parallel_delivery, bool atomic_delivery, bool initialize);
+
+/**
+ * Adds a new neuron group from an internal registry.
+ * 
+ * See_Also: $(SYMLINK2 celeme.imodel, IModel.AddNeuronGroup, IModel.AddNeuronGroup)
+ * 
+ * C signature:
+ * ---
+ * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt);
+ * ---
+ */
+void celeme_add_neuron_group(IModel model, in char* type_name, int number, in char* name, bool adaptive_dt);
 
 /**
  * Returns a neuron group based on its name.
@@ -555,9 +567,9 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 
 mixin(ModelFunc!("initialize_model", "void", "Initialize", "", "", ""));
 
-/+mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
-	", CNeuronType type, int number, char* name, bool adaptive_dt", 
-	"type, number, fromStringz(name), adaptive_dt", ""));+/
+mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
+	", char* type_name, int number, char* name, bool adaptive_dt", 
+	"fromStringz(type_name), number, fromStringz(name), adaptive_dt", ""));
 mixin(ModelFunc!("generate_model", "void", "Generate", 
 	", bool parallel_delivery, bool atomic_delivery, bool initialize", 
 	"parallel_delivery, atomic_delivery, initialize", ""));

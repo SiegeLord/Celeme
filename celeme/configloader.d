@@ -638,11 +638,12 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
  * Params:
  *     file = Path to a file to load from.
  *     gpu = Whether or not to use the GPU.
+ *     double_precision = Whether or not to use double precision.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(char[] file, bool gpu = false)
+IModel LoadModel(char[] file, bool gpu = false, bool double_precision = false)
 {
 	auto root = LoadConfig(file);
 	auto mechanisms = LoadMechanisms(root);
@@ -650,39 +651,8 @@ IModel LoadModel(char[] file, bool gpu = false)
 	auto connectors = LoadConnectors(root);
 	auto types = LoadNeuronTypes(root, mechanisms, synapses, connectors);
 	
-	auto model_entry = root["model", true];
-	if(model_entry is null)
-		throw new Exception("No 'model' node in '" ~ file ~ "'.");
-	
-	IModel ret;
-
-	auto float_type = model_entry.ValueOf!(char[])("float_type", "float");
-	auto timestep_size = model_entry.ValueOf!(double)("timestep_size", 1.0);
-	
-	if(float_type == "float")
-		ret = new CCLModel!(float)(gpu);
-	else if(float_type == "double")
-		ret = new CCLModel!(double)(gpu);
+	if(double_precision)
+		return new CCLModel!(double)(gpu, types);
 	else
-		throw new Exception("'" ~ float_type ~ "' is not a valid floating point type.");
-		
-	ret.TimeStepSize = timestep_size;
-	
-	foreach(entries; model_entry["group"])
-	{
-		foreach(entry; entries[])
-		{		
-			auto type_ptr = entry.Name in types;
-			if(type_ptr is null)
-				throw new Exception("No type named '" ~ entry.Name ~ "' exists.");
-			
-			auto number = entry.ValueOf!(int)("number", 1);
-			auto name = entry.ValueOf!(char[])("name", "");
-			auto adaptive_dt = entry.ValueOf!(bool)("adaptive_dt", true);
-			
-			ret.AddNeuronGroup(*type_ptr, number, name, adaptive_dt);
-		}
-	}
-	
-	return ret;
+		return new CCLModel!(float)(gpu, types);
 }

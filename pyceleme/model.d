@@ -54,14 +54,15 @@ PyObject* SModel_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["file", "gpu", null];
+	char[][] kwlist = ["file", "gpu", "double_precision", null];
 	char* str;
 	int gpu = 0;
+	int double_precision = 0;
 
-	if(!DParseTupleAndKeywords(args, kwds, "s|i", kwlist, &str, &gpu))
+	if(!DParseTupleAndKeywords(args, kwds, "s|ii", kwlist, &str, &gpu, &double_precision))
 		return -1;
 	
-	self.Model = celeme_load_model(str, cast(bool)gpu);
+	self.Model = celeme_load_model(str, cast(bool)gpu, cast(bool)double_precision);
 	
 	mixin(ErrorCheck("-1"));
 	return 0;
@@ -183,6 +184,26 @@ PyObject* SModel_run_until(SModel *self, PyObject* args, PyObject* kwds)
 		return null;
 	
 	celeme_run_until(self.Model, timesteps);
+	
+	mixin(ErrorCheck("null"));
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+extern (C)
+PyObject* SModel_add_neuron_group(SModel *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["type_name", "number", "name", "adaptive_dt", null];
+	
+	char* type_name;
+	int number;
+	char* name;
+	int adaptive_dt;
+
+	if(!DParseTupleAndKeywords(args, kwds, "si|si", kwlist, &type_name, &number, &name, &adaptive_dt))
+		return null;
+	
+	celeme_add_neuron_group(self.Model, type_name, number, name, cast(bool)adaptive_dt);
 	
 	mixin(ErrorCheck("null"));
 	Py_INCREF(Py_None);
@@ -313,6 +334,7 @@ PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 
 PyMethodDef[] SModel_methods = 
 [
+    {"AddNeuronGroup", cast(PyCFunction)&SModel_add_neuron_group, METH_VARARGS | METH_KEYWORDS, "Adds a new neuron group from an internal registry"},
     {"Generate", cast(PyCFunction)&SModel_generate, METH_VARARGS | METH_KEYWORDS, "Generate the model"},
     {"Initialize", cast(PyCFunction)&SModel_initialize, METH_NOARGS, "Initialize the model"},
     {"Run", cast(PyCFunction)&SModel_run, METH_VARARGS | METH_KEYWORDS, "Run the model"},

@@ -51,6 +51,9 @@ void main(char[][] arg_list)
 	auto model = LoadModel("stuff.cfg", gpu);
 	scope(exit) model.Shutdown();
 	
+	model.AddNeuronGroup("Regular", 1000);
+	model.TimeStepSize = 1.0;
+	
 	auto N = model["Regular"].Count;
 	auto t_scale = 1.0 / model.TimeStepSize;
 	

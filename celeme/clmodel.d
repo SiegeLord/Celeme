@@ -50,10 +50,23 @@ class CCLModel(float_t) : ICLModel
 		static assert(0);
 	}
 	
-	this(bool gpu)
+	this(bool gpu, CNeuronType[char[]] registry = null)
 	{
 		Core = new CCLCore(gpu);
 		RandsUsed[] = false;
+		Registry = registry;
+	}
+	
+	override
+	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true)
+	{
+		assert(Registry !is null, "No neuron types available.");
+		
+		auto type_ptr = type_name in Registry;
+		if(type_ptr is null)
+			throw new Exception("The registry has no neuron type named '" ~ type_name ~ "'.");
+		
+		AddNeuronGroup(*type_ptr, number, name, adaptive_dt);
 	}
 	
 	override
@@ -506,4 +519,6 @@ class CCLModel(float_t) : ICLModel
 	
 	bool InitializedVal = false;
 	bool Generated = false;
+	
+	CNeuronType[char[]] Registry;
 }

@@ -43,6 +43,17 @@ interface IModel
 	void Shutdown();
 	
 	/**
+	 * Adds a new neuron group from an internal registry.
+	 * 
+	 * Params:
+	 *     type_name = Name of the neuron type to add
+	 *     number = Number of neurons to add of this type
+	 *     name = What name to use to override the type name
+	 *     adaptive_dt = Whether or not to use the adaptive timestep integration
+	 */
+	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true);
+	
+	/**
 	 * Adds a new neuron group.
 	 * 
 	 * Params:

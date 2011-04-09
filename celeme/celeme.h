@@ -27,12 +27,6 @@ typedef struct CELEME_NEURON_TYPE CELEME_NEURON_TYPE;
 typedef struct CELEME_NEURON_GROUP CELEME_NEURON_GROUP;
 typedef struct CELEME_RECORDER CELEME_RECORDER;
 
-/*enum
-{
-	CELEME_MODEL_FLOAT,
-	CELEME_MODEL_DOUBLE
-};*/
-
 void celeme_init(void);
 void celeme_shutdown(void);
 const char* celeme_get_error(void);
@@ -43,11 +37,12 @@ void celeme_set_error(const char* error);
  */
 
 /*CELEME_MODEL* celeme_create_model(int type, bool gpu);*/
-CELEME_MODEL* celeme_load_model(const char* file, bool gpu);
+CELEME_MODEL* celeme_load_model(const char* file, bool gpu, bool double_precision);
 void celeme_initialize_model(CELEME_MODEL* model);
 void celeme_destroy_model(CELEME_MODEL* model);
 
 /*void celeme_add_neuron_group(CELEME_MODEL* model, CELEME_NEURON_TYPE* type, int number, const char* name, bool adaptive_dt);*/
+void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt);
 void celeme_generate_model(CELEME_MODEL* model, bool parallel_delivery, bool atomic_delivery, bool initialize);
 
 CELEME_NEURON_GROUP* celeme_get_neuron_group(CELEME_MODEL* model, const char* name);

@@ -74,14 +74,59 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * }
  * ---
  * 
- * Lastly, this file format supports textual includes:
+ * Lastly, this file format supports includes:
  * 
  * ---
- * include "some_other_file"
+ * include "some_other_file";
  * ---
  * 
  * This will effectively paste the contents of the other file inside this file.
- * Circular includes are forbidden. Some example usage:
+ * Circular includes are forbidden. You can additional specify specific entries 
+ * include (or exclude). For example:
+ * 
+ * ---
+ * include "some_other_file"+A,B; // Only A and B will be included
+ * include "some_other_file"-A,B; // All entries except A and B will be included
+ * ---
+ * 
+ * It is also possible to include the contents of aggregate entries in other
+ * aggregate entries using the include statement.
+ * 
+ * ---
+ * A
+ * {
+ *     a;
+ *     b;
+ *     C
+ *     {
+ *         c;
+ *         d;
+ *     }
+ * }
+ * 
+ * B
+ * {
+ *    include A+a,b;
+ *    include A.C-d;
+ * }
+ * 
+ * // B now contains entries a, b and c
+ * ---
+ * 
+ * When used like that, only the last match to the specifier is used:
+ * 
+ * ---
+ * A a = 1;
+ * A a = 6;
+ * B
+ * {
+ *     include A;
+ * }
+ * 
+ * // B now contains the a with a default value of 6
+ * ---
+ * 
+ * Some example usage:
  * 
  * ---
  * char[] file = 

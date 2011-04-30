@@ -143,11 +143,19 @@ import tango.io.Stdout;
  * Returns:
  *     An entry representing the top-level entry of the configuration file.
  */
-CConfigEntry LoadConfig(char[] filename, char[] src = null)
+CAggregate LoadConfig(char[] filename, char[] src = null, char[][] include_list = null, CAggregate[char[]] included_files = null)
 {
+	if(src is null)
+		src = cast(char[])File.get(filename);
+	
+	scope tok = new CTokenizer(filename, src);
+	scope parser = new CParser(tok);
+	
+	include_list ~= filename;
+	
 	auto ret = new CAggregate("");
 	
-	LoadConfig(ret, filename, src);
+	FillAggregate(ret, parser, include_list, included_files);
 	
 	return ret;
 }
@@ -692,6 +700,14 @@ class CAggregate : CConfigEntry
 			return null;
 	}
 	
+	void Merge(CAggregate other)
+	{
+		foreach(child; other[])
+		{
+			Children[child.Name] ~= child;
+		}
+	}
+	
 	CConfigEntry[][char[]] Children;
 }
 
@@ -710,14 +726,12 @@ class CSingleValue : CConfigEntry
 	Variant Val;
 }
 
-CConfigEntry CreateEntry(CParser parser)
+CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[]] included_files = null)
 {
 	if(parser.Peek == EToken.Name)
 	{
 		CConfigEntry ret;
 		auto name = parser.CurToken.String;
-		if(name == "include")
-			throw new CConfigException("'include' is only allowed at the top level.", parser.FileName, parser.CurToken.Line);
 		
 		switch(parser.Advance())
 		{
@@ -778,27 +792,29 @@ CConfigEntry CreateEntry(CParser parser)
 				parser.Advance();
 				
 				auto aggr = new CAggregate(name);
-				while(parser.Peek != EToken.RightBrace)
+				FillAggregate(aggr, parser, include_list, included_files);
+				
+				if(parser.Peek == EToken.RightBrace)
 				{
-					if(parser.Peek == EToken.EOF)
-						throw new CConfigException("Unexpected EOF while parsing aggregate", parser.FileName, line);
-						
-					auto entry = CreateEntry(parser);
-					if(entry !is null)
-						aggr.Children[entry.Name] ~= entry;
-					else
-						throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					parser.Advance();
+					ret = aggr;
+				}
+				else if(parser.Peek == EToken.EOF)
+				{
+					throw new CConfigException("Unexpected EOF while parsing aggregate", parser.FileName, line);
+				}
+				else
+				{
+					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 				}
 				
-				parser.Advance();
-				ret = aggr;
 				break;
 			}
 			case EToken.Name:
 			{
 				auto aggr = new CAggregate(name);
 				
-				auto entry = CreateEntry(parser);
+				auto entry = CreateEntry(parser, include_list);
 				if(entry !is null)
 					aggr.Children[entry.Name] ~= entry;
 				else
@@ -822,7 +838,7 @@ CConfigEntry CreateEntry(CParser parser)
 	return null;
 }
 
-bool HandleInclude(CAggregate root, CParser parser, char[][] include_list)
+bool HandleInclude(CAggregate root, CParser parser, char[][] include_list, CAggregate[char[]] included_files)
 {
 	if(parser.Peek == EToken.Name)
 	{
@@ -844,33 +860,34 @@ bool HandleInclude(CAggregate root, CParser parser, char[][] include_list)
 				
 			parser.Advance();
 			
-			LoadConfig(root, path, null, include_list);
+			auto aggr_ptr = path in included_files;
+			if(aggr_ptr is null)
+			{
+				auto new_aggr = LoadConfig(path, null, include_list, included_files);
+				included_files[path] = new_aggr;
+				aggr_ptr = &new_aggr;
+			}
+			
+			root.Merge(*aggr_ptr);
+			
 			return true;
 		}
 	}
 	return false;
 }
 
-void LoadConfig(CAggregate ret, char[] filename, char[] src = null, char[][] include_list = null)
+void FillAggregate(CAggregate ret, CParser parser, char[][] include_list = null, CAggregate[char[]] included_files = null)
 {
-	if(src is null)
-		src = cast(char[])File.get(filename);
-	
-	scope tok = new CTokenizer(filename, src);
-	scope parser = new CParser(tok);
-	
-	include_list ~= filename;
-	
 	while(!parser.EOF)
 	{
-		if(!HandleInclude(ret, parser, include_list))
+		if(!HandleInclude(ret, parser, include_list, included_files))
 		{
 			CConfigEntry entry;
-			entry = CreateEntry(parser);
+			entry = CreateEntry(parser, include_list, included_files);
 			if(entry)
 				ret.Children[entry.Name] ~= entry;
 			else
-				throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				break;
 		}
 	}
 }

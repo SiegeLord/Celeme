@@ -338,6 +338,9 @@ enum EToken
 	LeftBrace,
 	RightBrace,
 	Dot,
+	Plus,
+	Minus,
+	Comma,
 	EOF
 }
 
@@ -621,6 +624,12 @@ class CTokenizer
 				tok.Type = EToken.RightBrace;
 			else if(ConsumeChar(Source, '.', end))
 				tok.Type = EToken.Dot;
+			else if(ConsumeChar(Source, '+', end))
+				tok.Type = EToken.Plus;
+			else if(ConsumeChar(Source, '-', end))
+				tok.Type = EToken.Minus;
+			else if(ConsumeChar(Source, ',', end))
+				tok.Type = EToken.Comma;
 			else
 				throw new CConfigException("Invalid token! '" ~ Source[0] ~ "'", FileName, CurLine);
 			
@@ -701,14 +710,6 @@ class CAggregate : CConfigEntry
 			return *entry_ptr;
 		else
 			return null;
-	}
-	
-	void Merge(CAggregate other)
-	{
-		foreach(child; other[])
-		{
-			Children[child.Name] ~= child;
-		}
 	}
 	
 	CConfigEntry[][char[]] Children;
@@ -848,6 +849,8 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 		auto name = parser.CurToken.String;
 		if(name == "include")
 		{
+			CAggregate aggr;
+			/* See if it's a file include or a aggregate include */
 			switch(parser.Advance())
 			{
 				case EToken.String:
@@ -871,7 +874,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 						aggr_ptr = &new_aggr;
 					}
 					
-					ret.Merge(*aggr_ptr);
+					aggr = *aggr_ptr;
 					break;
 				}
 				case EToken.Name:
@@ -880,31 +883,33 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 					
 					bool want_dot = false;
 					
-					while(parser.Peek != EToken.SemiColon)
+					bool done = false;
+					while(!done)
 					{
 						switch(parser.Peek)
 						{
 							case EToken.Name:
 								if(want_dot)
-									goto default;
+									throw new CConfigException("Expected a period, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 								path ~= parser.CurToken.String;
 								break;
 							case EToken.Dot:
 								if(!want_dot)
-									goto default;
+									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 								break;
 							default:
-								throw new CConfigException("Expected a name or a period, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+								done = true;
 						}
 						want_dot = !want_dot;
 						
-						parser.Advance;
+						if(!done)
+							parser.Advance;
 					}
 					
-					CAggregate get_last(size_t idx, CAggregate aggr)
+					CAggregate get_last(size_t idx, CAggregate cur_aggr)
 					{
 						CAggregate aggr_ret;
-						foreach(entry; aggr[path[idx]])
+						foreach(entry; cur_aggr[path[idx]])
 						{
 							if(entry.IsAggregate)
 							{
@@ -923,14 +928,12 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 						return aggr_ret;
 					}
 					
-					auto aggr_ret = get_last(0, root);
+					aggr = get_last(0, root);
 					
-					if(aggr_ret is null)
+					if(aggr is null)
 					{
 						throw new CConfigException("Could not find an aggregate named: '" ~ TextUtil.join(path, ".") ~ "' in the current file.", parser.FileName, parser.CurToken.Line);
 					}
-					
-					ret.Merge(aggr_ret);
 					
 					break;
 				}
@@ -940,11 +943,68 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 				}
 			}
 			
-			if(parser.Peek != EToken.SemiColon)
+			char[][] symbol_filters;
+			bool include = false;
+			
+			/* See if we need to filter */
+			switch(parser.Peek)
 			{
-				throw new CConfigException("Expected a semicolon after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				case EToken.Plus:
+				{
+					include = true;
+				}
+				case EToken.Minus:
+				{
+					parser.Advance;
+					
+					bool want_comma = false;
+					bool done = false;
+					while(!done)
+					{
+						switch(parser.Peek)
+						{
+							case EToken.Name:
+								if(want_comma)
+									throw new CConfigException("Expected a comma, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+								symbol_filters ~= parser.CurToken.String;
+								break;
+							case EToken.Comma:
+								if(!want_comma)
+									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+								break;
+							default:
+								done = true;
+						}
+						want_comma = !want_comma;
+						
+						if(!done)
+							parser.Advance;
+					}
+					break;
+				}
+				case EToken.SemiColon:
+				{
+					break;
+				}
+				default:
+					throw new CConfigException("Expected a semicolon after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 			}
 			parser.Advance;
+			
+			auto L = symbol_filters.length;
+			foreach(child; aggr[])
+			{
+				if(L)
+				{
+					bool found = L != Array.find(symbol_filters, child.Name);
+					if((include && found) || (!include && !found))
+						ret.Children[child.Name] ~= child;
+				}
+				else
+				{
+					ret.Children[child.Name] ~= child;
+				}
+			}
 			
 			return true;
 		}

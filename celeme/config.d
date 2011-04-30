@@ -155,7 +155,7 @@ CAggregate LoadConfig(char[] filename, char[] src = null, char[][] include_list 
 	
 	auto ret = new CAggregate("");
 	
-	FillAggregate(ret, parser, include_list, included_files);
+	FillAggregate(ret, parser, include_list, included_files, ret);
 	
 	return ret;
 }
@@ -337,6 +337,7 @@ enum EToken
 	Assign,
 	LeftBrace,
 	RightBrace,
+	Dot,
 	EOF
 }
 
@@ -618,6 +619,8 @@ class CTokenizer
 				tok.Type = EToken.LeftBrace;
 			else if(ConsumeChar(Source, '}', end))
 				tok.Type = EToken.RightBrace;
+			else if(ConsumeChar(Source, '.', end))
+				tok.Type = EToken.Dot;
 			else
 				throw new CConfigException("Invalid token! '" ~ Source[0] ~ "'", FileName, CurLine);
 			
@@ -726,7 +729,7 @@ class CSingleValue : CConfigEntry
 	Variant Val;
 }
 
-CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[]] included_files = null)
+CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	if(parser.Peek == EToken.Name)
 	{
@@ -792,7 +795,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 				parser.Advance();
 				
 				auto aggr = new CAggregate(name);
-				FillAggregate(aggr, parser, include_list, included_files);
+				FillAggregate(aggr, parser, include_list, included_files, root);
 				
 				if(parser.Peek == EToken.RightBrace)
 				{
@@ -814,7 +817,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 			{
 				auto aggr = new CAggregate(name);
 				
-				auto entry = CreateEntry(parser, include_list);
+				auto entry = CreateEntry(parser, include_list, included_files, root);
 				if(entry !is null)
 					aggr.Children[entry.Name] ~= entry;
 				else
@@ -838,37 +841,110 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 	return null;
 }
 
-bool HandleInclude(CAggregate root, CParser parser, char[][] include_list, CAggregate[char[]] included_files)
+bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	if(parser.Peek == EToken.Name)
 	{
 		auto name = parser.CurToken.String;
 		if(name == "include")
 		{
-			if(parser.Advance() != EToken.String)
-				throw new CConfigException("Expected a string after the 'include' directive, not : '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
-				
-			auto path = parser.CurToken.String[1..$-1];
-			
-			auto old_idx = Array.find(include_list, path);
-			if(old_idx != include_list.length)
+			switch(parser.Advance())
 			{
-				auto include_seq = TextUtil.join(include_list[old_idx..$], " -> ");
-				include_seq ~= " -> " ~ path;
-				throw new CConfigException("Circular include detected:\n" ~ include_seq, parser.FileName, parser.CurToken.Line);
+				case EToken.String:
+				{
+					auto path = parser.CurToken.String[1..$-1];
+					parser.Advance;
+					
+					auto old_idx = Array.find(include_list, path);
+					if(old_idx != include_list.length)
+					{
+						auto include_seq = TextUtil.join(include_list[old_idx..$], " -> ");
+						include_seq ~= " -> " ~ path;
+						throw new CConfigException("Circular include detected:\n" ~ include_seq, parser.FileName, parser.CurToken.Line);
+					}
+					
+					auto aggr_ptr = path in included_files;
+					if(aggr_ptr is null)
+					{
+						auto new_aggr = LoadConfig(path, null, include_list, included_files);
+						included_files[path] = new_aggr;
+						aggr_ptr = &new_aggr;
+					}
+					
+					ret.Merge(*aggr_ptr);
+					break;
+				}
+				case EToken.Name:
+				{
+					char[][] path;
+					
+					bool want_dot = false;
+					
+					while(parser.Peek != EToken.SemiColon)
+					{
+						switch(parser.Peek)
+						{
+							case EToken.Name:
+								if(want_dot)
+									goto default;
+								path ~= parser.CurToken.String;
+								break;
+							case EToken.Dot:
+								if(!want_dot)
+									goto default;
+								break;
+							default:
+								throw new CConfigException("Expected a name or a period, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+						}
+						want_dot = !want_dot;
+						
+						parser.Advance;
+					}
+					
+					CAggregate get_last(size_t idx, CAggregate aggr)
+					{
+						CAggregate aggr_ret;
+						foreach(entry; aggr[path[idx]])
+						{
+							if(entry.IsAggregate)
+							{
+								if(idx == path.length - 1)
+								{
+									aggr_ret = cast(CAggregate)entry;
+								}
+								else
+								{
+									auto new_ret = get_last(idx + 1, cast(CAggregate)entry);
+									if(new_ret !is null)
+										aggr_ret = new_ret;
+								}
+							}
+						}
+						return aggr_ret;
+					}
+					
+					auto aggr_ret = get_last(0, root);
+					
+					if(aggr_ret is null)
+					{
+						throw new CConfigException("Could not find an aggregate named: '" ~ TextUtil.join(path, ".") ~ "' in the current file.", parser.FileName, parser.CurToken.Line);
+					}
+					
+					ret.Merge(aggr_ret);
+					
+					break;
+				}
+				default:
+				{
+					throw new CConfigException("Expected a string or a name after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				}
 			}
-				
-			parser.Advance();
 			
-			auto aggr_ptr = path in included_files;
-			if(aggr_ptr is null)
+			if(parser.Peek != EToken.SemiColon)
 			{
-				auto new_aggr = LoadConfig(path, null, include_list, included_files);
-				included_files[path] = new_aggr;
-				aggr_ptr = &new_aggr;
+				throw new CConfigException("Expected a semicolon after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 			}
-			
-			root.Merge(*aggr_ptr);
+			parser.Advance;
 			
 			return true;
 		}
@@ -876,14 +952,14 @@ bool HandleInclude(CAggregate root, CParser parser, char[][] include_list, CAggr
 	return false;
 }
 
-void FillAggregate(CAggregate ret, CParser parser, char[][] include_list = null, CAggregate[char[]] included_files = null)
+void FillAggregate(CAggregate ret, CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	while(!parser.EOF)
 	{
-		if(!HandleInclude(ret, parser, include_list, included_files))
+		if(!HandleInclude(ret, parser, include_list, included_files, root))
 		{
 			CConfigEntry entry;
-			entry = CreateEntry(parser, include_list, included_files);
+			entry = CreateEntry(parser, include_list, included_files, root);
 			if(entry)
 				ret.Children[entry.Name] ~= entry;
 			else

@@ -813,17 +813,22 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		if(NumSynThresholds)
 		{
-			source ~= "if(_local_id == 0)";
-			source ~= "{";
-			source.Tab;
+			scope block = new CCode(
+`if(_local_id == 0)
+{
+$thresh_set$
+}
+barrier(CLK_LOCAL_MEM_FENCE);`);
+
+			scope block_source = new CSourceConstructor;
+			block_source.Tab;
 			foreach(thresh; &type.AllSynThresholds)
 			{
-				source ~= Format("_syn_thresh_{}_num = 0;", thresh_idx);
+				block_source ~= Format("_syn_thresh_{}_num = 0;", thresh_idx);
 				thresh_idx++;
 			}
-			source.DeTab;
-			source ~= "}";
-			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+			block_source.Inject(block, "$thresh_set$");
+			source.AddBlock(block);
 		}
 		source.Inject(kernel_source, "$syn_threshold_status_init$");
 		
@@ -832,8 +837,7 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_pre_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
-			
+			source ~= Format("bool thresh_{}_pre_state = {} {};", thresh_idx, thresh.State, thresh.Condition);
 			thresh_idx++;
 		}
 		source.Inject(kernel_source, "$threshold_pre_check$");
@@ -843,8 +847,7 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			source ~= "bool syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_pre_state = " ~ thresh.State ~ " " ~ thresh.Condition ~ ";";
-			
+			source ~= Format("bool syn_thresh_{}_pre_state = {} {};", thresh_idx, thresh.State, thresh.Condition);
 			thresh_idx++;
 		}
 		source.Inject(kernel_source, "$syn_threshold_pre_check$");
@@ -853,7 +856,7 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		source.Tab(3);
 		foreach(name, state; &type.AllLocals)
 		{
-			source ~= "$num_type$ " ~ name ~ ";";
+			source ~= Format("$num_type$ {};", name);
 		}
 		source.Inject(kernel_source, "$declare_locals$");
 		
@@ -873,9 +876,16 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "thresh_$thresh_idx$_state = !thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ ");";
-			source ~= "_any_thresh |= thresh_$thresh_idx$_state;";
-			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			scope block = new CCode(
+`thresh_$thresh_idx$_state = !thresh_$thresh_idx$_pre_state && ($thresh_state$ $thresh_cond$);
+_any_thresh |= thresh_$thresh_idx$_state;
+`);
+			
+			block["$thresh_idx$"] = thresh_idx;
+			block["$thresh_state$"] = thresh.State;
+			block["$thresh_cond$"] = thresh.Condition;
+			
+			source.AddBlock(block);
 			
 			thresh_idx++;
 		}
@@ -886,14 +896,18 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			source ~= "if(!syn_thresh_$thresh_idx$_pre_state && (" ~ thresh.State ~ " " ~ thresh.Condition ~ "))";
-			source ~= "{";
-			source.Tab;
-			source ~= "_any_thresh = true;";
-			source ~= "_syn_thresh_$thresh_idx$_arr[atomic_inc(&_syn_thresh_$thresh_idx$_num)] = i;";
-			source.DeTab;
-			source ~= "}";
-			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			scope block = new CCode(
+`if(!syn_thresh_$thresh_idx$_pre_state && ($thresh_state$ $thresh_cond$))
+{
+	_any_thresh = true;
+	_syn_thresh_$thresh_idx$_arr[atomic_inc(&_syn_thresh_$thresh_idx$_num)] = i;
+}
+`);			
+			block["$thresh_idx$"] = thresh_idx;
+			block["$thresh_state$"] = thresh.State;
+			block["$thresh_cond$"] = thresh.Condition;
+			
+			source.AddBlock(block);
 			
 			thresh_idx++;
 		}
@@ -905,21 +919,38 @@ barrier(CLK_LOCAL_MEM_FENCE);`);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "if(thresh_$thresh_idx$_state)";
-			source ~= "{";
-			source.Tab;
-			
+			scope block = new CCode(
+`if(thresh_$thresh_idx$_state)
+{
+$set_delay$
+$thresh_source$
+$reset_dt$
+$event_src_code$
+}
+`);
+			scope block_source = new CSourceConstructor;
+			/* Set delay */
+			block_source.Tab;
 			if(thresh.IsEventSource)
-				source ~= "$num_type$ delay = 1.0f;";
-			source.AddBlock(thresh.Source);
-			if(thresh.ResetTime && !FixedStep)
-				source ~= "_dt = $min_dt$f;";
-
-			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+				block_source ~= "$num_type$ delay = 1.0f;";
+			block_source.Inject(block, "$set_delay$");
 			
+			/* Thresh source */
+			block_source.Tab;
+			block_source.AddBlock(thresh.Source);
+			block_source.Inject(block, "$thresh_source$");
+			
+			/* Reset time */
+			block_source.Tab;
+			if(thresh.ResetTime)
+				block_source ~= "reset_dt();";
+			block_source.Inject(block, "$reset_dt$");
+			
+			/* Event src code */
+			block_source.Tab;
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
-				char[] src = 
+				scope src_code = new CCode(
 `int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
 int _buff_start = _circ_buffer_start[_idx_idx];
 
@@ -944,20 +975,22 @@ if(_buff_start != _circ_buffer_end[_idx_idx])
 else //It is full, error
 {
 	_error_buffer[i + 1] = $circ_buffer_error$ + $event_source_idx$;
-}
-`.dup;
-				src = src.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
-				src = src.substitute("$num_event_sources$", to!(char[])(NumEventSources));
-				src = src.substitute("$event_source_idx$", to!(char[])(event_src_idx));
+}`);
+				src_code["$circ_buffer_size$"] = CircBufferSize;
+				src_code["$num_event_sources$"] = NumEventSources;
+				src_code["$event_source_idx$"] = event_src_idx;
 				
-				source.AddBlock(src);
+				block_source.AddBlock(src_code);
 				
 				event_src_idx++;
 /* TODO: Better error reporting */
 			}
+			block_source.Inject(block, "$event_src_code$");
 			
-			source.DeTab;
-			source ~= "}";
+			block["$thresh_idx$"] = thresh_idx;
+			
+			source.AddBlock(block);
+			
 			thresh_idx++;
 		}
 		source.Inject(kernel_source, "$thresholds$");
@@ -967,15 +1000,39 @@ else //It is full, error
 		thresh_idx = 0;
 		foreach(syn_type, thresh; &type.AllSynThresholdsEx)
 		{
-			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
-			source ~= "if(_syn_thresh_$thresh_idx$_num > 0)";
-			source ~= "{";
-			source.Tab;
+			scope block = new CCode(
+`
+barrier(CLK_LOCAL_MEM_FENCE);
+if(_syn_thresh_$thresh_idx$_num > 0)
+{
+	for(int _ii = 0; _ii < _syn_thresh_$thresh_idx$_num; _ii++)
+	{
+		int nrn_id = _syn_thresh_$thresh_idx$_arr[_ii];
+		/* Declare locals */
+$declare_locals$
+		
+		/* Init locals */
+		if(i == nrn_id)
+		{
+$init_locals$			
+		}
+		barrier(CLK_LOCAL_MEM_FENCE);
+		
+		int _syn_offset = nrn_id * $num_syn$;
+		for(int _g_syn_i = _syn_offset + _local_id; _g_syn_i < $num_syn$ + _syn_offset; _g_syn_i += _local_size)
+		{
+			/* Load syn globals */
+$load_syn_globals$
+			/* Thresh source */
+$thresh_src$
+			/* Save syn globals */
+$save_syn_globals$
+		}
+	}
+}
+`);
+			scope block_source = new CSourceConstructor;
 			
-			source ~= "for(int _ii = 0; _ii < _syn_thresh_$thresh_idx$_num; _ii++)";
-			source ~= "{";
-			source.Tab;
-			source ~= "int nrn_id = _syn_thresh_$thresh_idx$_arr[_ii];";
 			char[] declare_locals;
 			char[] init_locals;
 			char[] thresh_src = thresh.Source.dup;
@@ -984,56 +1041,59 @@ else //It is full, error
 			{
 				if(thresh_src.c_find(name) != thresh_src.length)
 				{
-					declare_locals ~= "__local $num_type$ " ~ name ~ "_local;\n";
-					init_locals ~= name ~ "_local = " ~ name ~ ";\n";
+					declare_locals ~= Format("__local $num_type$ {}_local;\n", name);
+					init_locals ~= Format("{0}_local = {0};\n", name);
 					thresh_src = thresh_src.c_substitute(name, name ~ "_local");
 				}
 			}
-			source.AddBlock(declare_locals);
-			source ~= "if(i == nrn_id)";
-			source ~= "{";
-			source.Tab;
-			source.AddBlock(init_locals);
-			source.DeTab;
-			source ~= "}";
-			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
-			source ~= "int _syn_offset = nrn_id * $num_syn$;";
-			source ~= "for(int _g_syn_i = _syn_offset + _local_id; _g_syn_i < $num_syn$ + _syn_offset; _g_syn_i += _local_size)";
-			source ~= "{";
-			source.Tab;
 			
-			auto prefix = syn_type.Prefix;
+			/* Declare locals */
+			block_source.Tab(2);
+			block_source.AddBlock(declare_locals);
+			block_source.Inject(block, "$declare_locals$");
+			
+			/* Init locals */
+			block_source.Tab(3);
+			block_source.AddBlock(init_locals);
+			block_source.Inject(block, "$init_locals$");
+			
 			/* Load syn globals */
+			block_source.Tab(3);
+			auto prefix = syn_type.Prefix;
 			foreach(val; &syn_type.Synapse.AllSynGlobals)
 			{
 				auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 				if(thresh_src.c_find(name) != thresh_src.length)
-					source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[_g_syn_i];";
+				{
+					block_source ~= Format("$num_type$ {0} = _{0}_buf[_g_syn_i];", name);
+				}
 			}
+			block_source.Inject(block, "$load_syn_globals$");
 			
-			source.AddBlock(thresh_src);
+			/* Thresh source */
+			block_source.Tab(3);
+			block_source.AddBlock(thresh_src);
+			block_source.Inject(block, "$thresh_src$");
 			
 			/* Save syn globals */
+			block_source.Tab(3);
 			foreach(val; &syn_type.Synapse.AllSynGlobals)
 			{
 				if(!val.ReadOnly)
 				{
 					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 					if(thresh_src.c_find(name) != thresh_src.length)
-						source ~= "_" ~ name ~ "_buf[_g_syn_i] = " ~ name ~ ";";
+					{
+						block_source ~= Format("_{0}_buf[_g_syn_i] = {0};", name);
+					}
 				}
 			}
+			block_source.Inject(block, "$save_syn_globals$");
 			
-			source.DeTab;
-			source ~= "}";
+			block["$num_syn$"] = syn_type.NumSynapses;
+			block["$thresh_idx$"] = thresh_idx;
 			
-			source.DeTab;
-			source ~= "}";
-			source.DeTab;
-			source ~= "}";
-			
-			source.Source = source.Source.substitute("$num_syn$", to!(char[])(syn_type.NumSynapses));
-			source.Source = source.Source.substitute("$thresh_idx$", to!(char[])(thresh_idx));
+			source.AddBlock(block);
 			
 			thresh_idx++;
 		}
@@ -1043,7 +1103,6 @@ else //It is full, error
 		source.Tab(3);
 		source.AddBlock(Integrator.GetPostThreshCode(type));
 		source.Inject(kernel_source, "$integrator_post_thresh_code$");
-		
 		
 		/* Integrator save */
 		source.Tab;
@@ -1055,7 +1114,7 @@ else //It is full, error
 		foreach(name, state; &type.AllNonLocals)
 		{
 			if(!state.ReadOnly)
-				source ~= "_" ~ name ~ "_buf[i] = " ~ name ~ ";";
+				source ~= Format("_{0}_buf[i] = {0};", name);
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
@@ -1066,13 +1125,13 @@ else //It is full, error
 			if(!RandLen)
 				throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 				
-			kernel_source["rand()"] = Format("rand{0}(&_rand_state)", RandLen);
+			kernel_source["rand()"] = Format("rand{}(&_rand_state)", RandLen);
 		}
 		
 		/* Load rand state */
 		source.Tab;
 		if(NeedRandArgs)
-			source ~= Rand.GetLoadCode();
+			source.AddBlock(Rand.GetLoadCode());
 		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Random state arguments */

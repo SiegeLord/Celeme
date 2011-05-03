@@ -51,7 +51,7 @@ void main(char[][] arg_list)
 	auto model = LoadModel("stuff.cfg", gpu);
 	scope(exit) model.Shutdown();
 	
-	model.AddNeuronGroup("Regular", 1000);
+	model.AddNeuronGroup("Regular", 1000, null, true, true);
 	model.TimeStepSize = 1.0;
 	
 	auto N = model["Regular"].Count;
@@ -62,7 +62,7 @@ void main(char[][] arg_list)
 	Stdout.formatln("Specify time: {}", timer.stop);
 	timer.start;
 	
-	model.Generate(true, true);
+	model.Generate();
 	
 	Stdout.formatln("Generating time: {}", timer.stop);
 	timer.start;

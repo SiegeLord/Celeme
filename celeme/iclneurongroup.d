@@ -32,6 +32,7 @@ interface ICLNeuronGroup : INeuronGroup
 	int RandLen();
 	int NumEventSources();
 	int NumSrcSynapses();
+	int NumSynThresholds();
 	int NrnOffset();
 	
 	CCLRand Rand();

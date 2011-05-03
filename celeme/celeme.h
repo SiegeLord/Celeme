@@ -42,8 +42,8 @@ void celeme_initialize_model(CELEME_MODEL* model);
 void celeme_destroy_model(CELEME_MODEL* model);
 
 /*void celeme_add_neuron_group(CELEME_MODEL* model, CELEME_NEURON_TYPE* type, int number, const char* name, bool adaptive_dt);*/
-void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt);
-void celeme_generate_model(CELEME_MODEL* model, bool parallel_delivery, bool atomic_delivery, bool initialize);
+void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt, bool parallel_delivery);
+void celeme_generate_model(CELEME_MODEL* model, bool initialize);
 
 CELEME_NEURON_GROUP* celeme_get_neuron_group(CELEME_MODEL* model, const char* name);
 

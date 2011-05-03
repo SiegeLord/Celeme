@@ -113,15 +113,13 @@ PyGetSetDef[] SModel_getseters =
 extern (C)
 PyObject* SModel_generate(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["parallel_delivery", "atomic_delivery", "initialize", null];
-	int parallel_delivery = 1;
-	int atomic_delivery = 1;
+	char[][] kwlist = ["initialize", null];
 	int initialize = 1;
 
-	if(!DParseTupleAndKeywords(args, kwds, "|iii", kwlist, &parallel_delivery, &atomic_delivery, &initialize))
+	if(!DParseTupleAndKeywords(args, kwds, "|i", kwlist, &initialize))
 		return null;
 	
-	celeme_generate_model(self.Model, cast(bool)parallel_delivery, cast(bool)atomic_delivery, cast(bool)initialize);
+	celeme_generate_model(self.Model, cast(bool)initialize);
 	
 	mixin(ErrorCheck("null"));
 	Py_INCREF(Py_None);
@@ -193,17 +191,18 @@ PyObject* SModel_run_until(SModel *self, PyObject* args, PyObject* kwds)
 extern (C)
 PyObject* SModel_add_neuron_group(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["type_name", "number", "name", "adaptive_dt", null];
+	char[][] kwlist = ["type_name", "number", "name", "adaptive_dt", "parallel_delivery", null];
 	
 	char* type_name;
 	int number;
 	char* name;
-	int adaptive_dt;
+	int adaptive_dt = 1;
+	int parallel_delivery = 1;
 
-	if(!DParseTupleAndKeywords(args, kwds, "si|si", kwlist, &type_name, &number, &name, &adaptive_dt))
+	if(!DParseTupleAndKeywords(args, kwds, "si|sii", kwlist, &type_name, &number, &name, &adaptive_dt, &parallel_delivery))
 		return null;
 	
-	celeme_add_neuron_group(self.Model, type_name, number, name, cast(bool)adaptive_dt);
+	celeme_add_neuron_group(self.Model, type_name, number, name, cast(bool)adaptive_dt, cast(bool)parallel_delivery);
 	
 	mixin(ErrorCheck("null"));
 	Py_INCREF(Py_None);

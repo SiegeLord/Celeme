@@ -59,7 +59,7 @@ class CCLModel(float_t) : ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true)
+	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(Registry !is null, "No neuron types available.");
 		
@@ -67,11 +67,11 @@ class CCLModel(float_t) : ICLModel
 		if(type_ptr is null)
 			throw new Exception("The registry has no neuron type named '" ~ type_name ~ "'.");
 		
-		AddNeuronGroup(*type_ptr, number, name, adaptive_dt);
+		AddNeuronGroup(*type_ptr, number, name, adaptive_dt, parallel_delivery);
 	}
 	
 	override
-	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true)
+	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
@@ -97,13 +97,13 @@ class CCLModel(float_t) : ICLModel
 		
 		RandsUsed[type.RandLen] = true;
 		
-		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt);
+		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt, parallel_delivery);
 		
 		NeuronGroups[name] = group;
 	}
 	
 	override
-	void Generate(bool parallel_delivery = true, bool atomic_delivery = true, bool initialize = true)
+	void Generate(bool initialize = true)
 	{
 		assert(NumNeurons);
 		assert(!Generated);
@@ -130,21 +130,8 @@ class CCLModel(float_t) : ICLModel
 		}
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
+		Source ~= "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable\n";
 		Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
-		if(parallel_delivery)
-			Source ~= "#define PARALLEL_DELIVERY 1\n";
-		else
-			Source ~= "#define PARALLEL_DELIVERY 0\n";
-			
-		if(atomic_delivery)
-		{
-			Source ~= "#define USE_ATOMIC_DELIVERY 1\n";
-			Source ~= "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable\n";
-		}
-		else
-		{
-			Source ~= "#define USE_ATOMIC_DELIVERY 0\n";
-		}
 		
 		/* RNG */
 		bool need_rand = false;
@@ -524,6 +511,8 @@ class CCLModel(float_t) : ICLModel
 	
 	bool InitializedVal = false;
 	bool Generated = false;
+	
+	bool NeedLocalAtomicPragma = false;
 	
 	CNeuronType[char[]] Registry;
 }

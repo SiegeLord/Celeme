@@ -6,7 +6,7 @@ model = pc.Model("stuff.cfg", False)
 
 model.AddNeuronGroup("Regular", 1000);
 model.TimeStepSize = 1
-model.Generate(True, True)
+model.Generate()
 
 N = model["Regular"].Count
 model.ApplyConnector("RandConn", N, "Regular", (0, N), 0, "Regular", (0, N), 0, {"P": 0.05})

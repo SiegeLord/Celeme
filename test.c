@@ -10,13 +10,13 @@ int main()
 	
 	CELEME_MODEL* model = celeme_load_model("stuff.cfg", true, false); CHECK;
 	
-	celeme_add_neuron_group(model, "Regular", 1000, NULL, true); CHECK;
+	celeme_add_neuron_group(model, "Regular", 1000, NULL, true, true); CHECK;
 	
 	CELEME_NEURON_GROUP* group = celeme_get_neuron_group(model, "Regular"); CHECK;
 	
 	int N = celeme_get_count(group); CHECK;
 	
-	celeme_generate_model(model, true, true, true); CHECK;
+	celeme_generate_model(model, true); CHECK;
 	
 	char* arg_keys[] = {"P"};
 	double arg_vals[] = {0.05};

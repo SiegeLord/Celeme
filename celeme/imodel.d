@@ -50,8 +50,10 @@ interface IModel
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
 	 *     adaptive_dt = Whether or not to use the adaptive timestep integration
+	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
+	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true);
+	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true);
 	
 	/**
 	 * Adds a new neuron group.
@@ -61,21 +63,20 @@ interface IModel
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
 	 *     adaptive_dt = Whether or not to use the adaptive timestep integration
+	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
+	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true);
+	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true);
 	
 	/**
 	 * Generates the model. You must generate it before you run it, or set any neuron-specific
 	 * values.
 	 * 
 	 * Params:
-	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
-	 *                         is faster on the GPU, but is slow on the CPU.
-	 *     atomic_delivery = Whether or not to use atomic delivery of events. Usually set to true.
 	 *     initialize = Whether or not to call the Initialize method after this method is done. Usually set
 	 *                  to true.
 	 */
-	void Generate(bool parallel_delivery = true, bool atomic_delivery = true, bool initialize = true);
+	void Generate(bool initialize = true);
 	
 	/**
 	 * Returns a neuron group with the passed name.

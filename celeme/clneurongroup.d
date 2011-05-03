@@ -197,24 +197,8 @@ $event_source_args$
 	{
 		_record_idx[0] = 0;
 	}
-	
-#if PARALLEL_DELIVERY
-	int _local_id = get_local_id(0);
 
-#if USE_ATOMIC_DELIVERY
-	__local int fire_table_idx;
-	if(_local_id == 0)
-		fire_table_idx = 0;
-#else
-	for(int ii = 0; ii < $num_event_sources$; ii++)
-		fire_table[_local_id * $num_event_sources$ + ii] = -1;
-
-	__local bool need_to_deliver;
-	need_to_deliver = false;
-#endif
-
-	barrier(CLK_LOCAL_MEM_FENCE);
-#endif
+$parallel_init$
 	
 	/* Max number of source synapses */
 	const int num_synapses = $num_synapses$;
@@ -247,7 +231,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true)
+	this(ICLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -353,7 +337,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
-		CreateDeliverKernel(type);
+		CreateDeliverKernel(type, parallel_delivery);
 	}
 	
 	/* Call this after the program has been created, as we need the memset kernel
@@ -1155,13 +1139,13 @@ $save_syn_globals$
 		StepKernelSource = kernel_source[];
 	}
 	
-	private void CreateDeliverKernel(CNeuronType type)
+	private void CreateDeliverKernel(CNeuronType type, bool parallel_delivery)
 	{
 		scope source = new CSourceConstructor;
 		
-		auto kernel_source = DeliverKernelTemplate.dup;
+		auto kernel_source = new CCode(DeliverKernelTemplate);
 		
-		kernel_source = kernel_source.substitute("$type_name$", Name);
+		kernel_source["$type_name$"] = Name;
 		
 		/* Event source args */
 		source.Tab(2);
@@ -1177,118 +1161,124 @@ $save_syn_globals$
 		}
 		source.Inject(kernel_source, "$event_source_args$");
 		
-		/* Thresholds */
+		/* Parallel init code */
+		source.Tab;
+		if(parallel_delivery)
+		{
+			source.AddBlock(
+`int _local_id = get_local_id(0);
+__local int fire_table_idx;
+if(_local_id == 0)
+	fire_table_idx = 0;
+
+barrier(CLK_LOCAL_MEM_FENCE);
+`);
+		}
+		source.Inject(kernel_source, "$parallel_init$");
+		
+		/* Event source code */
 		source.Tab;
 		int event_src_idx = 0;
 		foreach(thresh; &type.AllEventSources)
 		{
 			if(NeedSrcSynCode)
 			{
-				source ~= "{";
-				source.Tab;
-			
-				char[] src = `
-int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
-int _buff_start = _circ_buffer_start[_idx_idx];
-if(_buff_start >= 0) /* See if we have any spikes that we can check */
-{
-	const int _circ_buffer_size = $circ_buffer_size$;
-	int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _buff_start;
-
-	if(_t > _circ_buffer[_buff_idx])
+				scope src = new CCode(
+`{
+	int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
+	int _buff_start = _circ_buffer_start[_idx_idx];
+	if(_buff_start >= 0) /* See if we have any spikes that we can check */
 	{
-		int buff_end = _circ_buffer_end[_idx_idx];
-#if PARALLEL_DELIVERY
-#if USE_ATOMIC_DELIVERY
-		fire_table[atomic_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;
-#else
-		fire_table[$num_event_sources$ * _local_id + $event_source_idx$] = $num_event_sources$ * i + $event_source_idx$;
-		need_to_deliver = true;
-#endif
-#else
-		int syn_start = num_synapses * _idx_idx;
-		for(int syn_id = 0; syn_id < num_synapses; syn_id++)
+		const int _circ_buffer_size = $circ_buffer_size$;
+		int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _buff_start;
+
+		if(_t > _circ_buffer[_buff_idx])
 		{
-			int2 dest = _dest_syn_buffer[syn_id + syn_start];
-			if(dest.s0 >= 0)
+			int buff_end = _circ_buffer_end[_idx_idx];
+			
+$deliver_code$
+	
+			_buff_start = (_buff_start + 1) % _circ_buffer_size;
+			if(_buff_start == buff_end)
 			{
-				/* Get the index into the global syn buffer */
-				int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
-				_fired_syn_buffer[dest_syn] = dest.s1;
+				_buff_start = -1;
 			}
+			_circ_buffer_start[_idx_idx] = _buff_start;
 		}
-#endif
-		_buff_start = (_buff_start + 1) % _circ_buffer_size;
-		if(_buff_start == buff_end)
-		{
-			_buff_start = -1;
-		}
-		_circ_buffer_start[_idx_idx] = _buff_start;
 	}
-}
-`.dup;
-				src = src.substitute("$event_source_idx$", to!(char[])(event_src_idx));
+}`);
+				scope src_source = new CSourceConstructor;
+				
+				
+				/* Deliver code */
+				src_source.Tab(3);
+				if(parallel_delivery)
+				{
+					src_source ~= "fire_table[atomic_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;";
+				}
+				else
+				{
+					src_source.AddBlock(
+`int syn_start = num_synapses * _idx_idx;
+for(int syn_id = 0; syn_id < num_synapses; syn_id++)
+{
+	int2 dest = _dest_syn_buffer[syn_id + syn_start];
+	if(dest.s0 >= 0)
+	{
+		/* Get the index into the global syn buffer */
+		int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
+		_fired_syn_buffer[dest_syn] = dest.s1;
+	}
+}`);
+				}
+				src_source.Inject(src, "$deliver_code$");
+				
+				src["$event_source_idx$"] = event_src_idx;
 				
 				source.AddBlock(src);
-				source.DeTab;
-				source ~= "}";
+
 				event_src_idx++;
 			}
 		}
 		source.Inject(kernel_source, "$event_source_code$");
 		
-		if(NeedSrcSynCode)
+		/* Parallel delivery */
+		source.Tab;
+		if(NeedSrcSynCode && parallel_delivery)
 		{
-			char[] src = 
-`
-#if PARALLEL_DELIVERY
-	barrier(CLK_LOCAL_MEM_FENCE);
-#if !USE_ATOMIC_DELIVERY
-	if(need_to_deliver)
+			scope src = new CCode(
+`barrier(CLK_LOCAL_MEM_FENCE);
+
+int _local_size = get_local_size(0);
+int num_fired = $num_fired$;
+
+for(int ii = 0; ii < num_fired; ii++)
+{
+	int syn_start = num_synapses * fire_table[ii];
+	for(int syn_id = _local_id; syn_id < num_synapses; syn_id += _local_size)
 	{
-#endif
-		int _local_size = get_local_size(0);
-		int num_fired;
-#if USE_ATOMIC_DELIVERY
-		num_fired = fire_table_idx;
-#else
-		num_fired = _local_size * $num_event_sources$;
-#endif
-
-		for(int ii = 0; ii < num_fired; ii++)
+		int2 dest = _dest_syn_buffer[syn_id + syn_start];
+		if(dest.s0 >= 0)
 		{
-#if !USE_ATOMIC_DELIVERY
-			if(fire_table[ii] < 0)
-				continue;
-#endif
-
-			int syn_start = num_synapses * fire_table[ii];
-			for(int syn_id = _local_id; syn_id < num_synapses; syn_id += _local_size)
-			{
-				int2 dest = _dest_syn_buffer[syn_id + syn_start];
-				if(dest.s0 >= 0)
-				{
-					/* Get the index into the global syn buffer */
-					int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
-					_fired_syn_buffer[dest_syn] = dest.s1;
-				}
-			}
+			/* Get the index into the global syn buffer */
+			int dest_syn = atomic_inc(&_fired_syn_idx_buffer[dest.s0]);
+			_fired_syn_buffer[dest_syn] = dest.s1;
 		}
-#if !USE_ATOMIC_DELIVERY
 	}
-#endif
-#endif
-`.dup;
+}
+`);
+			src["$num_fired$"] = "fire_table_idx";
+			
 			source.AddBlock(src);
 		}
 		source.Inject(kernel_source, "$parallel_delivery_code$");
 		
-		kernel_source = kernel_source.substitute("$num_event_sources$", to!(char[])(NumEventSources));
-		kernel_source = kernel_source.substitute("$circ_buffer_size$", to!(char[])(CircBufferSize));
-		kernel_source = kernel_source.substitute("$num_synapses$", to!(char[])(NumSrcSynapses));
-		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
+		kernel_source["$num_event_sources$"] = NumEventSources;
+		kernel_source["$circ_buffer_size$"] = CircBufferSize;
+		kernel_source["$num_synapses$"] = NumSrcSynapses;
+		kernel_source["$time_step$"] = Model.TimeStepSize;
 		
-		DeliverKernelSource = kernel_source;
+		DeliverKernelSource = kernel_source[];
 	}
 	
 	private void CreateInitKernel(CNeuronType type)
@@ -1759,6 +1749,7 @@ if(_buff_start >= 0) /* See if we have any spikes that we can check */
 	
 	mixin(Prop!("char[]", "Name", "override", "private"));
 	mixin(Prop!("int", "NumEventSources", "override", "private"));
+	mixin(Prop!("int", "NumSynThresholds", "override", "private"));
 	mixin(Prop!("int", "NumSrcSynapses", "override", "private"));
 	mixin(Prop!("CEventSourceBuffer[]", "EventSourceBuffers", "override", "private"));
 	mixin(Prop!("CSynapseBuffer[]", "SynapseBuffers", "override", "private"));
@@ -1809,7 +1800,7 @@ if(_buff_start >= 0) /* See if we have any spikes that we can check */
 	int CircBufferSize = 20;
 	int NumEventSourcesVal = 0;
 	int NumThresholds = 0;
-	int NumSynThresholds = 0;
+	int NumSynThresholdsVal = 0;
 	
 	int NumSrcSynapsesVal; /* Number of pre-synaptic slots per event source */
 	int NumDestSynapses; /* Number of post-synaptic slots per neuron */

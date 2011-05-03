@@ -253,10 +253,10 @@ void celeme_initialize_model(IModel model);
  * 
  * C signature:
  * ---
- * void celeme_generate_model(CELEME_MODEL* model, bool parallel_delivery, bool atomic_delivery, bool initialize);
+ * void celeme_generate_model(CELEME_MODEL* model, bool initialize);
  * ---
  */
-void celeme_generate_model(IModel model, bool parallel_delivery, bool atomic_delivery, bool initialize);
+void celeme_generate_model(IModel model, bool initialize);
 
 /**
  * Adds a new neuron group from an internal registry.
@@ -265,10 +265,10 @@ void celeme_generate_model(IModel model, bool parallel_delivery, bool atomic_del
  * 
  * C signature:
  * ---
- * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt);
+ * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt, bool parallel_delivery);
  * ---
  */
-void celeme_add_neuron_group(IModel model, in char* type_name, int number, in char* name, bool adaptive_dt);
+void celeme_add_neuron_group(IModel model, in char* type_name, int number, in char* name, bool adaptive_dt, bool parallel_delivery);
 
 /**
  * Returns a neuron group based on its name.
@@ -568,11 +568,11 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 mixin(ModelFunc!("initialize_model", "void", "Initialize", "", "", ""));
 
 mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
-	", char* type_name, int number, char* name, bool adaptive_dt", 
-	"fromStringz(type_name), number, fromStringz(name), adaptive_dt", ""));
+	", char* type_name, int number, char* name, bool adaptive_dt, bool parallel_delivery", 
+	"fromStringz(type_name), number, fromStringz(name), adaptive_dt, parallel_delivery", ""));
 mixin(ModelFunc!("generate_model", "void", "Generate", 
-	", bool parallel_delivery, bool atomic_delivery, bool initialize", 
-	"parallel_delivery, atomic_delivery, initialize", ""));
+	", bool initialize", 
+	"initialize", ""));
 
 mixin(ModelFunc!("get_neuron_group", "INeuronGroup", "opIndex", 
 	", char* name", 

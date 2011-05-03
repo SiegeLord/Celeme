@@ -6,8 +6,8 @@ from string import join
 from glob import glob
 
 opencl_path = '/usr/local/atistream/lib/x86_64'
+amd_perf_str = '-d-version=AMDPerf -L-lGPUPerfAPICL'
 amd_perf_str = ''
-#amd_perf_str = '-d-version=AMDPerf -L-lGPUPerfAPICL'
 perf_str = '-d-version=Perf'
 perf_str = ''
 

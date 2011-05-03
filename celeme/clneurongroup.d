@@ -1151,13 +1151,14 @@ $save_syn_globals$
 		source.Tab(2);
 		if(NeedSrcSynCode)
 		{
-			source ~= "__local int* fire_table,";
-			source ~= "__global int* _circ_buffer_start,";
-			source ~= "__global int* _circ_buffer_end,";
-			source ~= "__global $num_type$* _circ_buffer,";
-			source ~= "__global int2* _dest_syn_buffer,";
-			source ~= "__global int* _fired_syn_idx_buffer,";
-			source ~= "__global int* _fired_syn_buffer,";
+			source.AddBlock(
+`__local int* fire_table,
+__global int* _circ_buffer_start,
+__global int* _circ_buffer_end,
+__global $num_type$* _circ_buffer,
+__global int2* _dest_syn_buffer,
+__global int* _fired_syn_idx_buffer,
+__global int* _fired_syn_buffer,`);
 		}
 		source.Inject(kernel_source, "$event_source_args$");
 		
@@ -1287,15 +1288,15 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		auto init_source = type.GetInitSource();
 		
-		auto kernel_source = InitKernelTemplate.dup;
+		auto kernel_source = new CCode(InitKernelTemplate);
 		
-		kernel_source = kernel_source.substitute("$type_name$", Name);
+		kernel_source["$type_name$"] = Name;
 		
 		/* Value arguments */
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "__global $num_type$* _" ~ name ~ "_buf,";
+			source ~= Format("__global $num_type$* _{}_buf,", name);
 		}
 		source.Inject(kernel_source, "$val_args$");
 		
@@ -1303,7 +1304,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		source.Tab(2);
 		foreach(name, state; &type.AllConstants)
 		{
-			source ~= "const $num_type$ " ~ name ~ ",";
+			source ~= Format("const $num_type$ {},", name);
 		}
 		source.Inject(kernel_source, "$constant_args$");
 		
@@ -1318,7 +1319,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[i];";
+			source ~= Format("$num_type$ {0} = _{0}_buf[i];", name);
 		}
 		source.Inject(kernel_source, "$load_vals$");
 		
@@ -1331,11 +1332,11 @@ for(int ii = 0; ii < num_fired; ii++)
 		source.Tab(2);
 		foreach(name, state; &type.AllNonLocals)
 		{
-			source ~= "_" ~ name ~ "_buf[i] = " ~ name ~ ";";
+			source ~= Format("_{0}_buf[i] = {0};", name);
 		}
 		source.Inject(kernel_source, "$save_vals$");
 		
-		InitKernelSource = kernel_source;
+		InitKernelSource = kernel_source[];
 	}
 	
 	bool FixedStep()

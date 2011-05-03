@@ -29,6 +29,7 @@ import celeme.ineurongroup;
 import tango.text.Util;
 import tango.io.Stdout;
 import tango.time.StopWatch;
+import tango.io.device.File;
 
 version (AMDPerf)
 import perf = celeme.amdperf;
@@ -168,7 +169,11 @@ class CCLModel(float_t) : ICLModel
 				Source ~= conn.KernelCode;
 		}
 		Source = Source.substitute("$num_type$", NumStr);
-		//Stdout(Source).nl;
+		
+		auto file = new File("kernel.c", File.WriteCreate);
+		file.write(Source);
+		file.close;
+		
 		Program = Core.BuildProgram(Source);
 		Generated = true;
 		

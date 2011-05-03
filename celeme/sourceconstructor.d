@@ -19,6 +19,42 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.sourceconstructor;
 
 import tango.text.Util;
+import tango.util.Convert;
+
+class CCode
+{
+	this(char[] src)
+	{
+		Source = src.dup;
+	}
+	
+	char[] opSlice()
+	{
+		return Source;
+	}
+	
+	void opIndexAssign(T)(T val, char[] what)
+	{
+		Source = Source.substitute(what, to!(char[])(val));
+	}
+	
+	struct CAccess
+	{
+		void opIndexAssign(T)(T val, char[] what)
+		{
+			Source = Source.c_substitute(what, to!(char[])(val));
+		}
+		
+		char[] Source;
+	}
+	
+	CAccess C()
+	{
+		return CAccess(Source);
+	}
+	
+	char[] Source;
+}
 
 class CSourceConstructor
 {
@@ -33,12 +69,22 @@ class CSourceConstructor
 		Source ~= tabs[0..TabLevel] ~ line ~ "\n";
 	}
 	
+	void AddLine(CCode code)
+	{
+		AddLine(code[]);
+	}
+	
 	void AddBlock(char[] block)
 	{
 		foreach(line; lines(block))
 		{
 			AddLine(line);
 		}
+	}
+	
+	void AddBlock(CCode code)
+	{
+		AddBlock(code[]);
 	}
 	
 	alias AddLine opCatAssign;
@@ -85,6 +131,11 @@ class CSourceConstructor
 			
 		dest_string = dest_string.substitute(label, Source);
 		Clear();
+	}
+	
+	void Inject(CCode code, char[] label)
+	{
+		Inject(code.Source, label);
 	}
 	
 	int TabLevel = 0;

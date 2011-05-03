@@ -157,7 +157,7 @@ struct range_fruct(T)
 {	
 	int opApply(int delegate(ref T ii) dg)
 	{
-		for(int ii = start; ii < end; ii += step)
+		for(T ii = start; ii < end; ii += step)
 		{
 			if(int ret = dg(ii))
 				return ret;

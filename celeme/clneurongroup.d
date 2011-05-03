@@ -38,10 +38,11 @@ import opencl.cl;
 import tango.io.Stdout;
 import tango.text.Util;
 import tango.util.Convert;
+import tango.text.convert.Format;
 import tango.core.Array;
 
 const ArgOffsetStep = 6;
-char[] StepKernelTemplate = `
+const StepKernelTemplate = `
 #undef record
 #define record(flags, data, tag) \
 if(_record_flags & (flags)) \
@@ -154,7 +155,7 @@ $save_rand_state$
 `;
 
 const ArgOffsetInit = 0;
-char[] InitKernelTemplate = `
+const InitKernelTemplate = `
 __kernel void $type_name$_init
 	(
 $val_args$
@@ -179,7 +180,7 @@ $save_vals$
 `;
 
 const ArgOffsetDeliver = 4;
-const char[] DeliverKernelTemplate = "
+const DeliverKernelTemplate = "
 __kernel void $type_name$_deliver
 	(
 		const $num_type$ _t,
@@ -570,9 +571,9 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		scope source = new CSourceConstructor;
 		
-		auto kernel_source = StepKernelTemplate.dup;
+		auto kernel_source = new CCode(StepKernelTemplate);
 		
-		kernel_source = kernel_source.substitute("$type_name$", Name);
+		kernel_source["$type_name$"] = Name;
 		
 		/* Value arguments */
 		source.Tab(2);
@@ -642,80 +643,102 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.Tab;
 		if(NumDestSynapses)
 		{
-			source.AddBlock(
-`
-const int _syn_offset = $syn_offset$ + i * ` ~ to!(char[])(NumDestSynapses) ~ `;
+			scope all_syn_code = new CCode(
+`const int _syn_offset = $syn_offset$ + i * $num_dest_synapses$;
 int _syn_table_end = _fired_syn_idx_buffer[i + $nrn_offset$];
 if(_syn_table_end != _syn_offset)
 {
 	for(int _syn_table_idx = _syn_offset; _syn_table_idx < _syn_table_end; _syn_table_idx++)
 	{
 		int syn_i = _fired_syn_buffer[_syn_table_idx];
-`);
-			source.Tab(2);
+		
+$syns_code$
+	}
+	
+	reset_dt();
+	_fired_syn_idx_buffer[i + $nrn_offset$] = _syn_offset;
+}`);
+			scope syns_source = new CSourceConstructor();
+			syns_source.Tab(2);
+			
 			int syn_type_offset = 0;
 			int syn_type_start = 0;
 			foreach(ii, syn_type; type.SynapseTypes)
 			{
-				syn_type_offset += syn_type.NumSynapses;
-				char[] cond;
-				if(ii != 0)
-					cond ~= "else ";
-				cond ~= "if(syn_i < " ~ to!(char[])(syn_type_offset) ~ ")";
-				source ~= cond;
-				source ~= "{";
-				source.Tab();
-				source ~= "int _g_syn_i = syn_i - " ~ to!(char[])(syn_type_start) ~ " + i * " ~ to!(char[])(syn_type.NumSynapses) ~ ";";
-				auto prefix = syn_type.Prefix;
+				scope full_syn_code = new CCode(
+`$else$
+if(syn_i < $syn_type_offset$)
+{
+	int _g_syn_i = syn_i - $syn_type_start$ + i * $syn_type_num$;
+	/* Load values */
+$load_vals$
+	/* Syn code */
+$syn_code$
+	/* Save values */
+$save_vals$
+
+}`);
+				scope full_syn_source = new CSourceConstructor();
 				
+				syn_type_offset += syn_type.NumSynapses;
+
+				full_syn_code["$else$"] = ii == 0 ? "" : "else";
+				
+				auto prefix = syn_type.Prefix;
+				/* Apply the prefix to the syn code */
 				auto syn_code = syn_type.Synapse.SynCode;
 				if(syn_type.Prefix != "")
 				{
 					foreach(val; &syn_type.Synapse.AllValues)
-					{
 						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
-					}
-					
 					foreach(val; &syn_type.Synapse.AllSynGlobals)
-					{
 						syn_code = syn_code.c_substitute(val.Name, prefix ~ "_" ~ val.Name);
-					}
 				}
 				
+				/* Load values */
+				full_syn_source.Tab;
 				foreach(val; &syn_type.Synapse.AllSynGlobals)
 				{
 					auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 					if(syn_code.c_find(name) != syn_code.length)
-						source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[_g_syn_i];";
+						full_syn_source ~= Format("$num_type$ {0} = _{0}_buf[_g_syn_i];", name);
 				}
+				full_syn_source.Inject(full_syn_code, "$load_vals$");
 				
-				source.AddBlock(syn_code);
+				/* Synapse code */
+				full_syn_source.Tab;
+				full_syn_source.AddBlock(syn_code);
+				full_syn_source.Inject(full_syn_code, "$syn_code$");
 				
+				/* Save values */
+				full_syn_source.Tab;
 				foreach(val; &syn_type.Synapse.AllSynGlobals)
 				{
 					if(!val.ReadOnly)
 					{
 						auto name = prefix == "" ? val.Name : prefix ~ "_" ~ val.Name;
 						if(syn_code.c_find(name) != syn_code.length)
-							source ~= "_" ~ name ~ "_buf[_g_syn_i] = " ~ name ~ ";";
+							full_syn_source ~= Format("_{0}_buf[_g_syn_i] = {0};", name);
 					}
 				}
+				full_syn_source.Inject(full_syn_code, "$save_vals$");
 				
-				source.DeTab;
-				source ~= "}";
+				full_syn_code["$syn_type_offset$"] = syn_type_offset;
+				full_syn_code["$syn_type_start$"] = syn_type_start;
+				full_syn_code["$syn_type_num$"] = syn_type.NumSynapses;
+				
+				syns_source.AddBlock(full_syn_code);
 				
 				syn_type_start = syn_type_offset;
 			}
-			source.DeTab;
-			source ~= "}";
-			if(!FixedStep)
-				source ~= "_dt = $min_dt$f;";
-			source ~= "_fired_syn_idx_buffer[i + $nrn_offset$] = _syn_offset;";
-			source.DeTab;
-			source ~= "}";
 			
-			source.Source = source.Source.substitute("$nrn_offset$", to!(char[])(NrnOffset));
-			source.Source = source.Source.substitute("$syn_offset$", to!(char[])(SynOffset));
+			syns_source.Inject(all_syn_code, "$syns_code$");
+			
+			all_syn_code["$num_dest_synapses$"] = NumDestSynapses;
+			all_syn_code["$nrn_offset$"] = NrnOffset;
+			all_syn_code["$syn_offset$"] = SynOffset;
+			
+			source.AddBlock(all_syn_code);
 		}
 		source.Inject(kernel_source, "$synapse_code$");
 		
@@ -724,7 +747,7 @@ if(_syn_table_end != _syn_offset)
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			source ~= "__local int _syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num;";
+			source ~= Format("__local int _syn_thresh_{}_num;", thresh_idx);
 			thresh_idx++;
 		}
 		NumSynThresholds = thresh_idx;
@@ -739,27 +762,25 @@ if(_syn_table_end != _syn_offset)
 		source.Tab;
 		if(NumSynThresholds)
 		{
-			source ~= "__local int _num_complete;";
-			source ~= "if(_local_id == 0)";
-			source.Tab;
-			source ~= "_num_complete = 0;";
-			source.DeTab;
-			source ~= "barrier(CLK_LOCAL_MEM_FENCE);";
+			source.AddBlock(
+`__local int _num_complete;
+if(_local_id == 0)
+	_num_complete = 0;
+barrier(CLK_LOCAL_MEM_FENCE);`);
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_init$");
 		
 		if(NumSynThresholds)
-			kernel_source = kernel_source.substitute("$primary_exit_condition$", "_num_complete < _local_size");
+			kernel_source["$primary_exit_condition$"] = "_num_complete < _local_size";
 		else
-			kernel_source = kernel_source.substitute("$primary_exit_condition$", "_cur_time < timestep");
+			kernel_source["$primary_exit_condition$"] = "_cur_time < timestep";
 		
 		source.Tab(3);
 		if(NumSynThresholds)
 		{
-			source ~= "if(_cur_time >= timestep)";
-			source.Tab;
-			source ~= "atomic_inc(&_num_complete);";
-			source.DeTab;
+			source.AddBlock(
+`if(_cur_time >= timestep)
+		atomic_inc(&_num_complete);`);
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_check$");
 		
@@ -769,7 +790,7 @@ if(_syn_table_end != _syn_offset)
 		{
 			foreach(thresh; &type.AllSynThresholds)
 			{
-				source ~= "__local int* _syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_arr,";
+				source ~= Format("__local int* _syn_thresh_{}_arr,", thresh_idx);
 				thresh_idx++;
 			}
 		}
@@ -780,7 +801,7 @@ if(_syn_table_end != _syn_offset)
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
-			source ~= "bool thresh_" ~ to!(char[])(thresh_idx) ~ "_state = false;";
+			source ~= Format("bool thresh_{}_state = false;", thresh_idx);
 			
 			thresh_idx++;
 		}
@@ -797,7 +818,7 @@ if(_syn_table_end != _syn_offset)
 			source.Tab;
 			foreach(thresh; &type.AllSynThresholds)
 			{
-				source ~= "_syn_thresh_" ~ to!(char[])(thresh_idx) ~ "_num = 0;";
+				source ~= Format("_syn_thresh_{}_num = 0;", thresh_idx);
 				thresh_idx++;
 			}
 			source.DeTab;
@@ -1039,13 +1060,13 @@ else //It is full, error
 		source.Inject(kernel_source, "$save_vals$");
 		
 		/* Random stuff */
-		NeedRandArgs = kernel_source.containsPattern("rand()");
+		NeedRandArgs = kernel_source[].containsPattern("rand()");
 		if(NeedRandArgs)
 		{
 			if(!RandLen)
 				throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 				
-			kernel_source = kernel_source.substitute("rand()", "rand" ~ to!(char[])(RandLen) ~ "(&_rand_state)");
+			kernel_source["rand()"] = Format("rand{0}(&_rand_state)", RandLen);
 		}
 		
 		/* Load rand state */
@@ -1066,13 +1087,13 @@ else //It is full, error
 			source ~= Rand.GetSaveCode();
 		source.Inject(kernel_source, "$save_rand_state$");
 		
-		kernel_source = kernel_source.substitute("reset_dt()", FixedStep ? "" : "_dt = $min_dt$f");
-		kernel_source = kernel_source.substitute("$min_dt$", to!(char[])(MinDt));
-		kernel_source = kernel_source.substitute("$time_step$", to!(char[])(Model.TimeStepSize));
-		kernel_source = kernel_source.substitute("$record_error$", to!(char[])(RECORD_ERROR));
-		kernel_source = kernel_source.substitute("$circ_buffer_error$", to!(char[])(CIRC_BUFFER_ERROR));
+		kernel_source["reset_dt()"] = FixedStep ? "" : "_dt = $min_dt$f";
+		kernel_source["$min_dt$"] = MinDt;
+		kernel_source["$time_step$"] = Model.TimeStepSize;
+		kernel_source["$record_error$"] = RECORD_ERROR;
+		kernel_source["$circ_buffer_error$"] = CIRC_BUFFER_ERROR;
 		
-		StepKernelSource = kernel_source;
+		StepKernelSource = kernel_source[];
 	}
 	
 	private void CreateDeliverKernel(CNeuronType type)

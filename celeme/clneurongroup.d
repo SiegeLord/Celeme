@@ -114,7 +114,7 @@ $load_rand_state$
 
 $synapse_code$
 
-$barrier$
+	$barrier$
 		
 	while($primary_exit_condition$)
 	{

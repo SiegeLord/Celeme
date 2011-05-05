@@ -41,24 +41,25 @@ import tango.util.Convert;
 import tango.text.convert.Format;
 import tango.core.Array;
 
-const ArgOffsetStep = 6;
+const RecordSizeArgStep = 6;
+const ArgOffsetStep = 7;
 const StepKernelTemplate = `
 #undef record
 #define record(flags, data, tag) \
 if(_record_flags & (flags)) \
 { \
-	int idx = atomic_inc(&_record_idx[0]); \
+	int idx = atomic_inc(&_local_record_idx); \
 	if(idx >= _record_buffer_size) \
 	{ \
 		_error_buffer[i + 1] = $record_error$; \
-		_record_idx[0] = _record_buffer_size - 1; \
+		_local_record_idx = _record_buffer_size - 1; \
 	} \
 	$num_type$4 record; \
 	record.s0 = t; \
 	record.s1 = (data); \
 	record.s2 = tag; \
 	record.s3 = i; \
-	_record_buffer[idx] = record; \
+	_record_buffer[idx + _local_record_idx_start] = record; \
 } \
 
 
@@ -68,6 +69,7 @@ __kernel void $type_name$_step
 		__global int* _error_buffer,
 		__global int* _record_flags_buffer,
 		__global int* _record_idx,
+		__global int* _record_idx_start,
 		__global $num_type$4* _record_buffer,
 		const int _record_buffer_size,
 $val_args$
@@ -82,6 +84,8 @@ $syn_thresh_array_arg$
 	)
 {
 	int i = get_global_id(0);
+	int _local_id = get_local_id(0);
+	int _group_id = get_group_id(0);
 
 $syn_threshold_status$
 
@@ -90,6 +94,15 @@ $primary_exit_condition_init$
 	$num_type$ _cur_time = 0;
 	const $num_type$ timestep = $time_step$;
 	int _record_flags = _record_flags_buffer[i];
+	
+	__local int _local_record_idx;
+	__local int _local_record_idx_start;
+	if(_local_id == 0)
+	{
+		_local_record_idx = _record_idx[_group_id];
+		_local_record_idx_start = _record_idx_start[_group_id];
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
 	
 	$num_type$ _dt;
 	$num_type$ t = _t;
@@ -151,6 +164,12 @@ $integrator_save$
 $save_vals$
 
 $save_rand_state$
+
+	if(_local_id == 0)
+	{
+		_record_idx[_group_id] = _local_record_idx;
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
 }
 `;
 
@@ -192,10 +211,11 @@ $event_source_args$
 	)
 {
 	int i = get_global_id(0);
+	int _local_id = get_local_id(0);
 	
-	if(i == 0 && _record_rate && ((int)(_t / $time_step$) % _record_rate == 0))
+	if(_local_id == 0 && _record_rate && ((int)(_t / $time_step$) % _record_rate == 0))
 	{
-		_record_idx[0] = 0;
+		_record_idx[get_group_id(0)] = 0;
 	}
 
 $parallel_init$
@@ -313,7 +333,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1);
 		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count);
 		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength);
-		RecordIdxBuffer = Core.CreateBuffer!(int)(1);
+		RecordIdxBuffer = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize);
+		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize);
 		
 		if(NeedSrcSynCode)
 		{
@@ -356,6 +377,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			SetGlobalArg(arg_id++, ErrorBuffer);
 			SetGlobalArg(arg_id++, RecordFlagsBuffer);
 			SetGlobalArg(arg_id++, RecordIdxBuffer);
+			SetGlobalArg(arg_id++, RecordIdxBufferStart);
 			SetGlobalArg(arg_id++, RecordBuffer);
 			SetGlobalArg(arg_id++, RecordLength);
 			foreach(buffer; ValueBuffers)
@@ -468,7 +490,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		/* Initialize the buffers */
 		ErrorBuffer()[] = 0;
-		RecordIdxBuffer[0] = 0;
+		RecordIdxBuffer[] = 0;
+		SetRecordSizeAndStart();
 		
 		if(NeedSrcSynCode)
 		{
@@ -733,7 +756,6 @@ $save_vals$
 		NumSynThresholds = thresh_idx;
 		if(NumSynThresholds)
 		{
-			source ~= "int _local_id = get_local_id(0);";
 			source ~= "int _local_size = get_local_size(0);";
 		}
 		source.Inject(kernel_source, "$syn_threshold_status$");
@@ -1163,8 +1185,7 @@ __global int* _fired_syn_buffer,`);
 		if(parallel_delivery)
 		{
 			source.AddBlock(
-`int _local_id = get_local_id(0);
-__local int fire_table_idx;
+`__local int fire_table_idx;
 if(_local_id == 0)
 	fire_table_idx = 0;
 
@@ -1505,6 +1526,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		RecordFlagsBuffer.Release();
 		RecordBuffer.Release();
 		RecordIdxBuffer.Release();
+		RecordIdxBufferStart.Release();
 		DestSynBuffer.Release();
 		
 		InitKernel.Release();
@@ -1517,6 +1539,29 @@ for(int ii = 0; ii < num_fired; ii++)
 			Rand.Shutdown();
 	}
 	
+	void SetRecordSizeAndStart()
+	{
+		if(RecordingWorkgroups.length)
+		{
+			RecordIdxBuffer.MapWrite;
+			scope(exit) RecordIdxBuffer.UnMap;
+			
+			auto rec_size = RecordLength / RecordingWorkgroups.length;
+			
+			StepKernel.SetGlobalArg(RecordSizeArgStep, cast(int)rec_size);
+			
+			foreach(ii, workgroup; RecordingWorkgroups)
+			{
+				RecordIdxBufferStart[workgroup.Id] = ii * rec_size;
+			}
+		}
+		else
+		{
+			/* Just so we have nice values */
+			RecordIdxBufferStart[] = 0;
+		}
+	}
+	
 	void UpdateRecorders(int timestep, bool last = false)
 	{
 		assert(Model.Initialized);
@@ -1525,23 +1570,28 @@ for(int ii = 0; ii < num_fired; ii++)
 		{
 			if((RecordRate && ((timestep + 1) % RecordRate == 0)) || last)
 			{
-				int num_written = RecordIdxBuffer[0];
-				if(num_written)
+				foreach(ii, workgroup; RecordingWorkgroups)
 				{
-					auto output = RecordBuffer.MapRead(0, num_written);
-					scope(exit) RecordBuffer.UnMap();
-					//Stdout.formatln("num_written: {} {}", num_written, output.length);
-					foreach(quad; output)
+					int num_written = RecordIdxBuffer[workgroup.Id];
+					if(num_written)
 					{
-						int id = cast(int)quad[0];
-						//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-						CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(int)quad[3]);
+						auto start = ii * RecordLength / RecordingWorkgroups.length;
+						
+						auto output = RecordBuffer.MapRead(start, start + num_written);
+						scope(exit) RecordBuffer.UnMap();
+						//Stdout.formatln("num_written: {} {}", num_written, output.length);
+						foreach(quad; output)
+						{
+							int id = cast(int)quad[0];
+							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
+							CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(int)quad[3]);
+						}
 					}
 				}
 			}
 			/* The one for the normal RecordRate triggers is done inside the deliver kernel */
 			if(last)
-				RecordIdxBuffer[0] = 0;
+				RecordIdxBuffer[] = 0;
 		}
 	}
 	
@@ -1552,8 +1602,46 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		
-		CommonRecorderIds ~= neuron_id;
+		/* Try finding a workgroup that contains this neuron */
+		auto num_rec_workgroups = RecordingWorkgroups.length;
+		auto workgroup = SRecordingWorkgroup(neuron_id / Model.WorkgroupSize);
+		auto workgroup_idx = RecordingWorkgroups.find(workgroup);
+		
+		if(workgroup_idx != RecordingWorkgroups.length)
+			workgroup = RecordingWorkgroups[workgroup_idx];
+		else
+			RecordingWorkgroups.length = RecordingWorkgroups.length + 1;
+		
+		if(flags == 0)
+		{
+			/* Remove it */
+			CommonRecorderIds.length = CommonRecorderIds.remove(neuron_id);
+			
+			workgroup.NeuronIds.length = workgroup.NeuronIds.remove(neuron_id);
+			
+			/* Remove the workgroup if it is empty */
+			if(workgroup.NeuronIds.length == 0)
+			{
+				RecordingWorkgroups[workgroup_idx] = RecordingWorkgroups[$ - 1];
+				RecordingWorkgroups.length = RecordingWorkgroups.length - 1;
+			}
+			else
+			{
+				RecordingWorkgroups[workgroup_idx] = workgroup;
+			}
+		}
+		else
+		{
+			CommonRecorderIds ~= neuron_id;
+			workgroup.NeuronIds ~= neuron_id;
+			RecordingWorkgroups[workgroup_idx] = workgroup;
+		}
+		
 		RecordFlagsBuffer[neuron_id] = flags;
+		
+		/* If the number of workgroups changed, we need to tell the kernel this */
+		if(num_rec_workgroups != RecordingWorkgroups.length)
+			SetRecordSizeAndStart();
 		
 		return CommonRecorder;
 	}
@@ -1561,13 +1649,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	override
 	void StopRecording(int neuron_id)
 	{
-		assert(Model.Initialized);
-		assert(neuron_id >= 0);
-		assert(neuron_id < Count);
-		
-		CommonRecorderIds.length = CommonRecorderIds.remove(neuron_id);
-		
-		RecordFlagsBuffer[neuron_id] = 0;
+		Record(neuron_id, 0);
 	}
 	
 	void CheckErrors()
@@ -1758,8 +1840,28 @@ for(int ii = 0; ii < num_fired; ii++)
 
 	CRecorder CommonRecorder;
 	
-	/* Holds the id's where we are recording events */
+	/* Holds the id's where we are recording events, may have duplicates (we only care if it's empty or not though) */
 	int[] CommonRecorderIds;
+	/* Like the above, but groups them by recording group */
+	struct SRecordingWorkgroup
+	{
+		int[] NeuronIds;
+		int Id;
+		
+		bool opEquals(SRecordingWorkgroup other)
+		{
+			return other.Id == Id;
+		}
+		
+		static SRecordingWorkgroup opCall(int id)
+		{
+			SRecordingWorkgroup ret;
+			ret.Id = id;
+			return ret;
+		}
+	}
+	SRecordingWorkgroup[] RecordingWorkgroups;
+	
 	
 	double[] Constants;
 	int[char[]] ConstantRegistry;
@@ -1788,7 +1890,8 @@ for(int ii = 0; ii < num_fired; ii++)
 	CCLBuffer!(int) ErrorBufferVal;
 	CCLBuffer!(int) RecordFlagsBuffer;
 	CCLBuffer!(float_t4) RecordBuffer;
-	CCLBuffer!(int) RecordIdxBuffer;
+	CCLBuffer!(cl_int) RecordIdxBuffer;
+	CCLBuffer!(cl_int) RecordIdxBufferStart;
 	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
 	CCLBuffer!(cl_int2) DestSynBufferVal;
 	

@@ -31,6 +31,5 @@ interface ICLModel : IModel
 	CCLBuffer!(int) FiredSynIdxBuffer();
 	CCLBuffer!(int) FiredSynBuffer();
 	
-	int StepWorkgroupSize();
-	int DeliverWorkgroupSize();
+	int WorkgroupSize();
 }

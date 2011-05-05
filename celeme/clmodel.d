@@ -84,9 +84,9 @@ class CCLModel(float_t) : ICLModel
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
 			
-		auto actual_number = (number / StepWorkgroupSize) * StepWorkgroupSize;
+		auto actual_number = (number / WorkgroupSize) * WorkgroupSize;
 		if(actual_number < number)
-			actual_number += StepWorkgroupSize;
+			actual_number += WorkgroupSize;
 		number = actual_number;
 		
 		auto nrn_offset = NumNeurons;
@@ -234,7 +234,7 @@ class CCLModel(float_t) : ICLModel
 		/* Initialize */
 		foreach(group; NeuronGroups)
 		{
-			group.CallInitKernel(StepWorkgroupSize);
+			group.CallInitKernel(WorkgroupSize);
 		}
 	}
 	
@@ -472,13 +472,7 @@ class CCLModel(float_t) : ICLModel
 	}
 	
 	override
-	int StepWorkgroupSize()
-	{
-		return 64;
-	}
-	
-	override
-	int DeliverWorkgroupSize()
+	int WorkgroupSize()
 	{
 		return 64;
 	}

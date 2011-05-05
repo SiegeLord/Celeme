@@ -384,7 +384,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			}
 			foreach(_; range(NumSynThresholds))
 			{
-				SetLocalArg(arg_id++, int.sizeof * Model.StepWorkgroupSize);
+				SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize);
 			}
 			SetGlobalArg(arg_id++, Count);
 		}
@@ -420,7 +420,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			if(NeedSrcSynCode)
 			{
 				/* Local fire table */
-				SetLocalArg(arg_id++, int.sizeof * Model.DeliverWorkgroupSize * NumEventSources);
+				SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize * NumEventSources);
 				/* Set the event source args */
 				SetGlobalArg(arg_id++, CircBufferStart);
 				SetGlobalArg(arg_id++, CircBufferEnd);
@@ -531,7 +531,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			Launch([Count], [Model.StepWorkgroupSize], ret_event);
+			Launch([Count], [Model.WorkgroupSize], ret_event);
 		}
 	}
 	
@@ -539,15 +539,11 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
-		size_t total_num = (Count / Model.DeliverWorkgroupSize) * Model.DeliverWorkgroupSize;
-		if(total_num < Count)
-			total_num += Model.DeliverWorkgroupSize;
-		
 		with(DeliverKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
 			
-			Launch([total_num], [Model.DeliverWorkgroupSize], ret_event);
+			Launch([Count], [Model.WorkgroupSize], ret_event);
 		}
 	}
 	

@@ -102,7 +102,6 @@ $primary_exit_condition_init$
 		_local_record_idx = _record_idx[_group_id];
 		_local_record_idx_start = _record_idx_start[_group_id];
 	}
-	barrier(CLK_LOCAL_MEM_FENCE);
 	
 	$num_type$ _dt;
 	$num_type$ t = _t;
@@ -114,6 +113,8 @@ $load_vals$
 $load_rand_state$
 
 $synapse_code$
+
+$barrier$
 		
 	while($primary_exit_condition$)
 	{
@@ -165,11 +166,11 @@ $save_vals$
 
 $save_rand_state$
 
+	barrier(CLK_LOCAL_MEM_FENCE);
 	if(_local_id == 0)
 	{
 		_record_idx[_group_id] = _local_record_idx;
 	}
-	barrier(CLK_LOCAL_MEM_FENCE);
 }
 `;
 
@@ -768,7 +769,7 @@ $save_vals$
 `__local int _num_complete;
 if(_local_id == 0)
 	_num_complete = 0;
-barrier(CLK_LOCAL_MEM_FENCE);`);
+`);
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_init$");
 		
@@ -1153,6 +1154,7 @@ $save_syn_globals$
 		kernel_source["$time_step$"] = Model.TimeStepSize;
 		kernel_source["$record_error$"] = RECORD_ERROR;
 		kernel_source["$circ_buffer_error$"] = CIRC_BUFFER_ERROR;
+		kernel_source["$barrier$"] = "barrier(CLK_LOCAL_MEM_FENCE);";
 		
 		StepKernelSource = kernel_source[];
 	}

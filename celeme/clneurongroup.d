@@ -1537,6 +1537,9 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		Integrator.Shutdown();
 		
+		foreach(conn; Connectors)
+			conn.Shutdown();
+		
 		if(RandLen)
 			Rand.Shutdown();
 	}

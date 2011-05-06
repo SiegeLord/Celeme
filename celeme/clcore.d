@@ -42,6 +42,9 @@ class CCLKernel
 		{
 			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");
 		}
+		
+		//println("Created: {}", Name);
+		NumKernels++;
 	}
 	
 	void SetGlobalArg(T)(uint argnum, T arg)
@@ -94,6 +97,8 @@ class CCLKernel
 	void Release()
 	{
 		clReleaseKernel(Kernel);
+		NumKernels--;
+		//println("Released: {}", Name);
 	}
 	
 	CCLCore Core;
@@ -131,6 +136,8 @@ class CCLBuffer(T) : CCLBufferBase
 		int err;
 		BufferVal = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
 		assert(err == 0, GetCLErrorString(err));
+		
+		NumBuffers++;
 	}
 	
 	T[] MapWrite(size_t start = 0, size_t end = 0)
@@ -179,6 +186,8 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		UnMap();
 		clReleaseMemObject(Buffer);
+		
+		NumBuffers--;
 	}
 	
 	void UnMap()
@@ -594,3 +603,12 @@ char[] GetCLErrorString(cl_int ret_code)
 	}
 	assert(0);
 }
+
+int NumBuffers = 0;
+int NumKernels = 0;
+
+/+static ~this()
+{
+	println("NumBuffers: {}", NumBuffers);
+	println("NumKernels: {}", NumKernels);
+}+/

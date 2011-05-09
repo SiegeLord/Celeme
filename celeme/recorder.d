@@ -19,6 +19,72 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.recorder;
 
 import tango.io.Stdout;
+import tango.stdc.stdlib;
+
+struct SCArray(T)
+{
+	T[] opSlice()
+	{
+		return ptr[0..length];
+	}
+	
+	T[] opSlice(size_t start, size_t end)
+	{
+		return ptr[start..end];
+	}
+	
+	T opIndex(size_t idx)
+	{
+		return ptr[idx];
+	}
+	
+	T opIndexAssign(T val, size_t idx)
+	{
+		return ptr[idx] = val;
+	}
+	
+	size_t length()
+	{
+		return Length;
+	}
+	
+	size_t length(size_t new_len)
+	{
+		if(new_len != Length)
+		{
+			ptr = cast(T*)realloc(ptr, new_len * T.sizeof);
+			if(new_len)
+				assert(ptr);
+			
+			Length = new_len;
+		}
+		
+		return Length;
+	}
+	
+	T* ptr;
+	size_t Length;
+}
+
+unittest
+{
+	SCArray!(int) array;
+	assert(array.length == 0);
+	
+	array.length = 5;
+	assert(array.length == 5);
+	
+	array[0] = 1;
+	array[4] = 2;
+	assert(array[0] == 1);
+	assert(array[4] == 2);
+	
+	array.length = 10;
+	assert(array[0] == 1);
+	assert(array[4] == 2);
+	
+	array.length = 0;
+}
 
 /**
  * This class holds the time, tags and data poins. Essentially this is a growable
@@ -30,6 +96,11 @@ class CRecorder
 	{
 		Name = name;
 		StoreNeuronId = store_neuron_id;
+	}
+	
+	~this()
+	{
+		Detach();
 	}
 	
 	void Detach()
@@ -90,10 +161,10 @@ class CRecorder
 			return null;
 	}
 	
-	double[] TArray;
-	int[] TagArray;
-	int[] NeuronIdArray;
-	double[] DataArray;
+	SCArray!(double) TArray;
+	SCArray!(int) TagArray;
+	SCArray!(int) NeuronIdArray;
+	SCArray!(double) DataArray;
 	
 	/**
 	 * Name of this recorder, specifying what it was recording.

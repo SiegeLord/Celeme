@@ -9,7 +9,7 @@ Compiling:
 The build script requires Python to be installed.
 Celeme core requires hg tip LDC and svn trunk Tango as well as AMD OpenCL SDK 2.3.
 Python bindings require the development versions of the Python library.
-Plotting using the D binding requires gnuplot to be installed.
+Plotting using the D binding requires gnuplot to be installed as well as the D bindings you can get here: https://github.com/SiegeLord/DGnuplot (you can just copy the gnuplot.d into root folder).
 C bindings require the trunk Tango build without the C main (Use version=NoCMain)
 
 Once those things are taken care of, compile using the build.py script as follows:

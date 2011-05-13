@@ -267,10 +267,10 @@ IModel celeme_create_model(int type, bool gpu)
  * 
  * C signature:
  * ---
- * void celeme_generate_model(CELEME_MODEL* model, bool parallel_delivery, bool atomic_delivery, bool initialize);
+ * void celeme_generate_model(CELEME_MODEL* model, bool initialize);
  * ---
  */</span>
-<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">celeme_generate_model</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">IModel</span></span> <span class="i">model</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">atomic_delivery</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">initialize</span></span>)</span><span class="s FuncBody">;</span></span>
+<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">celeme_generate_model</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">IModel</span></span> <span class="i">model</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">initialize</span></span>)</span><span class="s FuncBody">;</span></span>
 
 <span class="bc">/**
  * Adds a new neuron group from an internal registry.
@@ -279,10 +279,10 @@ IModel celeme_create_model(int type, bool gpu)
  * 
  * C signature:
  * ---
- * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt);
+ * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt, bool parallel_delivery);
  * ---
  */</span>
-<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">celeme_add_neuron_group</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">IModel</span></span> <span class="i">model</span></span>, <span class="o Parameter"><span class="k">in</span> <span class="t Integral"><span class="k">char</span></span><span class="t Pointer">*</span> <span class="i">type_name</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">number</span></span>, <span class="o Parameter"><span class="k">in</span> <span class="t Integral"><span class="k">char</span></span><span class="t Pointer">*</span> <span class="i">name</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">adaptive_dt</span></span>)</span><span class="s FuncBody">;</span></span>
+<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">celeme_add_neuron_group</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">IModel</span></span> <span class="i">model</span></span>, <span class="o Parameter"><span class="k">in</span> <span class="t Integral"><span class="k">char</span></span><span class="t Pointer">*</span> <span class="i">type_name</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">number</span></span>, <span class="o Parameter"><span class="k">in</span> <span class="t Integral"><span class="k">char</span></span><span class="t Pointer">*</span> <span class="i">name</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">adaptive_dt</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span></span>)</span><span class="s FuncBody">;</span></span>
 
 <span class="bc">/**
  * Returns a neuron group based on its name.
@@ -582,11 +582,11 @@ IModel celeme_create_model(int type, bool gpu)
 <span class="d Mixin"><span class="k">mixin</span>(<span class="e TemplateInstance"><span class="i">ModelFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"initialize_model"</span></span>, <span class="e String"><span class="sl">"void"</span></span>, <span class="e String"><span class="sl">"Initialize"</span></span>, <span class="e String"><span class="sl">""</span></span>, <span class="e String"><span class="sl">""</span></span>, <span class="e String"><span class="sl">""</span></span>)</span></span>);</span>
 
 <span class="d Mixin"><span class="k">mixin</span>(<span class="e TemplateInstance"><span class="i">ModelFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"add_neuron_group"</span></span>, <span class="e String"><span class="sl">"void"</span></span>, <span class="e String"><span class="sl">"AddNeuronGroup"</span></span>, 
-	<span class="e String"><span class="sl">", char* type_name, int number, char* name, bool adaptive_dt"</span></span>, 
-	<span class="e String"><span class="sl">"fromStringz(type_name), number, fromStringz(name), adaptive_dt"</span></span>, <span class="e String"><span class="sl">""</span></span>)</span></span>);</span>
+	<span class="e String"><span class="sl">", char* type_name, int number, char* name, bool adaptive_dt, bool parallel_delivery"</span></span>, 
+	<span class="e String"><span class="sl">"fromStringz(type_name), number, fromStringz(name), adaptive_dt, parallel_delivery"</span></span>, <span class="e String"><span class="sl">""</span></span>)</span></span>);</span>
 <span class="d Mixin"><span class="k">mixin</span>(<span class="e TemplateInstance"><span class="i">ModelFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"generate_model"</span></span>, <span class="e String"><span class="sl">"void"</span></span>, <span class="e String"><span class="sl">"Generate"</span></span>, 
-	<span class="e String"><span class="sl">", bool parallel_delivery, bool atomic_delivery, bool initialize"</span></span>, 
-	<span class="e String"><span class="sl">"parallel_delivery, atomic_delivery, initialize"</span></span>, <span class="e String"><span class="sl">""</span></span>)</span></span>);</span>
+	<span class="e String"><span class="sl">", bool initialize"</span></span>, 
+	<span class="e String"><span class="sl">"initialize"</span></span>, <span class="e String"><span class="sl">""</span></span>)</span></span>);</span>
 
 <span class="d Mixin"><span class="k">mixin</span>(<span class="e TemplateInstance"><span class="i">ModelFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"get_neuron_group"</span></span>, <span class="e String"><span class="sl">"INeuronGroup"</span></span>, <span class="e String"><span class="sl">"opIndex"</span></span>, 
 	<span class="e String"><span class="sl">", char* name"</span></span>, 

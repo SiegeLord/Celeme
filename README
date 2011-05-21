@@ -7,8 +7,8 @@ Celeme is developed on Linux, and has only been tested on it... it shouldn't be 
 Compiling:
 
 The build script requires Python to be installed.
-Celeme core requires hg tip LDC and svn trunk Tango as well as AMD OpenCL SDK 2.3.
-Python bindings require the development versions of the Python library.
+Celeme core requires hg tip LDC and svn trunk Tango as well as AMD OpenCL SDK 2.4.
+Python bindings require the development versions of the Python library (version 2.6).
 Plotting using the D binding requires gnuplot to be installed as well as the D bindings you can get here: https://github.com/SiegeLord/DGnuplot (you can just copy the gnuplot.d into root folder).
 C bindings require the trunk Tango build without the C main (Use version=NoCMain)
 

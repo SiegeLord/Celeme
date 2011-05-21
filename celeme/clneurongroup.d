@@ -1692,19 +1692,47 @@ for(int ii = 0; ii < num_fired; ii++)
 			throw new Exception("Found errors during model execution.");
 	}
 	
-	void SetConnection(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
+	private int GetSrcSynId(int src_nrn_id, int event_source, int src_slot)
 	{
-		assert(Model.Initialized);
-		
 		assert(src_nrn_id >= 0 && src_nrn_id < Count);
 		assert(event_source >= 0 && event_source < NumEventSources);
 		assert(src_slot >= 0 && src_slot < NumSrcSynapses);
 		
-		int src_syn_id = (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
+		return (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
+	}
+	
+	void SetConnection(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
+	{
+		assert(Model.Initialized);
+		
+		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
 		DestSynBuffer()[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
 	}
 	
+	override
+	int GetConnectionId(int src_nrn_id, int event_source, int src_slot)
+	{
+		assert(Model.Initialized);
+		
+		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		
+		return DestSynBuffer()[src_syn_id][0];
+	}
+	
+	override
+	int GetConnectionSlot(int src_nrn_id, int event_source, int src_slot)
+	{
+		assert(Model.Initialized);
+		
+		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		
+		return DestSynBuffer()[src_syn_id][1];
+	}
+	
+	/*
+	 * Reserves a slot in an event source, returns -1 if its full
+	 */
 	int GetSrcSlot(int src_nrn_id, int event_source)
 	{
 		assert(src_nrn_id >= 0 && src_nrn_id < Count);
@@ -1722,6 +1750,9 @@ for(int ii = 0; ii < num_fired; ii++)
 		return idx - 1;
 	}
 	
+	/*
+	 * Reserves a slot in a destination mechanism, returns -1 if its full
+	 */
 	int GetDestSlot(int dest_nrn_id, int dest_syn_type)
 	{
 		assert(dest_nrn_id >= 0 && dest_nrn_id < Count);

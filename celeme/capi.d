@@ -524,6 +524,18 @@ void celeme_set_min_dt(INeuronGroup group, double min_dt);
 int celeme_get_count(INeuronGroup group);
 
 /**
+ * Returns the global index of the first neuron in this neuron group.
+ * 
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.NrnOffset, INeuronGroup.NrnOffset)
+ * 
+ * C signature:
+ * ---
+ * int celeme_get_nrn_offset(CELEME_NEURON_GROUP* group);
+ * ---
+ */
+int celeme_get_nrn_offset(INeuronGroup group);
+
+/**
  * Seeds the random number generator.
  * 
  * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Seed, INeuronGroup.Seed)
@@ -534,6 +546,30 @@ int celeme_get_count(INeuronGroup group);
  * ---
  */
 int celeme_seed(INeuronGroup group);
+
+/**
+ * Returns the target global neuron id that an event source is connected to at a specified source slot.
+ * 
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.GetConnectionId, INeuronGroup.GetConnectionId)
+ * 
+ * C signature:
+ * ---
+ * int celeme_get_connection_id(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
+ * ---
+ */
+int celeme_get_connection_id(INeuronGroup group, int nrn_id, int event_source, int src_slot);
+
+/**
+ * Returns the target slot that an event source is connected to at a specified source slot.
+ * 
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.GetConnectionSlot, INeuronGroup.GetConnectionSlot)
+ * 
+ * C signature:
+ * ---
+ * int celeme_get_connection_slot(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
+ * ---
+ */
+int celeme_get_connection_slot(INeuronGroup group, int nrn_id, int event_source, int src_slot);
 }
 else
 {
@@ -695,9 +731,21 @@ mixin(GroupFunc!("get_count", "int", "Count",
 	"", 
 	"", "0"));
 	
+mixin(GroupFunc!("get_nrn_offset", "int", "NrnOffset", 
+	"", 
+	"", "-1"));
+	
 mixin(GroupFunc!("seed", "void", "Seed", 
 	", int seed", 
-	"seed", ""));	
+	"seed", ""));
+	
+mixin(GroupFunc!("get_connection_id", "int", "GetConnectionId", 
+	", int nrn_id, int event_source, int src_slot", 
+	"nrn_id, event_source, src_slot", "-1"));
+	
+mixin(GroupFunc!("get_connection_slot", "int", "GetConnectionSlot", 
+	", int nrn_id, int event_source, int src_slot", 
+	"nrn_id, event_source, src_slot", "-1"));
 }
 
 /*

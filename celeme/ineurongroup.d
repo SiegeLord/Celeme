@@ -102,9 +102,38 @@ interface INeuronGroup
 	 * Returns the number of neurons in this group
 	 */
 	int Count();
+	
+	/**
+	 * Returns the global index of the first neuron in this neuron group.
+	 */
+	int NrnOffset();
 		
 	/**
 	 * Seeds the random number generator.
 	 */
 	void Seed(int seed);
+	
+	/**
+	 * Returns the target global neuron id that an event source is connected to at a specified source slot.
+	 * 
+	 * Params:
+	 *     nrn_id = Index of the neuron.
+	 *     event_source = Index of the event source.
+	 *     src_slot = Index of the event source slot.
+	 * Returns:
+	 *     The global destination neuron id, or -1 if no connection is present.
+	 */
+	int GetConnectionId(int nrn_id, int event_source, int src_slot);
+	
+	/**
+	 * Returns the target slot that an event source is connected to at a specified source slot.
+	 * 
+	 * Params:
+	 *     nrn_id = Index of the neuron.
+	 *     event_source = Index of the event source.
+	 *     src_slot = Index of the event source slot.
+	 * Returns:
+	 *     The destination slot, or -1 if no connection is present.
+	 */
+	int GetConnectionSlot(int src_nrn_id, int event_source, int src_slot);
 }

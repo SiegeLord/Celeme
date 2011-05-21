@@ -51,10 +51,11 @@ void main(char[][] arg_list)
 	auto model = LoadModel("stuff.cfg", gpu);
 	scope(exit) model.Shutdown();
 	
-	model.AddNeuronGroup("Regular", 1000, null, true, gpu);
+	const N = 1000;
+	
+	model.AddNeuronGroup("Regular", N, null, true, gpu);
 	model.TimeStepSize = 1.0;
 	
-	auto N = model["Regular"].Count;
 	auto t_scale = 1.0 / model.TimeStepSize;
 	
 	//model.AddNeuronGroup(types["Burster"], 5, null, true);
@@ -79,6 +80,30 @@ void main(char[][] arg_list)
 	//model.SetConnection("Regular", 0, 0, 0, "Regular", 1, 0, 0);
 	model.ApplyConnector("RandConn", N, "Regular", [0, N], 0, "Regular", [0, N], 0, ["P": 0.05]);
 	//model.Connect("RandConn", 1, "Regular", [0, 1], 0, "Burster", [1, 2], 0, ["P": 1]);
+	
+	auto conns = new int[](N * N);
+	conns[] = 0;
+	auto regular = model["Regular"];
+	foreach(src; range(N))
+	{
+		foreach(slot; range(150))
+		{
+			auto dest = regular.GetConnectionId(src, 0, slot);
+			if(dest > -1)
+			{
+				conns[src + dest * N] = 1;
+			}
+		}
+	}
+	
+	auto conn_plot = new C3DPlot;
+	with(conn_plot)
+	{
+		Style = "pm3d";
+		Plot(conns, N, N);
+	}
+	
+	return;
 	
 	/+auto arr = model["Regular"].DestSynBuffer.Map(CL_MAP_READ);
 	foreach(el; arr)

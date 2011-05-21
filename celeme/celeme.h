@@ -79,6 +79,10 @@ void celeme_stop_recording(CELEME_NEURON_GROUP* group, int neuron_id);
 double celeme_get_min_dt(CELEME_NEURON_GROUP* group);
 void celeme_set_min_dt(CELEME_NEURON_GROUP* group, double min_dt);
 int celeme_get_count(CELEME_NEURON_GROUP* group);
+int celeme_get_nrn_offset(CELEME_NEURON_GROUP* group);
+
+int celeme_get_connection_id(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
+int celeme_get_connection_slot(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
 
 /*
  * Recorder

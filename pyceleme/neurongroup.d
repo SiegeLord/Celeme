@@ -103,10 +103,20 @@ PyObject* SNeuronGroup_get_count(SNeuronGroup *self, void *closure)
     return ret;
 }
 
+extern(C)
+PyObject* SNeuronGroup_get_nrn_offset(SNeuronGroup *self, void *closure)
+{
+	auto ret = Py_BuildValue("i", celeme_get_nrn_offset(self.Group));
+	mixin(ErrorCheck("null"));
+    return ret;
+}
+
+
 PyGetSetDef[] SNeuronGroup_getseters = 
 [
 	{"MinDt", cast(getter)&SNeuronGroup_get_min_dt, cast(setter)&SNeuronGroup_set_min_dt, "TimeStepSize", null},
 	{"Count", cast(getter)&SNeuronGroup_get_count, null, "Count", null},
+	{"NrnOffset", cast(getter)&SNeuronGroup_get_nrn_offset, null, "NrnOffset", null},
 	{null}  /* Sentinel */
 ];
 
@@ -146,6 +156,44 @@ PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds
 }
 
 extern (C)
+PyObject* SNeuronGroup_get_connection_id(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["neuron_id", "event_source", "slot", null];
+	int neuron_id;
+	int event_source;
+	int slot;
+
+	if(!DParseTupleAndKeywords(args, kwds, "iii", kwlist, &neuron_id, &event_source, &slot))
+		return null;
+	
+	auto ret_id = celeme_get_connection_id(self.Group, neuron_id, event_source, slot);
+	mixin(ErrorCheck("null"));
+	
+	auto ret = Py_BuildValue("i", ret_id);
+	
+	return ret;
+}
+
+extern (C)
+PyObject* SNeuronGroup_get_connection_slot(SNeuronGroup *self, PyObject* args, PyObject* kwds)
+{
+	char[][] kwlist = ["neuron_id", "event_source", "slot", null];
+	int neuron_id;
+	int event_source;
+	int slot;
+
+	if(!DParseTupleAndKeywords(args, kwds, "iii", kwlist, &neuron_id, &event_source, &slot))
+		return null;
+	
+	auto ret_slot = celeme_get_connection_slot(self.Group, neuron_id, event_source, slot);
+	mixin(ErrorCheck("null"));
+	
+	auto ret = Py_BuildValue("i", ret_slot);
+	
+	return ret;
+}
+
+extern (C)
 PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
 	char[][] kwlist = ["seed", null];
@@ -166,6 +214,8 @@ PyMethodDef[] SNeuronGroup_methods =
     {"StopRecording", cast(PyCFunction)&SNeuronGroup_stop_recording, METH_VARARGS | METH_KEYWORDS, "Stop recording from a particular neuron."},
     {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Set the record flags of a particular neuron."},
     {"Seed", cast(PyCFunction)&SNeuronGroup_seed, METH_VARARGS | METH_KEYWORDS, "Set the seed for the random number generator."},
+    {"GetConnectionId", cast(PyCFunction)&SNeuronGroup_get_connection_id, METH_VARARGS | METH_KEYWORDS, "Returns the target global neuron id that an event source is connected to at a specified source slot."},
+    {"GetConnectionSlot", cast(PyCFunction)&SNeuronGroup_get_connection_slot, METH_VARARGS | METH_KEYWORDS, "Returns the target slot that an event source is connected to at a specified source slot."},
     {null}  /* Sentinel */
 ];
 

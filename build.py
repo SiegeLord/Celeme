@@ -21,14 +21,14 @@ def dbuild():
 
 if len(argv) > 1:
 	if argv[1] == 'lib':
-		ret = shell('ldc -c celeme/*.d opencl/*.d -od=".objs_celeme"')
+		ret = shell('ldc -c celeme/*.d celeme/internal/*.d opencl/*.d -od=".objs_celeme"')
 		if ret == 0:
 			ret = shell('ar -r libceleme.a .objs_celeme/*.o')
 	elif argv[1] == 'py':
 		shell('xfbuild +threads=6 +D=".deps_pyceleme" +O=".objs_pyceleme" +opy_celeme +cldc +xldc +xtango +xopencl +xceleme pyceleme/main.d -L -L' + opencl_path + ' -L -lOpenCL -L -lpthread -L -ldl -L-L. -L-lceleme -L-lpython2.6 -I. -unittest')
 		shell('rm -f *.rsp')
 	elif argv[1] == 'doc':
-		shell('dil d doc/ --kandil -hl celeme/*.d -version=Doc')
+		shell('dil d doc/ --kandil -hl celeme/*.d celeme/internal/*.d -version=Doc')
 	elif argv[1] == 'run':
 		ret = dbuild()
 		if ret == 0:

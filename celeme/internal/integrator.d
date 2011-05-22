@@ -21,12 +21,12 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * generate code for the kernel, taking care of the integration needs.
  */
 
-module celeme.integrator;
+module celeme.internal.integrator;
 
-import celeme.iclneurongroup;
-import celeme.frontend;
-import celeme.clcore;
-import celeme.sourceconstructor;
+import celeme.internal.iclneurongroup;
+import celeme.internal.frontend;
+import celeme.internal.clcore;
+import celeme.internal.sourceconstructor;
 
 class CIntegrator(float_t)
 {

@@ -20,11 +20,10 @@ module main;
 
 import celeme.celeme;
 import celeme.capi;
-import celeme.xmlutil;
 
 import opencl.cl;
 import gnuplot;
-import celeme.util;
+import celeme.internal.util;
 
 import tango.time.StopWatch;
 import tango.io.Stdout;

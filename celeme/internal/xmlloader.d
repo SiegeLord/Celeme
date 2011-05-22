@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.xmlloader;
+module celeme.internal.xmlloader;
 /+
-import celeme.xmlutil;
-import celeme.util;
-import celeme.frontend;
+import celeme.internal.xmlutil;
+import celeme.internal.util;
+import celeme.internal.frontend;
 import celeme.imodel;
-import celeme.clmodel;
+import celeme.internal.clmodel;
 
 import tango.text.convert.Format;
 

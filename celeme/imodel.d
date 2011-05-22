@@ -22,8 +22,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.imodel;
 
-import celeme.clmodel;
-import celeme.frontend;
+import celeme.internal.clmodel;
+import celeme.internal.frontend;
 import celeme.ineurongroup;
 
 /**

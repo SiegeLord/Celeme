@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clrand;
+module celeme.internal.clrand;
 
-import celeme.clcore;
-import celeme.util;
+import celeme.internal.clcore;
+import celeme.internal.util;
 
 import tango.math.random.Random;
 import tango.util.Convert;

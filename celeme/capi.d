@@ -34,8 +34,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.capi;
 
 import celeme.celeme;
-import celeme.clmodel;
-import celeme.util;
+import celeme.internal.clmodel;
+import celeme.internal.util;
 
 import tango.stdc.stringz;
 import tango.core.Runtime;

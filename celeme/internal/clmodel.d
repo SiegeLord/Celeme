@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clmodel;
+module celeme.internal.clmodel;
 
-import celeme.clcore;
-import celeme.clrand;
-import celeme.frontend;
-import celeme.clneurongroup;
-import celeme.util;
-import celeme.iclmodel;
+import celeme.internal.clcore;
+import celeme.internal.clrand;
+import celeme.internal.frontend;
+import celeme.internal.clneurongroup;
+import celeme.internal.util;
+import celeme.internal.iclmodel;
 import celeme.ineurongroup;
 
 import tango.text.Util;
@@ -32,7 +32,7 @@ import tango.time.StopWatch;
 import tango.io.device.File;
 
 version (AMDPerf)
-import perf = celeme.amdperf;
+import perf = celeme.internal.amdperf;
 
 import opencl.cl;
 

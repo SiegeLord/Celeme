@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clconnector;
+module celeme.internal.clconnector;
 
-import celeme.frontend;
-import celeme.util;
-import celeme.clcore;
-import celeme.iclneurongroup;
-import celeme.sourceconstructor;
+import celeme.internal.frontend;
+import celeme.internal.util;
+import celeme.internal.clcore;
+import celeme.internal.iclneurongroup;
+import celeme.internal.sourceconstructor;
 
 import opencl.cl;
 

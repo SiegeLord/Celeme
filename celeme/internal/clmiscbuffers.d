@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clmiscbuffers;
+module celeme.internal.clmiscbuffers;
 
-import celeme.frontend;
-import celeme.clcore;
+import celeme.internal.frontend;
+import celeme.internal.clcore;
 
 import opencl.cl;
 

@@ -24,10 +24,10 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.configloader;
 
 import celeme.config;
-import celeme.util;
-import celeme.frontend;
+import celeme.internal.util;
+import celeme.internal.frontend;
 import celeme.imodel;
-import celeme.clmodel;
+import celeme.internal.clmodel;
 
 import tango.text.convert.Format;
 

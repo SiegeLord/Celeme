@@ -16,9 +16,9 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clcore;
+module celeme.internal.clcore;
 
-import celeme.util;
+import celeme.internal.util;
 
 import opencl.cl;
 
@@ -27,7 +27,7 @@ import tango.util.Convert;
 import tango.util.MinMax;
 
 version (AMDPerf)
-import perf = celeme.amdperf;
+import perf = celeme.internal.amdperf;
 
 class CCLKernel
 {

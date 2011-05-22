@@ -16,12 +16,12 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.iclneurongroup;
+module celeme.internal.iclneurongroup;
 
 import opencl.cl;
-import celeme.clrand;
-import celeme.clcore;
-import celeme.clmiscbuffers;
+import celeme.internal.clrand;
+import celeme.internal.clcore;
+import celeme.internal.clmiscbuffers;
 
 import celeme.ineurongroup;
 

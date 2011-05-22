@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.iclmodel;
+module celeme.internal.iclmodel;
 
 import celeme.imodel;
-import celeme.clcore;
+import celeme.internal.clcore;
 
 import opencl.cl;
 

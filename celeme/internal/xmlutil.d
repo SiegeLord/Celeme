@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.xmlutil;
+module celeme.internal.xmlutil;
 
 import tango.text.xml.Document;
 import tango.io.device.File;

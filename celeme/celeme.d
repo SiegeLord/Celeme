@@ -19,11 +19,11 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.celeme;
 
 public import
-	celeme.frontend,
+	celeme.internal.frontend,
 	celeme.imodel,
 	celeme.ineurongroup,
 	celeme.recorder,
-	celeme.clcore,
+	celeme.internal.clcore,
 	celeme.capi,
 	celeme.configloader,
 	celeme.celeme_util;

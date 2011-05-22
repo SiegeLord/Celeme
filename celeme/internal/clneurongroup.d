@@ -16,22 +16,22 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.clneurongroup;
+module celeme.internal.clneurongroup;
 
-import celeme.iclneurongroup;
-import celeme.frontend;
-import celeme.clcore;
-import celeme.clconnector;
-import celeme.iclmodel;
+import celeme.internal.iclneurongroup;
+import celeme.internal.frontend;
+import celeme.internal.clcore;
+import celeme.internal.clconnector;
+import celeme.internal.iclmodel;
 import celeme.recorder;
-import celeme.alignedarray;
-import celeme.sourceconstructor;
-import celeme.util;
-import celeme.integrator;
-import celeme.adaptiveheun;
-import celeme.heun;
-import celeme.clrand;
-import celeme.clmiscbuffers;
+import celeme.internal.alignedarray;
+import celeme.internal.sourceconstructor;
+import celeme.internal.util;
+import celeme.internal.integrator;
+import celeme.internal.adaptiveheun;
+import celeme.internal.heun;
+import celeme.internal.clrand;
+import celeme.internal.clmiscbuffers;
 
 import opencl.cl;
 

@@ -17,89 +17,61 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
 /*
- * An adaptive heun integrator. Absolute tolerance is used, as it is more
- * appropriate for neural models.
+ * A simple fixed timestep Heun integrator.
  */
 
-module celeme.adaptiveheun;
+module celeme.internal.heun;
 
-import celeme.iclneurongroup;
-import celeme.frontend;
-import celeme.integrator;
-import celeme.sourceconstructor;
-import celeme.util;
-import celeme.clcore;
+import celeme.internal.iclneurongroup;
+import celeme.internal.frontend;
+import celeme.internal.integrator;
+import celeme.internal.sourceconstructor;
+import celeme.internal.util;
+import celeme.internal.clcore;
 
 import opencl.cl;
 
 import tango.io.Stdout;
 
-class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
+class CHeun(float_t) : CIntegrator!(float_t)
 {
 	this(ICLNeuronGroup group, CNeuronType type)
 	{
 		super(group, type);
-		
-		/* Copy tolerances */
-		foreach(name, state; &type.AllStates)
-		{
-			ToleranceRegistry[name] = Tolerances.length;
-			Tolerances ~= state.Tolerance;
-		}
-		
-		DtBuffer = Group.Core.CreateBuffer!(float_t)(Group.Count);
-	}
-	
-	override
-	void Reset()
-	{
-		DtBuffer[] = Group.MinDt;
 	}
 	
 	override
 	char[] GetLoadCode(CNeuronType type)
 	{
-		return 
-"$num_type$ _dt_residual = 0;
-_dt = _dt_buf[i];";
+		return "_dt = _dt_const;";
 	}
 	
 	override
 	char[] GetSaveCode(CNeuronType type)
 	{
-		return 
-"if(_dt_residual > $min_dt$f)
-	_dt = _dt_residual;
-if(_dt > timestep)
-	_dt = timestep;
-
-_dt_buf[i] = _dt;";
+		return "";
 	}
 	
 	override
 	int SetArgs(CCLKernel kernel, int arg_id)
 	{
-		kernel.SetGlobalArg(arg_id++, DtBuffer);
-		foreach(tol; Tolerances)
-		{
-			float_t tolerance = tol;
-			kernel.SetGlobalArg(arg_id++, tolerance);
-		}
-		
-		return arg_id;
+		SetDt(kernel, Group.MinDt);		
+		return arg_id + 1;
+	}
+	
+	void SetDt(CCLKernel kernel, double dt)
+	{
+		int parts = cast(int)(Group.TimeStepSize / dt + 0.5);
+		if(parts == 0)
+			parts++;
+
+		kernel.SetGlobalArg(Group.IntegratorArgOffset, cast(float_t)(Group.TimeStepSize / parts));
 	}
 	
 	override
 	char[] GetArgsCode(CNeuronType type)
 	{
-		char[] ret = "__global $num_type$* _dt_buf,\n";
-		foreach(name, state; &type.AllStates)
-		{
-			ret ~= "const $num_type$ _" ~ name ~ "_tol," ~ "\n";
-		}
-		if(ret.length)
-			ret = ret[0..$-1];
-		return ret;
+		return "const $num_type$ _dt_const,";
 	}
 	
 	override
@@ -132,26 +104,11 @@ $compute_derivs_2$
 /* Compute the final state estimate */
 $apply_derivs_2$
 
-/* Compute the error in this step */
-$compute_error$
-
 /* Transfer the state from the temporary storage to the real storage */
 $reset_state$
 
-/* Advance and compute the new step size*/
+/* Advance time*/
 _cur_time += _dt;
-
-if(_error == 0)
-	_dt = timestep;
-else
-{
-	/* Approximate the cube root using Halley's Method (error is usually between 0 and 10)*/
-	$num_type$ cr = (1.0f + 2 * _error)/(2.0f + _error);
-	$num_type$ cr3 = cr*cr*cr;
-	cr = cr * (cr3 + 2.0f * _error)/(2.0f * cr3 + _error);
-	_dt *= 0.9f / cr;
-	/* _dt *= 0.9f * rootn(_error, -3.0f); */
-}
 ".dup;
 		/* Declare temp states */
 		foreach(name, state; &type.AllStates)
@@ -206,14 +163,6 @@ else
 		}
 		source.Inject(kernel_source, "$apply_derivs_2$");
 		
-		/* Compute error */
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " -= _" ~ name ~ "_0;";
-			source ~= "_error = max(_error, fabs(" ~ name ~ ") / _" ~ name ~ "_tol);";
-		}
-		source.Inject(kernel_source, "$compute_error$");
-		
 		/* Reset state */
 		foreach(name, state; &type.AllStates)
 		{
@@ -223,45 +172,4 @@ else
 		
 		return kernel_source;
 	}
-	
-	override
-	void SetTolerance(CCLKernel kernel, char[] state, double tolerance)
-	{
-		assert(tolerance > 0);
-		
-		auto idx_ptr = state in ToleranceRegistry;
-		if(idx_ptr !is null)
-		{	
-			Tolerances[*idx_ptr] = tolerance;
-			if(Group.Initialized)
-			{
-				kernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, cast(float_t)tolerance);
-			}
-		}
-		else
-			throw new Exception("Neuron group '" ~ Group.Name ~ "' does not have a '" ~ state ~ "' state.");
-	}
-	
-	override
-	char[] GetPostThreshCode(CNeuronType type)
-	{
-		return 
-"/* Clamp the _dt not too overshoot the timestep */
-if(_cur_time < timestep && _cur_time + _dt >= timestep)
-{
-	_dt_residual = _dt;
-	_dt = timestep - _cur_time + 0.0001f;
-	_dt_residual -= _dt;
-}";
-	}
-	
-	override
-	void Shutdown()
-	{
-		DtBuffer.Release();
-	}
-	
-	CCLBuffer!(float_t) DtBuffer;
-	double[] Tolerances;
-	int[char[]] ToleranceRegistry;
 }

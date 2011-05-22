@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.sourceconstructor;
+module celeme.internal.sourceconstructor;
 
 import tango.text.Util;
 import tango.util.Convert;

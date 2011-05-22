@@ -1,4 +1,4 @@
-["capi",1,[],[1,847],[
+["capi",1,[],[1,895],[
 ["celeme_init",12,[32],[66,79],[]],
 ["celeme_shutdown",12,[32],[90,102],[]],
 ["celeme_get_error",12,[32],[115,121],[]],
@@ -29,10 +29,13 @@
 ["celeme_get_min_dt",12,[32],[500,500],[]],
 ["celeme_set_min_dt",12,[32],[512,512],[]],
 ["celeme_get_count",12,[32],[524,524],[]],
-["celeme_seed",12,[32],[536,536],[]],
-["celeme_get_recorder_name",12,[32],[717,728],[]],
-["celeme_get_recorder_length",12,[32],[740,751],[]],
-["celeme_get_recorder_time",12,[32],[763,774],[]],
-["celeme_get_recorder_data",12,[32],[786,797],[]],
-["celeme_get_recorder_tags",12,[32],[809,820],[]],
-["celeme_get_recorder_neuron_ids",12,[32],[832,846],[]]]]
+["celeme_get_nrn_offset",12,[32],[536,536],[]],
+["celeme_seed",12,[32],[548,548],[]],
+["celeme_get_connection_id",12,[32],[560,560],[]],
+["celeme_get_connection_slot",12,[32],[572,572],[]],
+["celeme_get_recorder_name",12,[32],[765,776],[]],
+["celeme_get_recorder_length",12,[32],[788,799],[]],
+["celeme_get_recorder_time",12,[32],[811,822],[]],
+["celeme_get_recorder_data",12,[32],[834,845],[]],
+["celeme_get_recorder_tags",12,[32],[857,868],[]],
+["celeme_get_recorder_neuron_ids",12,[32],[880,894],[]]]]

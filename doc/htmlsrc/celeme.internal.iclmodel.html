@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>celeme.internal.iclmodel</title>
+  <style type="text/css">
+  .linescolumn > a { display: block; }
+  td { vertical-align: top; }
+  </style>
+  <link href="html.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<table><tr><td class="linescolumn"><a id="L1" href="#L1">1</a><a id="L2" href="#L2">2</a><a id="L3" href="#L3">3</a><a id="L4" href="#L4">4</a><a id="L5" href="#L5">5</a><a id="L6" href="#L6">6</a><a id="L7" href="#L7">7</a><a id="L8" href="#L8">8</a><a id="L9" href="#L9">9</a><a id="L10" href="#L10">10</a><a id="L11" href="#L11">11</a><a id="L12" href="#L12">12</a><a id="L13" href="#L13">13</a><a id="L14" href="#L14">14</a><a id="L15" href="#L15">15</a><a id="L16" href="#L16">16</a><a id="L17" href="#L17">17</a><a id="L18" href="#L18">18</a><a id="L19" href="#L19">19</a><a id="L20" href="#L20">20</a><a id="L21" href="#L21">21</a><a id="L22" href="#L22">22</a><a id="L23" href="#L23">23</a><a id="L24" href="#L24">24</a><a id="L25" href="#L25">25</a><a id="L26" href="#L26">26</a><a id="L27" href="#L27">27</a><a id="L28" href="#L28">28</a><a id="L29" href="#L29">29</a><a id="L30" href="#L30">30</a><a id="L31" href="#L31">31</a><a id="L32" href="#L32">32</a><a id="L33" href="#L33">33</a><a id="L34" href="#L34">34</a><a id="L35" href="#L35">35</a><a id="L36" href="#L36">36</a></td>
+<td><td><pre class="sourcecode">
+<span class="bc">/*
+This file is part of Celeme, an Open Source OpenCL neural simulator.
+Copyright (C) 2010-2011 Pavel Sountsov
+
+Celeme is free software: you can redistribute it and/or modify
+it under the terms of the Lesser GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Celeme is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
+*/</span>
+
+<span class="d Compound"><span class="d Module"><span class="k">module</span> <span class="i">celeme</span>.<span class="i">internal</span>.<span class="i">iclmodel</span>;</span>
+
+<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">imodel</span>;</span>
+<span class="d Import"><span class="k">import</span> <span class="i">celeme</span>.<span class="i">internal</span>.<span class="i">clcore</span>;</span>
+
+<span class="d Import"><span class="k">import</span> <span class="i">opencl</span>.<span class="i">cl</span>;</span>
+
+<span class="d Interface"><span class="k">interface</span> <span class="i">ICLModel</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">IModel</span></span></span>
+<span class="d Compound">{
+	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">Initialized</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cl_program</span></span> <span class="i">Program</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CCLCore</span></span> <span class="i">Core</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span> <span class="i">FiredSynIdxBuffer</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span> <span class="i">FiredSynBuffer</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">WorkgroupSize</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+}</span></span></span>
+
+</pre></td>
+</tr></table>
+</body>
+</html>

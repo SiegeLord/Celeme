@@ -339,7 +339,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses, 128);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -360,6 +360,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		CreateStepKernel(type);
 		CreateInitKernel(type);
 		CreateDeliverKernel(type, parallel_delivery);
+	}
+	
+	void UnMapBuffers()
+	{
+		DestSynBuffer.UnMap();
+		NeedUnMap = false;
 	}
 	
 	/* Call this after the program has been created, as we need the memset kernel
@@ -464,6 +470,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			conn.Initialize;
 		
 		ResetBuffers();
+		UnMapBuffers();
 	}
 	
 	bool NeedSrcSynCode()
@@ -541,6 +548,9 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	{
 		assert(Model.Initialized);
 		
+		if(NeedUnMap)
+			UnMapBuffers();
+		
 		size_t total_num = (Count / workgroup_size) * workgroup_size;
 		if(total_num < Count)
 			total_num += workgroup_size;
@@ -551,6 +561,9 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	void CallStepKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
+		
+		if(NeedUnMap)
+			UnMapBuffers();
 
 		with(StepKernel)
 		{
@@ -562,6 +575,9 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 	void CallDeliverKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
+		
+		if(NeedUnMap)
+			UnMapBuffers();
 		
 		with(DeliverKernel)
 		{
@@ -1707,6 +1723,8 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
+		NeedUnMap = true;
+		
 		DestSynBuffer()[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
 	}
 	
@@ -1717,6 +1735,8 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
+		NeedUnMap = true;
+		
 		return DestSynBuffer()[src_syn_id][0];
 	}
 	
@@ -1726,6 +1746,8 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(Model.Initialized);
 		
 		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		
+		NeedUnMap = true;
 		
 		return DestSynBuffer()[src_syn_id][1];
 	}
@@ -1791,6 +1813,9 @@ for(int ii = 0; ii < num_fired; ii++)
 				conn[arg_name] = arg_val;
 			}
 		}
+		
+		if(NeedUnMap)
+			UnMapBuffers();
 		
 		conn.Connect(multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type);
 		
@@ -1952,6 +1977,9 @@ for(int ii = 0; ii < num_fired; ii++)
 	int RandLenVal = 0;
 	CCLRand RandVal;
 	bool NeedRandArgs = false;
+	
+	/* If true, need to unmap the cached buffers */
+	bool NeedUnMap = false;
 	
 	CIntegrator!(float_t) Integrator;
 	

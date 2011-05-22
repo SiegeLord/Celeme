@@ -95,14 +95,14 @@ void main(char[][] arg_list)
 		}
 	}
 	
-	auto conn_plot = new C3DPlot;
+	/+auto conn_plot = new C3DPlot;
 	with(conn_plot)
 	{
 		Style = "pm3d";
 		Plot(conns, N, N);
 	}
 	
-	return;
+	return;+/
 	
 	/+auto arr = model["Regular"].DestSynBuffer.Map(CL_MAP_READ);
 	foreach(el; arr)

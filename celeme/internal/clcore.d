@@ -237,8 +237,8 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		assert(idx >= 0 && idx < Length);
 		
-		if(!(CL_MAP_WRITE & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
-			MapWrite(idx, min(idx + CacheSize, Length));
+		/* Don't do cached writes, since they are dangerous */
+		MapWrite(idx, idx + 1);
 		
 		Mapped[idx - MappedOffset] = val;
 		

@@ -118,24 +118,43 @@ class CCLBufferBase
 		return LengthVal;
 	}
 protected:
-	CCLCore Core;
 	cl_mem BufferVal;
 	size_t LengthVal;
+	
+	cl_mem HostBuffer;
+	
+	bool UseTwoBuffers = false;
+	CCLCore Core;
+	size_t CacheSize = 1;
+	size_t MappedOffset;
+	int MappedMode = 0;
 }
 
 class CCLBuffer(T) : CCLBufferBase
 {
-	this(CCLCore core, size_t length, size_t cache_size = 1)
+	this(CCLCore core, size_t length, size_t cache_size = 1, bool use_two_buffers = false)
 	{
 		Core = core;
 		LengthVal = length;
 		CacheSize = cache_size;
+		UseTwoBuffers = use_two_buffers;
 		if(CacheSize < 1)
 			CacheSize = 1;
 		
 		int err;
-		BufferVal = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
-		assert(err == 0, GetCLErrorString(err));
+		if(UseTwoBuffers)
+		{
+			BufferVal = clCreateBuffer(Core.Context, CL_MEM_READ_WRITE, LengthVal * T.sizeof, null, &err);
+			assert(err == 0, GetCLErrorString(err));
+			HostBuffer = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
+			assert(err == 0, GetCLErrorString(err));
+		}
+		else
+		{
+			BufferVal = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
+			HostBuffer = BufferVal;
+			assert(err == 0, GetCLErrorString(err));
+		}
 		
 		NumBuffers++;
 	}
@@ -170,9 +189,15 @@ class CCLBuffer(T) : CCLBufferBase
 		else
 		{
 			UnMap();
+			
+			if(UseTwoBuffers && (mode & CL_MAP_READ))
+			{
+				auto err = clEnqueueCopyBuffer(Core.Commands, Buffer, HostBuffer, start * T.sizeof, start * T.sizeof, (end - start) * T.sizeof, 0, null, null);
+				assert(err == 0, GetCLErrorString(err));
+			}
 
 			int err;
-			T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, Buffer, CL_TRUE, mode, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
+			T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, HostBuffer, CL_TRUE, mode, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
 			assert(err == 0, GetCLErrorString(err));
 			
 			MappedMode = mode;
@@ -186,6 +211,8 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		UnMap();
 		clReleaseMemObject(Buffer);
+		if(UseTwoBuffers)
+			clReleaseMemObject(HostBuffer);
 		
 		NumBuffers--;
 	}
@@ -194,7 +221,13 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		if(Mapped.length)
 		{
-			clEnqueueUnmapMemObject(Core.Commands, Buffer, Mapped.ptr, 0, null, null);
+			clEnqueueUnmapMemObject(Core.Commands, HostBuffer, Mapped.ptr, 0, null, null);
+			
+			if(UseTwoBuffers && (MappedMode & CL_MAP_WRITE))
+			{
+				auto err = clEnqueueCopyBuffer(Core.Commands, HostBuffer, Buffer, MappedOffset * T.sizeof, MappedOffset * T.sizeof, Mapped.length * T.sizeof, 0, null, null);
+				assert(err == 0, GetCLErrorString(err));
+			}
 			
 			Mapped.length = 0;
 			MappedOffset = 0;
@@ -248,10 +281,7 @@ class CCLBuffer(T) : CCLBufferBase
 		return val;
 	}
 protected:
-	size_t CacheSize = 1;
 	T[] Mapped;
-	size_t MappedOffset;
-	int MappedMode = 0;
 }
 
 class CCLCore
@@ -386,7 +416,7 @@ class CCLCore
 	
 	CCLBuffer!(T) CreateBuffer(T)(size_t length, size_t cache_size = 1)
 	{
-		return new CCLBuffer!(T)(this, length, cache_size);
+		return new CCLBuffer!(T)(this, length, cache_size, GPU);
 	}
 	
 	CCLKernel CreateKernel(cl_program program, char[] name)

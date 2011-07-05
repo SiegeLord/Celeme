@@ -26,6 +26,11 @@ typedef struct CELEME_MODEL CELEME_MODEL;
 typedef struct CELEME_NEURON_TYPE CELEME_NEURON_TYPE;
 typedef struct CELEME_NEURON_GROUP CELEME_NEURON_GROUP;
 typedef struct CELEME_RECORDER CELEME_RECORDER;
+typedef struct CELEME_SLOTS
+{
+	int SourceSlot;
+	int DestSlot;
+} CELEME_SLOTS;
 
 void celeme_init(void);
 void celeme_shutdown(void);

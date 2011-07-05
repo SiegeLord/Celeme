@@ -349,10 +349,10 @@ void celeme_set_connection(IModel model, char* src_group, int src_nrn_id, int sr
  * 
  * C signature:
  * ---
- * void celeme_connect(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, const char* dest_group, int dest_nrn_id, int dest_syn_type);
+ * CELEME_SLOTS celeme_connect(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, const char* dest_group, int dest_nrn_id, int dest_syn_type);
  * ---
  */
-void celeme_connect(IModel model, char* src_group, int src_nrn_id, int src_event_source, char* dest_group, int dest_nrn_id, int dest_syn_type);
+IModel.SSlots celeme_connect(IModel model, char* src_group, int src_nrn_id, int src_event_source, char* dest_group, int dest_nrn_id, int dest_syn_type);
 
 /**
  * Apply a connector.
@@ -627,9 +627,9 @@ mixin(ModelFunc!("set_connection", "void", "SetConnection",
 	", char* src_group, int src_nrn_id, int src_event_source, int src_slot, char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot", 
 	"fromStringz(src_group), src_nrn_id, src_event_source, src_slot, fromStringz(dest_group), dest_nrn_id, dest_syn_type, dest_slot", ""));
 	
-mixin(ModelFunc!("connect", "void", "Connect", 
+mixin(ModelFunc!("connect", "IModel.SSlots", "Connect", 
 	", char* src_group, int src_nrn_id, int src_event_source, char* dest_group, int dest_nrn_id, int dest_syn_type", 
-	"fromStringz(src_group), src_nrn_id, src_event_source, fromStringz(dest_group), dest_nrn_id, dest_syn_type", ""));
+	"fromStringz(src_group), src_nrn_id, src_event_source, fromStringz(dest_group), dest_nrn_id, dest_syn_type", "IModel.SSlots(-1, -1)"));
 	
 void celeme_apply_connector(IModel model, char* connector_name, int multiplier, char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals)
 {

@@ -253,12 +253,11 @@ PyObject* SModel_connect(SModel *self, PyObject* args, PyObject* kwds)
 		&dest_group, &dest_nrn_id, &dest_syn_type))
 		return null;
 	
-	celeme_connect(self.Model, src_group, src_nrn_id, src_event_source, 
+	auto ret = celeme_connect(self.Model, src_group, src_nrn_id, src_event_source, 
 		dest_group, dest_nrn_id, dest_syn_type);
 	
 	mixin(ErrorCheck("null"));
-	Py_INCREF(Py_None);
-	return Py_None;
+	return Py_BuildValue("(ii)", ret.SourceSlot, ret.DestSlot);
 }
 
 extern (C)

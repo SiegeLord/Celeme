@@ -428,9 +428,13 @@ class CCLModel(float_t) : ICLModel
 	}
 	
 	override
-	bool Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
+	SSlots Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
 	{
 		assert(Initialized);
+		
+		SSlots ret;
+		ret.SourceSlot = -1;
+		ret.DestSlot = -1;
 		
 		auto src = GetGroup(src_group);
 		auto dest = GetGroup(dest_group);
@@ -446,10 +450,12 @@ class CCLModel(float_t) : ICLModel
 		auto dest_slot = dest.GetDestSlot(dest_nrn_id, dest_syn_type);
 		
 		if(src_slot < 0 || dest_slot < 0)
-			return false;
+			return ret;
 		
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
-		return true;
+		ret.SourceSlot = src_slot;
+		ret.DestSlot = dest_slot;
+		return ret;
 	}
 	
 	override

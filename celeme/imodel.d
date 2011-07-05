@@ -128,6 +128,16 @@ interface IModel
 	void SetConnection(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
 	
 	/**
+	 * Utility structure to hold the slots used by a connection. Returned by the $(SYMLINK Connect, Connect) method.
+	 * Both values will be set to -1 if the connection is not made.
+	 */
+	struct SSlots
+	{
+		int SourceSlot;
+		int DestSlot;
+	}
+	
+	/**
 	 * Adds a connection between two neurons. This function respects the used slots.
 	 * 
 	 * Params:
@@ -139,10 +149,10 @@ interface IModel
 	 *     dest_syn_type = Index of the synapse to use
 	 * 
 	 * Returns:
-	 *     true if the connection was made succesfully, false otherwise. The connection might not be made
+	 *     A $(SYMLINK SSlots, SSlots) structure. The connection might not be made
 	 *     because the maximum number of slots has been used.
 	 */
-	bool Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type);
+	SSlots Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type);
 	
 	/**
 	 * Apply a connector to interconnect two ranges of neurons. This is the fastest method to connect neurons,

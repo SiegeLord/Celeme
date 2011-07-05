@@ -10,6 +10,7 @@ model.Generate()
 
 N = model["Regular"].Count
 model.ApplyConnector("RandConn", N, "Regular", (0, N), 0, "Regular", (0, N), 0, {"P": 0.05})
+#print model.Connect("Regular", 0, 0, "Regular", 1, 0)
 
 rec = model["Regular"].Record(0, 1)
 

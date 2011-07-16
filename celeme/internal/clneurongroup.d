@@ -40,6 +40,7 @@ import tango.text.Util;
 import tango.util.Convert;
 import tango.text.convert.Format;
 import tango.core.Array;
+//import stdc = tango.stdc.stdio;
 
 const RecordSizeArgStep = 6;
 const ArgOffsetStep = 7;
@@ -1567,7 +1568,7 @@ for(int ii = 0; ii < num_fired; ii++)
 			RecordIdxBuffer.MapWrite;
 			scope(exit) RecordIdxBuffer.UnMap;
 			
-			auto rec_size = RecordLength / RecordingWorkgroups.length;
+			auto rec_size = GroupRecordSize;
 			
 			StepKernel.SetGlobalArg(RecordSizeArgStep, cast(int)rec_size);
 			
@@ -1596,11 +1597,12 @@ for(int ii = 0; ii < num_fired; ii++)
 					int num_written = RecordIdxBuffer[workgroup.Id];
 					if(num_written)
 					{
-						auto start = ii * RecordLength / RecordingWorkgroups.length;
+						auto start = ii * GroupRecordSize;
 						
 						auto output = RecordBuffer.MapRead(start, start + num_written);
 						scope(exit) RecordBuffer.UnMap();
-						//Stdout.formatln("num_written: {} {}", num_written, output.length);
+
+						//stdc.printf("num_written: %d/%d\n", num_written, GroupRecordSize);
 						foreach(quad; output)
 						{
 							int id = cast(int)quad[0];
@@ -1614,6 +1616,12 @@ for(int ii = 0; ii < num_fired; ii++)
 			if(last)
 				RecordIdxBuffer[] = 0;
 		}
+	}
+	
+	private
+	size_t GroupRecordSize()
+	{
+		return RecordLength / RecordingWorkgroups.length;
 	}
 	
 	override

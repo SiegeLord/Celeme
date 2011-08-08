@@ -107,6 +107,21 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 		}
 	}
 	
+	foreach(val_entries; mech_entry["immutable"])
+	{
+		foreach(val_entry; val_entries[])
+		{
+			auto val = mech.AddImmutable(val_entry.Name);
+			
+			if(val_entry.IsSingleValue)
+				val = val_entry.Value!(double)(0.0);
+			else if(val_entry.IsAggregate)
+				val = val_entry.ValueOf!(double)("init", 0.0);
+			
+			//println("Immutable: {} = {}", val_entry.Name, val.Value);
+		}
+	}
+	
 	foreach(val_entries; mech_entry["external"])
 	{
 		foreach(val_entry; val_entries[])
@@ -192,6 +207,9 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  *     }
  *     // Alternate syntax, the init is set to the assigned value
  *     constant ConstantName2 = 0;
+ * 
+ *     // Immutables
+ *     immutable ImmutableName;
  *     
  *     // Externals
  *     external ExternName;

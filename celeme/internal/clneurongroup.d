@@ -87,6 +87,8 @@ $syn_thresh_array_arg$
 	int i = get_global_id(0);
 	int _local_id = get_local_id(0);
 	int _group_id = get_group_id(0);
+	
+$immutables$
 
 $syn_threshold_status$
 
@@ -646,6 +648,14 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			}
 		}
 		source.Inject(kernel_source, "$synapse_globals$");
+		
+		/* Immutables */
+		source.Tab;
+		foreach(name, val; &type.AllImmutables)
+		{
+			source ~= "const $num_type$ " ~ name ~ " = " ~ Format("{:e6}", val.Value) ~ ";";
+		}
+		source.Inject(kernel_source, "$immutables$");
 		
 		/* Integrator load */
 		source.Tab;

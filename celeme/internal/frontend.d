@@ -118,6 +118,7 @@ class CMechanism
 	mixin(AddMechFunc!("Local"));
 	mixin(AddMechFunc!("Global"));
 	mixin(AddMechFunc!("Constant"));
+	mixin(AddMechFunc!("Immutable"));
 	
 	void AddExternal(char[] name)
 	{
@@ -156,6 +157,21 @@ class CMechanism
 				return ret;
 		}
 		foreach(val; Constants)
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
+		foreach(val; Immutables)
+		{
+			if(int ret = dg(val))
+				return ret;
+		}
+		return 0;
+	}
+	
+	int AllImmutables(int delegate(ref CValue value) dg)
+	{
+		foreach(val; Immutables)
 		{
 			if(int ret = dg(val))
 				return ret;
@@ -254,6 +270,7 @@ class CMechanism
 		ret.Globals = Globals.deep_dup();
 		ret.Locals = Locals.deep_dup();
 		ret.Constants = Constants.deep_dup();
+		ret.Immutables = Immutables.deep_dup();
 		ret.Thresholds = Thresholds.deep_dup();
 		
 		ret.NumEventSources = NumEventSources;
@@ -301,6 +318,11 @@ class CMechanism
 	/* Constants are neuron-type parameters. They are the same for each neuron.
 	 */
 	CValue[] Constants;
+	
+	/* Immutables are neuron-type parameters. They are the same for each neuron and, unlike constants, they cannot
+	 * be changed after the kernel has been generated.
+	 */
+	CValue[] Immutables;
 	
 	/* Thresholds are used to provide instantaneous changes in state, with the associated resetting of the dt.
 	 */
@@ -516,6 +538,20 @@ class CNeuronType
 			foreach(val; &syn_type.Synapse.AllSynGlobals)
 			{
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
+	int AllImmutables(int delegate(ref char[] name, ref CValue value) dg)
+	{
+		foreach(ii, mech; Mechanisms)
+		{
+			foreach(val; mech.Immutables)
+			{
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
 				if(int ret = dg(name, val))
 					return ret;
 			}

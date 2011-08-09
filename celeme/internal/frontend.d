@@ -129,8 +129,37 @@ class CMechanism
 		Externals ~= name;
 	}
 	
+	void RemoveValue(char[] name)
+	{		
+		bool try_remove(ref CValue[] arr)
+		{
+			auto new_length = arr.removeIf((CValue val) { return val.Name == name; });
+			auto ret = new_length != arr.length;
+			
+			arr.length = new_length;
+			
+			return ret;
+		}
+		
+		if(try_remove(States)) return;
+		if(try_remove(Locals)) return;
+		if(try_remove(Globals)) return;
+		if(try_remove(Constants)) return;
+		if(try_remove(Immutables)) return;
+		
+		auto new_length = Externals.remove(name);
+		if(new_length != Externals.length)
+		{
+			Externals.length = new_length;
+			return;
+		}
+		
+		throw new Exception("Mechanism does not have a value named '" ~ name ~ "'.");
+	}
+	
 	bool IsDuplicateName(char[] name)
 	{
+		/* TODO: LOL OPTIMIZE */
 		foreach(val; &AllValues)
 		{
 			if(val.Name == name)

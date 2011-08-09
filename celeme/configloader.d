@@ -102,6 +102,8 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 				val = val_entry.Value!(double)(0.0);
 			else if(val_entry.IsAggregate)
 				val = val_entry.ValueOf!(double)("init", 0.0);
+				
+			val.ReadOnly = true;
 			
 			//println("Constant: {} = {}", val_entry.Name, val.Value);
 		}
@@ -117,6 +119,8 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 				val = val_entry.Value!(double)(0.0);
 			else if(val_entry.IsAggregate)
 				val = val_entry.ValueOf!(double)("init", 0.0);
+				
+			val.ReadOnly = true;
 			
 			//println("Immutable: {} = {}", val_entry.Name, val.Value);
 		}
@@ -456,6 +460,38 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
 			}
 		}
 	}
+	
+	void replace_value(char[] name, CValue delegate(char[] name) add_del)
+	{
+		auto old_val = mech[name];
+		mech.RemoveValue(name);
+		auto new_val = add_del(name);
+		old_val.dup(new_val);
+	}
+	
+	foreach(val_entries; mech_entry["global"])
+	{
+		foreach(val_entry; val_entries[])
+		{
+			replace_value(val_entry.Name, &mech.AddGlobal);
+		}
+	}
+	
+	foreach(val_entries; mech_entry["constant"])
+	{
+		foreach(val_entry; val_entries[])
+		{
+			replace_value(val_entry.Name, &mech.AddConstant);
+		}
+	}
+	
+	foreach(val_entries; mech_entry["immutable"])
+	{
+		foreach(val_entry; val_entries[])
+		{
+			replace_value(val_entry.Name, &mech.AddImmutable);
+		}
+	}
 }
 
 /**
@@ -506,6 +542,14 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
  *             }
  *             // Alternate syntax, the init is set to the assigned value
  *             SomeOtherVal = 0;
+ *         }
+ * 
+ *         // Value replacement. It is possible to change the type of a value to global, constant or immutable.
+ *         // This can be useful to fix some parameters for efficiency.
+ *         global
+ *         {
+ *             // This value will be converted to a global.
+ *             some_value;
  *         }
  *     }
  *     

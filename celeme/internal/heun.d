@@ -104,9 +104,6 @@ $compute_derivs_2$
 /* Compute the final state estimate */
 $apply_derivs_2$
 
-/* Transfer the state from the temporary storage to the real storage */
-$reset_state$
-
 /* Advance time*/
 _cur_time += _dt;
 ".dup;
@@ -143,7 +140,7 @@ _cur_time += _dt;
 		/* Apply derivs 1 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " += _dt * _d" ~ name ~ "_dt_1;";
+			source ~= "_" ~ name ~ "_0 += _dt * _d" ~ name ~ "_dt_1;";
 		}
 		source.Inject(kernel_source, "$apply_derivs_1$");
 		
@@ -152,6 +149,7 @@ _cur_time += _dt;
 		foreach(name, state; &type.AllStates)
 		{
 			second_source = second_source.c_substitute(name ~ "'", "_d" ~ name ~ "_dt_2");
+			second_source = second_source.c_substitute(name, "_" ~ name ~ "_0");
 		}
 		source.AddBlock(second_source);
 		source.Inject(kernel_source, "$compute_derivs_2$");
@@ -159,16 +157,9 @@ _cur_time += _dt;
 		/* Apply derivs 2 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "_" ~ name ~ "_0 += _dt / 2 * (_d" ~ name ~ "_dt_1 + _d" ~ name ~ "_dt_2);";
+			source ~= name ~ " += _dt / 2 * (_d" ~ name ~ "_dt_1 + _d" ~ name ~ "_dt_2);";
 		}
 		source.Inject(kernel_source, "$apply_derivs_2$");
-		
-		/* Reset state */
-		foreach(name, state; &type.AllStates)
-		{
-			source ~= name ~ " = _" ~ name ~ "_0;";
-		}
-		source.Inject(kernel_source, "$reset_state$");
 		
 		return kernel_source;
 	}

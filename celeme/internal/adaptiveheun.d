@@ -111,7 +111,7 @@ _dt_buf[i] = _dt;";
 		
 		char[] kernel_source = 
 "
-/* Declare temporary storage for state*/
+/* Declare storage for first state estimate*/
 $declare_temp_states$
 
 /* First derivative stage */
@@ -129,14 +129,14 @@ $apply_derivs_1$
 /* Compute the derivatives again */
 $compute_derivs_2$
 
-/* Compute the final state estimate */
+/* Compute the final change in state */
 $apply_derivs_2$
 
 /* Compute the error in this step */
 $compute_error$
 
-/* Transfer the state from the temporary storage to the real storage */
-$reset_state$
+/* Update state */
+$update_state$
 
 /* Advance and compute the new step size*/
 _cur_time += _dt;
@@ -186,7 +186,8 @@ else
 		/* Apply derivs 1 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " += _dt * _d" ~ name ~ "_dt_1;";
+			source ~= "_d" ~ name ~ "_dt_1 *= _dt;";
+			source ~= "_" ~ name ~ "_0 += _d" ~ name ~ "_dt_1;";
 		}
 		source.Inject(kernel_source, "$apply_derivs_1$");
 		
@@ -195,6 +196,7 @@ else
 		foreach(name, state; &type.AllStates)
 		{
 			second_source = second_source.c_substitute(name ~ "'", "_d" ~ name ~ "_dt_2");
+			second_source = second_source.c_substitute(name, "_" ~ name ~ "_0");
 		}
 		source.AddBlock(second_source);
 		source.Inject(kernel_source, "$compute_derivs_2$");
@@ -202,24 +204,23 @@ else
 		/* Apply derivs 2 */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "_" ~ name ~ "_0 += _dt / 2 * (_d" ~ name ~ "_dt_1 + _d" ~ name ~ "_dt_2);";
+			source ~= "_d" ~ name ~ "_dt_2 = (_d" ~ name ~ "_dt_1 + _dt * _d" ~ name ~ "_dt_2) / 2;";
 		}
 		source.Inject(kernel_source, "$apply_derivs_2$");
 		
 		/* Compute error */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " -= _" ~ name ~ "_0;";
-			source ~= "_error = max(_error, fabs(" ~ name ~ ") / _" ~ name ~ "_tol);";
+			source ~= "_error = max(_error, fabs(_d" ~ name ~ "_dt_1 - _d" ~ name ~ "_dt_2) / _" ~ name ~ "_tol);";
 		}
 		source.Inject(kernel_source, "$compute_error$");
 		
-		/* Reset state */
+		/* Update state */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= name ~ " = _" ~ name ~ "_0;";
+			source ~= name ~ " += _d" ~ name ~ "_dt_2;";
 		}
-		source.Inject(kernel_source, "$reset_state$");
+		source.Inject(kernel_source, "$update_state$");
 		
 		return kernel_source;
 	}

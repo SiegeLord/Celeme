@@ -672,31 +672,6 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 /**
  * Loads a model from a configuration file.
  * 
- * The configuration entry for a model looks like this:
- * 
- * ---
- * model
- * {
- *     // What floating point size to use ("float" or "double")
- *     float_type = "float";
- *     timestep_size = 1.0;
- *     
- *     // Neuron groups
- *     group NeuronTypeName
- *     {
- *         // Number of neurons
- *         number = 1;
- *         
- *         // Override the name of the group (if adding several of the same kind)
- *         // Empty name keeps the original neuron type name.
- *         name = "";
- *         
- *         // Whether or not to use the adaptive integrator for this group
- *         adaptive_dt = true;
- *     }
- * }
- * ---
- * 
  * Params:
  *     file = Path to a file to load from.
  *     gpu = Whether or not to use the GPU.

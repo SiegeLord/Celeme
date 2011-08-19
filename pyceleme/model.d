@@ -54,15 +54,42 @@ PyObject* SModel_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["file", "gpu", "double_precision", null];
+	char[][] kwlist = ["file", "include_dirs", "gpu", "double_precision", null];
 	char* str;
 	int gpu = 0;
 	int double_precision = 0;
+	PyObject* include_dirs;
 
-	if(!DParseTupleAndKeywords(args, kwds, "s|ii", kwlist, &str, &gpu, &double_precision))
+	if(!DParseTupleAndKeywords(args, kwds, "s|Oii", kwlist, &str, &include_dirs, &gpu, &double_precision))
 		return -1;
+		
+	char*[] include_dirs_arr;
+		
+	if(PyList_Check(include_dirs))
+	{
+		include_dirs_arr.length = PyList_Size(include_dirs);
+		
+		foreach(idx, ref include; include_dirs_arr)
+		{
+			auto item = PyList_GetItem(include_dirs, idx);
+			Py_INCREF(item);
+			scope(exit) Py_DECREF(item);
+			
+			if(!PyArg_Parse(item, "s", &include))
+			{
+				PyErr_SetString(Error, "include directory is supposed to be a string");
+				return -1;
+			}
+		}
+		
+	}
+	else
+	{
+		PyErr_SetString(Error, "args is supposed to be string list");
+		return -1;
+	}
 	
-	self.Model = celeme_load_model(str, cast(bool)gpu, cast(bool)double_precision);
+	self.Model = celeme_load_model(str, include_dirs_arr.length, include_dirs_arr.ptr, cast(bool)gpu, cast(bool)double_precision);
 	
 	mixin(ErrorCheck("-1"));
 	return 0;

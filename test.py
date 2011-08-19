@@ -2,7 +2,7 @@ import pyceleme as pc
 import numpy as np
 import pylab as pl
 
-model = pc.Model("stuff.cfg", False)
+model = pc.Model("stuff.cfg", ["mechanisms"], False)
 
 model.AddNeuronGroup("Regular", 1000);
 model.TimeStepSize = 1

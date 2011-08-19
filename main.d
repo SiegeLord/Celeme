@@ -47,7 +47,7 @@ void main(char[][] arg_list)
 	
 	timer.start;
 	
-	auto model = LoadModel("stuff.cfg", gpu);
+	auto model = LoadModel("stuff.cfg", ["mechanisms"], gpu);
 	scope(exit) model.Shutdown();
 	
 	const N = 1000;

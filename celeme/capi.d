@@ -25,7 +25,7 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * 
  * ---
  * const char* error;
- * CELEME_MODEL* model = celeme_load_model("model.cfg", true, false);
+ * CELEME_MODEL* model = celeme_load_model("model.cfg", 0, NULL, true, false);
  * if(error = celeme_get_error())
  *     printf("%s\n", error);
  * ---
@@ -151,14 +151,20 @@ void celeme_set_error(char* error)
  * 
  * C signature:
  * ---
- * CELEME_MODEL* celeme_load_model(const char* file, bool gpu, bool double_precision);
+ * CELEME_MODEL* celeme_load_model(const char* file, int num_includes, const char** include_dirs, bool gpu, bool double_precision);
  * ---
  */
-IModel celeme_load_model(char* file, bool gpu, bool double_precision)
+IModel celeme_load_model(char* file, int num_includes, char** include_dirs, bool gpu, bool double_precision)
 {
 	try
-	{		
-		return LoadModel(fromStringz(file), gpu, double_precision);
+	{
+		auto include_arr = new char[][](num_includes);
+		foreach(idx, ref include; include_arr)
+		{
+			include = fromStringz(include_dirs[idx]).dup;
+		}
+		
+		return LoadModel(fromStringz(file), include_arr, gpu, double_precision);
 	}
 	catch(Exception e)
 	{
@@ -218,6 +224,7 @@ void celeme_destroy_model(IModel model)
 {
 	try
 	{
+		assert(model);
 		auto len = Models.remove(model, &iser!(IModel));
 		if(len < Models.length)
 		{
@@ -361,7 +368,7 @@ IModel.SSlots celeme_connect(IModel model, char* src_group, int src_nrn_id, int 
  * 
  * C signature:
  * ---
- * void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals);
+ * void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const char** arg_keys, double* arg_vals);
  * ---
  */
 void celeme_apply_connector(IModel model, char* connector_name, int multiplier, char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals);
@@ -581,6 +588,7 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 {
 	try
 	{
+		assert(model);
 `;
 	if(ret != "void")
 		ret_str ~= 
@@ -635,6 +643,7 @@ void celeme_apply_connector(IModel model, char* connector_name, int multiplier, 
 {
 	try
 	{
+		assert(model);
 		double[char[]] d_args;
 		foreach(ii; range(argc))
 		{
@@ -766,6 +775,7 @@ char* celeme_get_recorder_name(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		return recorder.Name.c_str();
 	}
 	catch(Exception e)
@@ -789,6 +799,7 @@ size_t celeme_get_recorder_length(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		return recorder.Length;
 	}
 	catch(Exception e)
@@ -812,6 +823,7 @@ double* celeme_get_recorder_time(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		return recorder.T.ptr;
 	}
 	catch(Exception e)
@@ -835,6 +847,7 @@ double* celeme_get_recorder_data(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		return recorder.Data.ptr;
 	}
 	catch(Exception e)
@@ -858,6 +871,7 @@ int* celeme_get_recorder_tags(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		return recorder.Tags.ptr;
 	}
 	catch(Exception e)
@@ -881,6 +895,7 @@ int* celeme_get_recorder_neuron_ids(CRecorder recorder)
 {
 	try
 	{
+		assert(recorder);
 		if(recorder.NeuronIds !is null)
 			return recorder.NeuronIds.ptr;
 		return

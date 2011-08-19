@@ -674,15 +674,16 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
  * 
  * Params:
  *     file = Path to a file to load from.
+ *     include_directories = Additional include directories.
  *     gpu = Whether or not to use the GPU.
  *     double_precision = Whether or not to use double precision.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(char[] file, bool gpu = false, bool double_precision = false)
+IModel LoadModel(char[] file, char[][] include_directories, bool gpu = false, bool double_precision = false)
 {
-	auto root = LoadConfig(file);
+	auto root = LoadConfig(file, include_directories);
 	auto mechanisms = LoadMechanisms(root);
 	auto synapses = LoadSynapses(root);
 	auto connectors = LoadConnectors(root);

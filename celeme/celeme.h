@@ -42,7 +42,7 @@ void celeme_set_error(const char* error);
  */
 
 /*CELEME_MODEL* celeme_create_model(int type, bool gpu);*/
-CELEME_MODEL* celeme_load_model(const char* file, bool gpu, bool double_precision);
+CELEME_MODEL* celeme_load_model(const char* file, int num_includes, const char** include_dirs, bool gpu, bool double_precision);
 void celeme_initialize_model(CELEME_MODEL* model);
 void celeme_destroy_model(CELEME_MODEL* model);
 
@@ -59,7 +59,7 @@ void celeme_run_until(CELEME_MODEL* model, int num_timesteps);
 
 void celeme_set_connection(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, int src_slot, const char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
 void celeme_connect(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, const char* dest_group, int dest_nrn_id, int dest_syn_type);
-void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals);
+void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const char** arg_keys, double* arg_vals);
 
 double celeme_get_timestep_size(CELEME_MODEL* model);
 void celeme_set_timestep_size(CELEME_MODEL* model, double val);

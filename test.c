@@ -8,7 +8,8 @@ int main()
 	
 	celeme_init();
 	
-	CELEME_MODEL* model = celeme_load_model("stuff.cfg", true, false); CHECK;
+	const char* includes[] = {"mechanisms"};
+	CELEME_MODEL* model = celeme_load_model("stuff.cfg", 1, includes, false, false); CHECK;
 	
 	celeme_add_neuron_group(model, "Regular", 1000, NULL, true, true); CHECK;
 	
@@ -18,7 +19,7 @@ int main()
 	
 	celeme_generate_model(model, true); CHECK;
 	
-	char* arg_keys[] = {"P"};
+	const char* arg_keys[] = {"P"};
 	double arg_vals[] = {0.05};
 	
 	celeme_apply_connector(model, "RandConn", N, "Regular", 0, N, 0, "Regular", 0, N, 0, 1, arg_keys, arg_vals); CHECK;

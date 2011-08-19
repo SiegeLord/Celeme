@@ -174,6 +174,8 @@ import Integer = tango.text.convert.Integer;
 import tango.core.Variant;
 import tango.text.convert.Format;
 import tango.io.device.File;
+import tango.io.FilePath;
+import tango.io.Path;
 import tango.text.json.JsonEscape;
 
 import tango.io.Stdout;
@@ -183,26 +185,15 @@ import tango.io.Stdout;
  * 
  * Params:
  *     filename = Name of the file to load if no source is provided.
+ *     include_dirs = Array of directories to look at when resolving includes (including this call). Current directory is always searched first.
  *     src = If set, must contain the source to load from.
  * 
  * Returns:
  *     An entry representing the top-level entry of the configuration file.
  */
-CAggregate LoadConfig(char[] filename, char[] src = null, char[][] include_list = null, CAggregate[char[]] included_files = null)
+CAggregate LoadConfig(char[] filename, char[][] include_dirs = null, char[] src = null)
 {
-	if(src is null)
-		src = cast(char[])File.get(filename);
-	
-	scope tok = new CTokenizer(filename, src);
-	scope parser = new CParser(tok);
-	
-	include_list ~= filename;
-	
-	auto ret = new CAggregate("");
-	
-	FillAggregate(ret, parser, include_list, included_files, ret);
-	
-	return ret;
+	return LoadConfig(filename, include_dirs, src, null, null);
 }
 
 /**
@@ -775,7 +766,7 @@ class CSingleValue : CConfigEntry
 	Variant Val;
 }
 
-CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	if(parser.Peek == EToken.Name)
 	{
@@ -841,7 +832,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 				parser.Advance();
 				
 				auto aggr = new CAggregate(name);
-				FillAggregate(aggr, parser, include_list, included_files, root);
+				FillAggregate(aggr, parser, include_dirs, include_list, included_files, root);
 				
 				if(parser.Peek == EToken.RightBrace)
 				{
@@ -863,7 +854,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 			{
 				auto aggr = new CAggregate(name);
 				
-				auto entry = CreateEntry(parser, include_list, included_files, root);
+				auto entry = CreateEntry(parser, include_dirs, include_list, included_files, root);
 				if(entry !is null)
 					aggr.Children[entry.Name] ~= entry;
 				else
@@ -887,7 +878,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_list, CAggregate[char[
 	return null;
 }
 
-bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	if(parser.Peek == EToken.Name)
 	{
@@ -914,7 +905,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 					auto aggr_ptr = path in included_files;
 					if(aggr_ptr is null)
 					{
-						auto new_aggr = LoadConfig(path, null, include_list, included_files);
+						auto new_aggr = LoadConfig(path, include_dirs, null, include_list, included_files);
 						included_files[path] = new_aggr;
 						aggr_ptr = &new_aggr;
 					}
@@ -1057,18 +1048,46 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_list, CAggre
 	return false;
 }
 
-void FillAggregate(CAggregate ret, CParser parser, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+void FillAggregate(CAggregate ret, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	while(!parser.EOF)
 	{
-		if(!HandleInclude(ret, parser, include_list, included_files, root))
+		if(!HandleInclude(ret, parser, include_dirs, include_list, included_files, root))
 		{
 			CConfigEntry entry;
-			entry = CreateEntry(parser, include_list, included_files, root);
+			entry = CreateEntry(parser, include_dirs, include_list, included_files, root);
 			if(entry)
 				ret.Children[entry.Name] ~= entry;
 			else
 				break;
 		}
 	}
+}
+
+CAggregate LoadConfig(char[] filename, char[][] include_dirs, char[] src, char[][] include_list, CAggregate[char[]] included_files)
+{
+	if(src is null)
+	{
+		scope fp = new FilePath(filename);
+		size_t idx;
+		
+		while(!fp.exists && idx < include_dirs.length)
+		{
+			fp.set(filename);
+			fp.prepend(include_dirs[idx]);
+			idx++;
+		}
+		src = cast(char[])File.get(fp.toString);
+	}
+	
+	scope tok = new CTokenizer(filename, src);
+	scope parser = new CParser(tok);
+	
+	include_list ~= filename;
+	
+	auto ret = new CAggregate("");
+	
+	FillAggregate(ret, parser, include_dirs, include_list, included_files, ret);
+	
+	return ret;
 }

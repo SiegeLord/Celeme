@@ -31,12 +31,24 @@ import celeme.internal.clmodel;
 
 import tango.text.convert.Format;
 
+char[] GetMultiEntryText(CConfigEntry base_entry, char[] entry_name)
+{
+	char[] ret;
+	
+	foreach(entry; base_entry[entry_name])
+	{
+		ret ~= entry.Value!(char[])("");
+	}
+	
+	return ret;
+}
+
 void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 {
 	foreach(ii; range(3))
 	{
 		auto stage_name = Format("stage{}", ii);
-		auto stage_code = mech_entry.ValueOf!(char[])(stage_name);
+		auto stage_code = GetMultiEntryText(mech_entry, stage_name);
 		if(stage_code !is null)
 		{
 			//println("{}: {}", stage_name, stage_code);
@@ -44,8 +56,8 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 		}
 	}
 	
-	mech.InitCode = mech_entry.ValueOf!(char[])("init_code", "");
-	mech.PreStageCode = mech_entry.ValueOf!(char[])("pre_stage", "");
+	mech.InitCode = GetMultiEntryText(mech_entry, "init_code");
+	mech.PreStageCode = GetMultiEntryText(mech_entry, "pre_stage");
 	
 	foreach(val_entries; mech_entry["state"])
 	{
@@ -146,7 +158,7 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 		if(condition is null)
 			throw new Exception("All thresholds need a condition.");
 
-		auto code = entry.ValueOf!(char[])("code", "");
+		auto code = GetMultiEntryText(entry, "code");
 		
 		bool is_event_source = entry.ValueOf!(bool)("event_source", false);
 		bool reset_dt = entry.ValueOf!(bool)("reset_dt", false);
@@ -168,15 +180,15 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  * ---
  * mechanism MechName
  * {
- *     // Staged evaluation of the derivatives
+ *     // Staged evaluation of the derivatives. Duplicate entries will be combined together.
  *     stage0 = "";
  *     stage1 = "";
  *     stage2 = "";
  *     
- *     // Init code
+ *     // Init code. Duplicate entries will be combined together.
  *     init_code = "";
  *     
- *     // Code run before the integration is performed
+ *     // Code run before the integration is performed. Duplicate entries will be combined together.
  *     pre_stage = "";
  *     
  *     // States
@@ -227,7 +239,7 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  *         // Condition to use as threshold. Mandatory parameter.
  *         condition;
  *         
- *         // Code ran when the threshold is activated
+ *         // Code ran when the threshold is activated. Duplicate entries will be combined together.
  *         code = "";
  *         
  *         // Specifies whether this is an event source or not
@@ -275,7 +287,7 @@ CMechanism[char[]] LoadMechanisms(CConfigEntry root)
  * ---
  * synapse SynapseName
  * {
- *     // Code to be ran when the synapse is triggered
+ *     // Code to be ran when the synapse is triggered. Duplicate entries will be combined together.
  *     syn_code = "";
  *     
  *     // Syn globals
@@ -296,7 +308,7 @@ CMechanism[char[]] LoadMechanisms(CConfigEntry root)
  *         // Condition to use as threshold. Mandatory parameter.
  *         condition;
  *         
- *         // Code ran when the threshold is activated
+ *         // Code ran when the threshold is activated. Duplicate entries will be combined together.
  *         code = "";
  *     }
  *     // Alternate syntax, the init is set to the assigned value
@@ -324,7 +336,7 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 			
 			FillMechanism(syn, entry);
 			
-			syn.SynCode = entry.ValueOf!(char[])("syn_code", "");
+			syn.SynCode = GetMultiEntryText(entry, "syn_code");
 			
 			foreach(thresh_entry; entry["syn_threshold"])
 			{
@@ -336,7 +348,7 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 				if(condition is null)
 					throw new Exception("All syn thresholds need a condition.");
 
-				auto code = thresh_entry.ValueOf!(char[])("code", "");
+				auto code = GetMultiEntryText(thresh_entry, "code");
 				
 				syn.AddSynThreshold(state, condition, code);
 				
@@ -376,7 +388,7 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
  * ---
  * connector ConnectorName
  * {
- *     // Connector code
+ *     // Connector code. Multiple entries will be combined together.
  *     code = "";
  * 
  *     // Constants
@@ -405,7 +417,7 @@ CConnector[char[]] LoadConnectors(CConfigEntry root)
 			
 			//println("Connector: {}", entry.Name);
 			
-			conn.SetCode(entry.ValueOf!(char[])("code", ""));
+			conn.SetCode(GetMultiEntryText(entry, "code"));
 			
 			//println("Code: {}", conn.Code);
 			
@@ -522,6 +534,12 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
  *     
  *     // Minimum dt
  *     min_dt = 0.01;
+ * 
+ *     // Pre-stage code. Multiple entries will be combined together.
+ *     pre_stage = "";
+ * 
+ *     // Init code. Multiple entries will be combined together.
+ *     init_stage = "";
  *     
  *     // Mechanisms
  *     mechanism MechName
@@ -604,8 +622,8 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 			nrn_type.NumSrcSynapses = nrn_entry.ValueOf!(int)("num_src_synapses", 0);
 			nrn_type.RandLen = nrn_entry.ValueOf!(int)("rand_state_len", 0);
 			nrn_type.MinDt = nrn_entry.ValueOf!(double)("min_dt", 0.01);
-			nrn_type.PreStageCode = nrn_entry.ValueOf!(char[])("pre_stage", "");
-			nrn_type.InitCode = nrn_entry.ValueOf!(char[])("init_code", "");
+			nrn_type.PreStageCode = GetMultiEntryText(nrn_entry, "pre_stage");
+			nrn_type.InitCode = GetMultiEntryText(nrn_entry, "init_code");
 			
 			foreach(entries; nrn_entry["mechanism"])
 			{

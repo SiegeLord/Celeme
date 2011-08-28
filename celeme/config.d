@@ -728,8 +728,6 @@ class CParser
 	CTokenizer Tokenizer;
 }
 
-
-
 class CAggregate : CConfigEntry
 {
 	this(char[] name)
@@ -766,8 +764,14 @@ class CSingleValue : CConfigEntry
 	Variant Val;
 }
 
-CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+/* Aggregates are added to the parent before they are filled out, so that includes work */
+CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
+	void add(CConfigEntry entry)
+	{
+		parent.Children[entry.Name] ~= entry;
+	}
+	
 	if(parser.Peek == EToken.Name)
 	{
 		CConfigEntry ret;
@@ -778,6 +782,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include
 			case EToken.Assign:
 			{
 				auto sval = new CSingleValue(name);
+				add(sval);
 				
 				switch(parser.Advance())
 				{
@@ -832,6 +837,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include
 				parser.Advance();
 				
 				auto aggr = new CAggregate(name);
+				add(aggr);
 				FillAggregate(aggr, parser, include_dirs, include_list, included_files, root);
 				
 				if(parser.Peek == EToken.RightBrace)
@@ -853,11 +859,8 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include
 			case EToken.Name:
 			{
 				auto aggr = new CAggregate(name);
-				
-				auto entry = CreateEntry(parser, include_dirs, include_list, included_files, root);
-				if(entry !is null)
-					aggr.Children[entry.Name] ~= entry;
-				else
+				add(aggr);
+				if(!CreateEntry(aggr, parser, include_dirs, include_list, included_files, root))
 					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
 				
 				ret = aggr;
@@ -867,7 +870,7 @@ CConfigEntry CreateEntry(CParser parser, char[][] include_dirs, char[][] include
 			{
 				parser.Advance();
 				ret = new CSingleValue(name);
-				
+				add(ret);
 				break;
 			}
 			default:
@@ -1054,11 +1057,7 @@ void FillAggregate(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 	{
 		if(!HandleInclude(ret, parser, include_dirs, include_list, included_files, root))
 		{
-			CConfigEntry entry;
-			entry = CreateEntry(parser, include_dirs, include_list, included_files, root);
-			if(entry)
-				ret.Children[entry.Name] ~= entry;
-			else
+			if(!CreateEntry(ret, parser, include_dirs, include_list, included_files, root))
 				break;
 		}
 	}
@@ -1090,4 +1089,43 @@ CAggregate LoadConfig(char[] filename, char[][] include_dirs, char[] src, char[]
 	FillAggregate(ret, parser, include_dirs, include_list, included_files, ret);
 	
 	return ret;
+}
+
+unittest
+{
+	auto src = `
+		A
+		{
+			a = 6;
+			
+			C b = 7;
+			C b = 8;
+			D;
+		}
+		
+		B
+		{
+			include A-D;
+			include A.C;
+		}
+		
+		C
+		{
+			H a = 1;
+			B
+			{
+				include C.H;
+			}
+		}
+	`;
+	
+	auto cfg = LoadConfig("test", null, src);
+	
+	auto B = cfg["B", true];
+	auto C = cfg["C", true];
+	
+	assert(B.ValueOf!(int)("a") == 6);
+	assert(B.ValueOf!(int)("b") == 8);
+	assert(B["D"].length == 0);
+	assert(C["B", true].ValueOf!(int)("a") == 1);
 }

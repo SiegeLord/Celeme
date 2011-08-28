@@ -1,12 +1,14 @@
 Short term things:
 
-- Currently all the kernels use the complete path for all memory accesses due to atomics. My tests have shown that removing the atomics doesn't actually help all that much: at most 15% performance increase. Still, something to look at in the future.
+- Vectorize reads/writes for the benefit of AMD GPU's
+
+- Write a serial path for syn_thresholds for the benefit of CPU's
+
+- Maybe write an integrator with step rejection (shouldn't be a lot of work)
+
+- Test on Windows now that I have a OpenCL GPU on Windows
 
 - It should be possible to set the workgroup sizes on a per-neuron group basis
-
-- Caching for successive accesses to the global/syn-global/connection arrays
-
-- Decording of error codes returned from kernels
 
 - Figure out exactly why performance is not so hot (or maybe it is hot, but I don't really understand it)
 

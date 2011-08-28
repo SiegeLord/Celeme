@@ -294,7 +294,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
-		/* Copy the non-locals and constants from the type */
+		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)
 		{
 			ValueBufferRegistry[name] = ValueBuffers.length;
@@ -334,15 +334,15 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			CircBuffer = Core.CreateBuffer!(float_t)(CircBufferSize * NumEventSources * Count);
 		}
 		
-		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1);
-		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count);
-		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength);
+		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1, false, true);
+		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count, true, false);
+		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength, false, true);
 		RecordIdxBuffer = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize);
-		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize);
+		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize, true, false);
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses, 128);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses, true, true, 128);
 		}
 
 		foreach(name, state; &type.AllConstants)

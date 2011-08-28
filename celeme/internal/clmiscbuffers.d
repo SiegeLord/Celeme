@@ -28,7 +28,7 @@ class CValueBuffer(T)
 	this(CValue val, CCLCore core, size_t count)
 	{
 		DefaultValue = val.Value;
-		Buffer = core.CreateBuffer!(T)(count);
+		Buffer = core.CreateBuffer!(T)(count, true, !val.ReadOnly);
 	}
 	
 	double opAssign(double val)
@@ -50,7 +50,7 @@ class CSynGlobalBuffer(T)
 	this(CValue val, CCLCore core, size_t num_syn)
 	{
 		DefaultValue = val.Value;
-		Buffer = core.CreateBuffer!(T)(num_syn);
+		Buffer = core.CreateBuffer!(T)(num_syn, true, !val.ReadOnly);
 	}
 	
 	void Release()

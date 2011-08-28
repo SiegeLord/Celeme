@@ -132,7 +132,7 @@ protected:
 
 class CCLBuffer(T) : CCLBufferBase
 {
-	this(CCLCore core, size_t length, size_t cache_size = 1, bool use_two_buffers = false)
+	this(CCLCore core, size_t length, size_t cache_size = 1, bool read = true, bool write = true, bool use_two_buffers = false)
 	{
 		Core = core;
 		LengthVal = length;
@@ -144,7 +144,23 @@ class CCLBuffer(T) : CCLBufferBase
 		int err;
 		if(UseTwoBuffers)
 		{
-			BufferVal = clCreateBuffer(Core.Context, CL_MEM_READ_WRITE, LengthVal * T.sizeof, null, &err);
+			int flags;
+			if(read)
+			{
+				if(write)
+					flags = CL_MEM_READ_WRITE;
+				else
+					flags = CL_MEM_READ_ONLY;
+			}
+			else
+			{
+				if(write)
+					flags = CL_MEM_WRITE_ONLY;
+				else
+					throw new Exception("Invalid combination of read/write parameters.");
+			}
+			
+			BufferVal = clCreateBuffer(Core.Context, flags, LengthVal * T.sizeof, null, &err);
 			assert(err == 0, GetCLErrorString(err));
 			HostBuffer = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
 			assert(err == 0, GetCLErrorString(err));
@@ -414,9 +430,9 @@ class CCLCore
 		}
 	}
 	
-	CCLBuffer!(T) CreateBuffer(T)(size_t length, size_t cache_size = 1)
+	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 1)
 	{
-		return new CCLBuffer!(T)(this, length, cache_size, GPU);
+		return new CCLBuffer!(T)(this, length, cache_size, read, write, GPU);
 	}
 	
 	CCLKernel CreateKernel(cl_program program, char[] name)

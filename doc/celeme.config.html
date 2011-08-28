@@ -278,22 +278,23 @@ container
 </td></tr>
 </table></div></div>
 <dl>
-<dt class="decl"><span class="rettyp">CAggregate</span> <a class="symbol _function" name="LoadConfig" href="htmlsrc/celeme.config.html#L191">LoadConfig</a><span class="params">(char[] <em>filename</em>, char[] <em>src</em> = <span class="defval"><span class="k">null</span></span>, char[][] <em>include_list</em> = <span class="defval"><span class="k">null</span></span>, CAggregate[char[]] <em>included_files</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#LoadConfig" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CAggregate</span> <a class="symbol _function" name="LoadConfig" href="htmlsrc/celeme.config.html#L194">LoadConfig</a><span class="params">(char[] <em>filename</em>, char[][] <em>include_dirs</em> = <span class="defval"><span class="k">null</span></span>, char[] <em>src</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#LoadConfig" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Create a configuration entry from a file or a string.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>filename</em></td><td>Name of the file to load if no source is provided.</td></tr>
+<tr><td><em>include_dirs</em></td><td>Array of directories to look at when resolving includes (including this call). Current directory is always searched first.</td></tr>
 <tr><td><em>src</em></td><td>If set, must contain the source to load from.</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">An entry representing the top-level entry of the configuration file.</div></dd>
-<dt class="decl"><span class="kw">class</span> <a class="symbol _class" name="CConfigEntry" href="htmlsrc/celeme.config.html#L214">CConfigEntry</a> <a href="celeme.config.html#CConfigEntry" class="plink">¶</a></dt>
+<dt class="decl"><span class="kw">class</span> <a class="symbol _class" name="CConfigEntry" href="htmlsrc/celeme.config.html#L205">CConfigEntry</a> <a href="celeme.config.html#CConfigEntry" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">A configuration entry, which represents a single node in the configuration file.
  
  An entry can both be a single entry (e.g. "entry = data;" or "entry;") or an aggregate
  (e.g. "entry { data; }" or "entry data;").</div></div>
 <dl>
-<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.Value" href="htmlsrc/celeme.config.html#L233">Value</a><span class="tparams">(<em>T</em>)</span><span class="params">(T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.Value" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.Value" href="htmlsrc/celeme.config.html#L224">Value</a><span class="tparams">(<em>T</em>)</span><span class="params">(T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.Value" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of this entry</div></div>
 <p class="sec_header">Parameters:</p>
@@ -304,7 +305,7 @@ container
 <p class="sec_header">Returns:</p><div class="cmnt">The value of this entry. If the value is not set, or the
  entry is an aggregate, then the default value is returned, and the
  is_def argument is set to true (if it is not null).</div></dd>
-<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.ValueOf" href="htmlsrc/celeme.config.html#L268">ValueOf</a><span class="tparams">(<em>T</em>)</span><span class="params">(char[] <em>name</em>, T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.ValueOf" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">T</span> <a class="symbol _function" name="CConfigEntry.ValueOf" href="htmlsrc/celeme.config.html#L259">ValueOf</a><span class="tparams">(<em>T</em>)</span><span class="params">(char[] <em>name</em>, T <em>def</em> = <span class="defval"><span class="i">init</span></span>, bool* <em>is_def</em> = <span class="defval"><span class="k">null</span></span>)</span> <a href="celeme.config.html#CConfigEntry.ValueOf" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Shortcut for accessing a single child entry of this aggregate and returning its value.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -317,36 +318,36 @@ container
  entry is an aggregate, then the default value is returned, and the
  is_def argument is set to true (if it is not null).</div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="#CConfigEntry.Value">Value</a></div></dd>
-<dt class="decl"><span class="rettyp">CConfigEntry[]</span> <a class="symbol _function" name="CConfigEntry.opIndex" href="htmlsrc/celeme.config.html#L292">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CConfigEntry[]</span> <a class="symbol _function" name="CConfigEntry.opIndex" href="htmlsrc/celeme.config.html#L283">opIndex</a><span class="params">(char[] <em>name</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get an array of entries that match the provided name.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>name</em></td><td>Name to match.</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">An array of entries if some were found. null otherwise.</div></dd>
-<dt class="decl"><span class="rettyp">CConfigEntry</span> <a class="symbol _function" name="CConfigEntry.opIndex:2" href="htmlsrc/celeme.config.html#L308">opIndex</a><span class="params">(char[] <em>name</em>, bool <em>last</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CConfigEntry</span> <a class="symbol _function" name="CConfigEntry.opIndex:2" href="htmlsrc/celeme.config.html#L299">opIndex</a><span class="params">(char[] <em>name</em>, bool <em>last</em>)</span> <a href="celeme.config.html#CConfigEntry.opIndex:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the last entries that matches the provided name.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>name</em></td><td>Name to match.</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">The found entry. null otherwise.</div></dd>
-<dt class="decl"><span class="rettyp">SEntryFruct</span> <a class="symbol _function" name="CConfigEntry.opSlice" href="htmlsrc/celeme.config.html#L345">opSlice</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.opSlice" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">SEntryFruct</span> <a class="symbol _function" name="CConfigEntry.opSlice" href="htmlsrc/celeme.config.html#L336">opSlice</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.opSlice" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns an iterable fruct that goes over all children of this node.</div></div></dd>
-<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsAggregate" href="htmlsrc/celeme.config.html#L353">IsAggregate</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsAggregate" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsAggregate" href="htmlsrc/celeme.config.html#L344">IsAggregate</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsAggregate" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns true if this entry is an aggregate.</div></div></dd>
-<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsSingleValue" href="htmlsrc/celeme.config.html#L361">IsSingleValue</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsSingleValue" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">bool</span> <a class="symbol _function" name="CConfigEntry.IsSingleValue" href="htmlsrc/celeme.config.html#L352">IsSingleValue</a><span class="params">()</span> <a href="celeme.config.html#CConfigEntry.IsSingleValue" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns true if this entry is a single value.</div></div></dd>
-<dt class="decl">char[] <a class="symbol _variable" name="CConfigEntry.Name" href="htmlsrc/celeme.config.html#L369">Name</a> <a href="celeme.config.html#CConfigEntry.Name" class="plink">¶</a></dt>
+<dt class="decl">char[] <a class="symbol _variable" name="CConfigEntry.Name" href="htmlsrc/celeme.config.html#L360">Name</a> <a href="celeme.config.html#CConfigEntry.Name" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Name of this entry.</div></div></dd></dl></dd></dl>
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Fri Aug 12 23:32:46 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sat Aug 27 21:46:00 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

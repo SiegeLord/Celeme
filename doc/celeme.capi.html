@@ -31,7 +31,7 @@
 <a href="#L4_ex1" name="L4_ex1">4</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="k">const</span> <span class="k">char</span>* <span class="i">error</span>;
-<span class="i">CELEME_MODEL</span>* <span class="i">model</span> = <span class="i">celeme_load_model</span>(<span class="sl">"model.cfg"</span>, <span class="k">true</span>, <span class="k">false</span>);
+<span class="i">CELEME_MODEL</span>* <span class="i">model</span> = <span class="i">celeme_load_model</span>(<span class="sl">"model.cfg"</span>, <span class="n">0</span>, <span class="i">NULL</span>, <span class="k">true</span>, <span class="k">false</span>);
 <span class="k">if</span>(<span class="i">error</span> = <span class="i">celeme_get_error</span>())
     <span class="i">printf</span>(<span class="sl">"%s<span class="es">\n</span>"</span>, <span class="i">error</span>);</pre>
 </td></tr>
@@ -93,7 +93,7 @@
 <span class="k">void</span> <span class="i">celeme_set_error</span>(<span class="k">const</span> <span class="k">char</span>* <span class="i">error</span>);</pre>
 </td></tr>
 </table></td></tr></table></dd>
-<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="celeme_load_model" href="htmlsrc/celeme.capi.html#L157">celeme_load_model</a><span class="params">(char* <em>file</em>, bool <em>gpu</em>, bool <em>double_precision</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_load_model" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="celeme_load_model" href="htmlsrc/celeme.capi.html#L157">celeme_load_model</a><span class="params">(char* <em>file</em>, int <em>num_includes</em>, char** <em>include_dirs</em>, bool <em>gpu</em>, bool <em>double_precision</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_load_model" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Loads a model from a configuration file.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="#LoadModel">LoadModel</a>
@@ -103,10 +103,10 @@
   <tr><td class="d_codelines">
 <pre><a href="#L1_ex6" name="L1_ex6">1</a>
 </pre></td><td class="d_codetext"><pre>
-<span class="i">CELEME_MODEL</span>* <span class="i">celeme_load_model</span>(<span class="k">const</span> <span class="k">char</span>* <span class="i">file</span>, <span class="k">bool</span> <span class="i">gpu</span>, <span class="k">bool</span> <span class="i">double_precision</span>);</pre>
+<span class="i">CELEME_MODEL</span>* <span class="i">celeme_load_model</span>(<span class="k">const</span> <span class="k">char</span>* <span class="i">file</span>, <span class="k">int</span> <span class="i">num_includes</span>, <span class="k">const</span> <span class="k">char</span>** <span class="i">include_dirs</span>, <span class="k">bool</span> <span class="i">gpu</span>, <span class="k">bool</span> <span class="i">double_precision</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_destroy_model" href="htmlsrc/celeme.capi.html#L217">celeme_destroy_model</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_destroy_model" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_destroy_model" href="htmlsrc/celeme.capi.html#L223">celeme_destroy_model</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_destroy_model" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Destroys a model. Called automatically when celeme_shutdown() is called, but can be done
  explicitly as well.</div></div>
@@ -123,7 +123,7 @@
 <span class="k">void</span> <span class="i">celeme_destroy_model</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_initialize_model" href="htmlsrc/celeme.capi.html#L247">celeme_initialize_model</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_initialize_model" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_initialize_model" href="htmlsrc/celeme.capi.html#L254">celeme_initialize_model</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_initialize_model" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Initializes the model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.Initialize">IModel.Initialize</a>
@@ -136,7 +136,7 @@
 <span class="k">void</span> <span class="i">celeme_initialize_model</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_generate_model" href="htmlsrc/celeme.capi.html#L259">celeme_generate_model</a><span class="params">(IModel <em>model</em>, bool <em>initialize</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_generate_model" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_generate_model" href="htmlsrc/celeme.capi.html#L266">celeme_generate_model</a><span class="params">(IModel <em>model</em>, bool <em>initialize</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_generate_model" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Generates the model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.Generate">IModel.Generate</a>
@@ -149,7 +149,7 @@
 <span class="k">void</span> <span class="i">celeme_generate_model</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">bool</span> <span class="i">initialize</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_add_neuron_group" href="htmlsrc/celeme.capi.html#L271">celeme_add_neuron_group</a><span class="params">(IModel <em>model</em>,  <span class="k">in</span> char* <em>type_name</em>, int <em>number</em>,  <span class="k">in</span> char* <em>name</em>, bool <em>adaptive_dt</em>, bool <em>parallel_delivery</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_add_neuron_group" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_add_neuron_group" href="htmlsrc/celeme.capi.html#L278">celeme_add_neuron_group</a><span class="params">(IModel <em>model</em>,  <span class="k">in</span> char* <em>type_name</em>, int <em>number</em>,  <span class="k">in</span> char* <em>name</em>, bool <em>adaptive_dt</em>, bool <em>parallel_delivery</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_add_neuron_group" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Adds a new neuron group from an internal registry.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.AddNeuronGroup">IModel.AddNeuronGroup</a>
@@ -162,7 +162,7 @@
 <span class="k">void</span> <span class="i">celeme_add_neuron_group</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">type_name</span>, <span class="k">int</span> <span class="i">number</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">bool</span> <span class="i">adaptive_dt</span>, <span class="k">bool</span> <span class="i">parallel_delivery</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">INeuronGroup</span> <a class="symbol _function" name="celeme_get_neuron_group" href="htmlsrc/celeme.capi.html#L283">celeme_get_neuron_group</a><span class="params">(IModel <em>model</em>, char* <em>name</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_neuron_group" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">INeuronGroup</span> <a class="symbol _function" name="celeme_get_neuron_group" href="htmlsrc/celeme.capi.html#L290">celeme_get_neuron_group</a><span class="params">(IModel <em>model</em>, char* <em>name</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_neuron_group" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns a neuron group based on its name.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.opIndex">IModel.opIndex</a>
@@ -175,7 +175,7 @@
 <span class="i">CELEME_NEURON_GROUP</span>* <span class="i">celeme_get_neuron_group</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_run" href="htmlsrc/celeme.capi.html#L295">celeme_run</a><span class="params">(IModel <em>model</em>, int <em>num_timesteps</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_run" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_run" href="htmlsrc/celeme.capi.html#L302">celeme_run</a><span class="params">(IModel <em>model</em>, int <em>num_timesteps</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_run" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Run the model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.Run">IModel.Run</a>
@@ -188,7 +188,7 @@
 <span class="k">void</span> <span class="i">celeme_run</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">int</span> <span class="i">num_timesteps</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_reset_run" href="htmlsrc/celeme.capi.html#L307">celeme_reset_run</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_reset_run" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_reset_run" href="htmlsrc/celeme.capi.html#L314">celeme_reset_run</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_reset_run" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Reset the run of the model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.ResetRun">IModel.ResetRun</a>
@@ -201,7 +201,7 @@
 <span class="k">void</span> <span class="i">celeme_reset_run</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_init_run" href="htmlsrc/celeme.capi.html#L319">celeme_init_run</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_init_run" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_init_run" href="htmlsrc/celeme.capi.html#L326">celeme_init_run</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_init_run" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Initialize the run of the model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.InitRun">IModel.InitRun</a>
@@ -214,7 +214,7 @@
 <span class="k">void</span> <span class="i">celeme_init_run</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_run_until" href="htmlsrc/celeme.capi.html#L331">celeme_run_until</a><span class="params">(IModel <em>model</em>, int <em>num_timesteps</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_run_until" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_run_until" href="htmlsrc/celeme.capi.html#L338">celeme_run_until</a><span class="params">(IModel <em>model</em>, int <em>num_timesteps</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_run_until" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Run the model until some time.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.RunUntil">IModel.RunUntil</a>
@@ -227,7 +227,7 @@
 <span class="k">void</span> <span class="i">celeme_run_until</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">int</span> <span class="i">num_timesteps</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_connection" href="htmlsrc/celeme.capi.html#L343">celeme_set_connection</a><span class="params">(IModel <em>model</em>, char* <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, int <em>src_slot</em>, char* <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>, int <em>dest_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_connection" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_connection" href="htmlsrc/celeme.capi.html#L350">celeme_set_connection</a><span class="params">(IModel <em>model</em>, char* <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, int <em>src_slot</em>, char* <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>, int <em>dest_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_connection" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set a connection between two neurons in a model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.SetConnection">IModel.SetConnection</a>
@@ -240,7 +240,7 @@
 <span class="k">void</span> <span class="i">celeme_set_connection</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">src_group</span>, <span class="k">int</span> <span class="i">src_nrn_id</span>, <span class="k">int</span> <span class="i">src_event_source</span>, <span class="k">int</span> <span class="i">src_slot</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">dest_group</span>, <span class="k">int</span> <span class="i">dest_nrn_id</span>, <span class="k">int</span> <span class="i">dest_syn_type</span>, <span class="k">int</span> <span class="i">dest_slot</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">IModel.SSlots</span> <a class="symbol _function" name="celeme_connect" href="htmlsrc/celeme.capi.html#L355">celeme_connect</a><span class="params">(IModel <em>model</em>, char* <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, char* <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_connect" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">IModel.SSlots</span> <a class="symbol _function" name="celeme_connect" href="htmlsrc/celeme.capi.html#L362">celeme_connect</a><span class="params">(IModel <em>model</em>, char* <em>src_group</em>, int <em>src_nrn_id</em>, int <em>src_event_source</em>, char* <em>dest_group</em>, int <em>dest_nrn_id</em>, int <em>dest_syn_type</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_connect" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Connecto two neurons in a model.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.Connect">IModel.Connect</a>
@@ -253,7 +253,7 @@
 <span class="i">CELEME_SLOTS</span> <span class="i">celeme_connect</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">src_group</span>, <span class="k">int</span> <span class="i">src_nrn_id</span>, <span class="k">int</span> <span class="i">src_event_source</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">dest_group</span>, <span class="k">int</span> <span class="i">dest_nrn_id</span>, <span class="k">int</span> <span class="i">dest_syn_type</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_apply_connector" href="htmlsrc/celeme.capi.html#L367">celeme_apply_connector</a><span class="params">(IModel <em>model</em>, char* <em>connector_name</em>, int <em>multiplier</em>, char* <em>src_group</em>, int <em>src_nrn_start</em>, int <em>src_nrn_end</em>, int <em>src_event_source</em>, char* <em>dest_group</em>, int <em>dest_nrn_start</em>, int <em>dest_nrn_end</em>, int <em>dest_syn_type</em>, int <em>argc</em>, char** <em>arg_keys</em>, double* <em>arg_vals</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_apply_connector" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_apply_connector" href="htmlsrc/celeme.capi.html#L374">celeme_apply_connector</a><span class="params">(IModel <em>model</em>, char* <em>connector_name</em>, int <em>multiplier</em>, char* <em>src_group</em>, int <em>src_nrn_start</em>, int <em>src_nrn_end</em>, int <em>src_event_source</em>, char* <em>dest_group</em>, int <em>dest_nrn_start</em>, int <em>dest_nrn_end</em>, int <em>dest_syn_type</em>, int <em>argc</em>, char** <em>arg_keys</em>, double* <em>arg_vals</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_apply_connector" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Apply a connector.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.ApplyConnector">IModel.ApplyConnector</a>
@@ -263,10 +263,10 @@
   <tr><td class="d_codelines">
 <pre><a href="#L1_ex18" name="L1_ex18">1</a>
 </pre></td><td class="d_codetext"><pre>
-<span class="k">void</span> <span class="i">celeme_apply_connector</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">connector_name</span>, <span class="k">int</span> <span class="i">multiplier</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">src_group</span>, <span class="k">int</span> <span class="i">src_nrn_start</span>, <span class="k">int</span> <span class="i">src_nrn_end</span>, <span class="k">int</span> <span class="i">src_event_source</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">dest_group</span>, <span class="k">int</span> <span class="i">dest_nrn_start</span>, <span class="k">int</span> <span class="i">dest_nrn_end</span>, <span class="k">int</span> <span class="i">dest_syn_type</span>, <span class="k">int</span> <span class="i">argc</span>, <span class="k">char</span>** <span class="i">arg_keys</span>, <span class="k">double</span>* <span class="i">arg_vals</span>);</pre>
+<span class="k">void</span> <span class="i">celeme_apply_connector</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">connector_name</span>, <span class="k">int</span> <span class="i">multiplier</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">src_group</span>, <span class="k">int</span> <span class="i">src_nrn_start</span>, <span class="k">int</span> <span class="i">src_nrn_end</span>, <span class="k">int</span> <span class="i">src_event_source</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">dest_group</span>, <span class="k">int</span> <span class="i">dest_nrn_start</span>, <span class="k">int</span> <span class="i">dest_nrn_end</span>, <span class="k">int</span> <span class="i">dest_syn_type</span>, <span class="k">int</span> <span class="i">argc</span>, <span class="k">const</span> <span class="k">char</span>** <span class="i">arg_keys</span>, <span class="k">double</span>* <span class="i">arg_vals</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_timestep_size" href="htmlsrc/celeme.capi.html#L379">celeme_get_timestep_size</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_timestep_size" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_timestep_size" href="htmlsrc/celeme.capi.html#L386">celeme_get_timestep_size</a><span class="params">(IModel <em>model</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_timestep_size" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Return the timestep size.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.TimeStepSize">IModel.TimeStepSize</a>
@@ -279,7 +279,7 @@
 <span class="k">double</span> <span class="i">celeme_get_timestep_size</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_timestep_size" href="htmlsrc/celeme.capi.html#L391">celeme_set_timestep_size</a><span class="params">(IModel <em>model</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_timestep_size" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_timestep_size" href="htmlsrc/celeme.capi.html#L398">celeme_set_timestep_size</a><span class="params">(IModel <em>model</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_timestep_size" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the timestep size.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.imodel.html#IModel.TimeStepSize">IModel.TimeStepSize</a>
@@ -292,7 +292,7 @@
 <span class="k">void</span> <span class="i">celeme_set_timestep_size</span>(<span class="i">CELEME_MODEL</span>* <span class="i">model</span>, <span class="k">double</span> <span class="i">val</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_constant" href="htmlsrc/celeme.capi.html#L404">celeme_get_constant</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_constant" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_constant" href="htmlsrc/celeme.capi.html#L411">celeme_get_constant</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_constant" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a constant, or the default value of a global or a syn global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.TimeStepSize">INeuronGroup.TimeStepSize</a>
@@ -305,7 +305,7 @@
 <span class="k">double</span> <span class="i">celeme_get_constant</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_constant" href="htmlsrc/celeme.capi.html#L416">celeme_set_constant</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_constant" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_constant" href="htmlsrc/celeme.capi.html#L423">celeme_set_constant</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_constant" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a constant, or the default value of a global or a syn global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign">INeuronGroup.opIndexAssign</a>
@@ -318,7 +318,7 @@
 <span class="k">double</span> <span class="i">celeme_set_constant</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">double</span> <span class="i">val</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_global" href="htmlsrc/celeme.capi.html#L428">celeme_get_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>idx</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_global" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_global" href="htmlsrc/celeme.capi.html#L435">celeme_get_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>idx</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_global" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.opIndex">INeuronGroup.opIndex</a>
@@ -331,7 +331,7 @@
 <span class="k">double</span> <span class="i">celeme_get_global</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">int</span> <span class="i">idx</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_global" href="htmlsrc/celeme.capi.html#L440">celeme_set_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>idx</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_global" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_global" href="htmlsrc/celeme.capi.html#L447">celeme_set_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>idx</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_global" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign">INeuronGroup.opIndexAssign</a>
@@ -344,7 +344,7 @@
 <span class="k">double</span> <span class="i">celeme_set_global</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">int</span> <span class="i">idx</span>, <span class="k">double</span> <span class="i">val</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_syn_global" href="htmlsrc/celeme.capi.html#L452">celeme_get_syn_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_syn_global" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_syn_global" href="htmlsrc/celeme.capi.html#L459">celeme_get_syn_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_syn_global" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a syn global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.opIndex">INeuronGroup.opIndex</a>
@@ -357,7 +357,7 @@
 <span class="k">double</span> <span class="i">celeme_get_syn_global</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">int</span> <span class="i">syn_idx</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_syn_global" href="htmlsrc/celeme.capi.html#L464">celeme_set_syn_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_syn_global" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_set_syn_global" href="htmlsrc/celeme.capi.html#L471">celeme_set_syn_global</a><span class="params">(INeuronGroup <em>group</em>, char* <em>name</em>, int <em>nrn_idx</em>, int <em>syn_idx</em>, double <em>val</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_syn_global" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a syn global.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign">INeuronGroup.opIndexAssign</a>
@@ -370,7 +370,7 @@
 <span class="k">double</span> <span class="i">celeme_set_syn_global</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">const</span> <span class="k">char</span>* <span class="i">name</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">int</span> <span class="i">syn_idx</span>, <span class="k">double</span> <span class="i">val</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="celeme_record" href="htmlsrc/celeme.capi.html#L476">celeme_record</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_idx</em>, int <em>flags</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_record" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="celeme_record" href="htmlsrc/celeme.capi.html#L483">celeme_record</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_idx</em>, int <em>flags</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_record" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the recording flags of a single neuron.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Record">INeuronGroup.Record</a>
@@ -383,7 +383,7 @@
 <span class="i">CELEME_RECORDER</span>* <span class="i">celeme_record</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">nrn_idx</span>, <span class="k">int</span> <span class="i">flags</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_stop_recording" href="htmlsrc/celeme.capi.html#L488">celeme_stop_recording</a><span class="params">(INeuronGroup <em>group</em>, int <em>neuron_id</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_stop_recording" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_stop_recording" href="htmlsrc/celeme.capi.html#L495">celeme_stop_recording</a><span class="params">(INeuronGroup <em>group</em>, int <em>neuron_id</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_stop_recording" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Stop all recording in a particular neuron.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.StopRecording">INeuronGroup.StopRecording</a>
@@ -396,7 +396,7 @@
 <span class="k">void</span> <span class="i">celeme_stop_recording</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">neuron_id</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_min_dt" href="htmlsrc/celeme.capi.html#L500">celeme_get_min_dt</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_min_dt" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="celeme_get_min_dt" href="htmlsrc/celeme.capi.html#L507">celeme_get_min_dt</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_min_dt" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the minimum dt.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.MinDt">INeuronGroup.MinDt</a>
@@ -409,7 +409,7 @@
 <span class="k">double</span> <span class="i">celeme_get_min_dt</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_min_dt" href="htmlsrc/celeme.capi.html#L512">celeme_set_min_dt</a><span class="params">(INeuronGroup <em>group</em>, double <em>min_dt</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_min_dt" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="celeme_set_min_dt" href="htmlsrc/celeme.capi.html#L519">celeme_set_min_dt</a><span class="params">(INeuronGroup <em>group</em>, double <em>min_dt</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_set_min_dt" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the minimum dt.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.MinDt">INeuronGroup.MinDt</a>
@@ -422,7 +422,7 @@
 <span class="k">void</span> <span class="i">celeme_set_min_dt</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">double</span> <span class="i">min_dt</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_count" href="htmlsrc/celeme.capi.html#L524">celeme_get_count</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_count" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_count" href="htmlsrc/celeme.capi.html#L531">celeme_get_count</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_count" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the number of neurons in this group.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Count">INeuronGroup.Count</a>
@@ -435,7 +435,7 @@
 <span class="k">int</span> <span class="i">celeme_get_count</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_nrn_offset" href="htmlsrc/celeme.capi.html#L536">celeme_get_nrn_offset</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_nrn_offset" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_nrn_offset" href="htmlsrc/celeme.capi.html#L543">celeme_get_nrn_offset</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_nrn_offset" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the global index of the first neuron in this neuron group.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.NrnOffset">INeuronGroup.NrnOffset</a>
@@ -448,7 +448,7 @@
 <span class="k">int</span> <span class="i">celeme_get_nrn_offset</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_seed" href="htmlsrc/celeme.capi.html#L548">celeme_seed</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_seed" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_seed" href="htmlsrc/celeme.capi.html#L555">celeme_seed</a><span class="params">(INeuronGroup <em>group</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_seed" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Seeds the random number generator.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.Seed">INeuronGroup.Seed</a>
@@ -461,7 +461,7 @@
 <span class="k">int</span> <span class="i">celeme_seed</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">seed</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_connection_id" href="htmlsrc/celeme.capi.html#L560">celeme_get_connection_id</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_id</em>, int <em>event_source</em>, int <em>src_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_connection_id" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_connection_id" href="htmlsrc/celeme.capi.html#L567">celeme_get_connection_id</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_id</em>, int <em>event_source</em>, int <em>src_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_connection_id" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the target global neuron id that an event source is connected to at a specified source slot.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionId">INeuronGroup.GetConnectionId</a>
@@ -474,7 +474,7 @@
 <span class="k">int</span> <span class="i">celeme_get_connection_id</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">nrn_id</span>, <span class="k">int</span> <span class="i">event_source</span>, <span class="k">int</span> <span class="i">src_slot</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_connection_slot" href="htmlsrc/celeme.capi.html#L572">celeme_get_connection_slot</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_id</em>, int <em>event_source</em>, int <em>src_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_connection_slot" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="celeme_get_connection_slot" href="htmlsrc/celeme.capi.html#L579">celeme_get_connection_slot</a><span class="params">(INeuronGroup <em>group</em>, int <em>nrn_id</em>, int <em>event_source</em>, int <em>src_slot</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_connection_slot" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the target slot that an event source is connected to at a specified source slot.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionSlot">INeuronGroup.GetConnectionSlot</a>
@@ -487,7 +487,7 @@
 <span class="k">int</span> <span class="i">celeme_get_connection_slot</span>(<span class="i">CELEME_NEURON_GROUP</span>* <span class="i">group</span>, <span class="k">int</span> <span class="i">nrn_id</span>, <span class="k">int</span> <span class="i">event_source</span>, <span class="k">int</span> <span class="i">src_slot</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L765">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">char*</span> <a class="symbol _function" name="celeme_get_recorder_name" href="htmlsrc/celeme.capi.html#L774">celeme_get_recorder_name</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_name" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the recorder name.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Name">CRecorder.Name</a>
@@ -500,7 +500,7 @@
 <span class="k">const</span> <span class="k">char</span>* <span class="i">celeme_get_recorder_name</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L788">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="celeme_get_recorder_length" href="htmlsrc/celeme.capi.html#L798">celeme_get_recorder_length</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_length" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the length of the recorder data.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Length">CRecorder.Length</a>
@@ -513,7 +513,7 @@
 <span class="i">size_t</span> <span class="i">celeme_get_recorder_length</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L811">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_time" href="htmlsrc/celeme.capi.html#L822">celeme_get_recorder_time</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_time" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded time points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.T">CRecorder.T</a>
@@ -526,7 +526,7 @@
 <span class="k">double</span>* <span class="i">celeme_get_recorder_time</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L834">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double*</span> <a class="symbol _function" name="celeme_get_recorder_data" href="htmlsrc/celeme.capi.html#L846">celeme_get_recorder_data</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_data" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded data points.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Data">CRecorder.Data</a>
@@ -539,7 +539,7 @@
 <span class="k">double</span>* <span class="i">celeme_get_recorder_data</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_tags" href="htmlsrc/celeme.capi.html#L857">celeme_get_recorder_tags</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_tags" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_tags" href="htmlsrc/celeme.capi.html#L870">celeme_get_recorder_tags</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_tags" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded data point tags.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.Tags">CRecorder.Tags</a>
@@ -552,7 +552,7 @@
 <span class="k">double</span>* <span class="i">celeme_get_recorder_tags</span>(<span class="i">CELEME_RECORDER</span>* <span class="i">recorder</span>);</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_neuron_ids" href="htmlsrc/celeme.capi.html#L880">celeme_get_recorder_neuron_ids</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_neuron_ids" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int*</span> <a class="symbol _function" name="celeme_get_recorder_neuron_ids" href="htmlsrc/celeme.capi.html#L894">celeme_get_recorder_neuron_ids</a><span class="params">(CRecorder <em>recorder</em>)</span> <span class="attrs">[<span class="linkg">extern(C)</span>]</span> <a href="celeme.capi.html#celeme_get_recorder_neuron_ids" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get a pointer to an array of recorded data point neuron ids.</div></div>
 <p class="sec_header">See Also:</p><div class="cmnt"><a href="celeme.recorder.html#CRecorder.NeuronIds">CRecorder.NeuronIds</a>
@@ -568,7 +568,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Fri Aug 12 23:32:46 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sat Aug 27 21:46:00 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

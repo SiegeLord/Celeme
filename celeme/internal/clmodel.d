@@ -334,9 +334,9 @@ class CCLModel(float_t) : ICLModel
 				{
 					cl_ulong start, end;
 					auto ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, start.sizeof, &start, null);
-					assert(err == 0, GetCLErrorString(err));
+					assert(ret == 0, GetCLErrorString(ret));
 					ret = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, start.sizeof, &end, null);
-					assert(err == 0, GetCLErrorString(err));
+					assert(ret == 0, GetCLErrorString(ret));
 					
 					return cast(double)(end - start) / (1.0e9);
 				}

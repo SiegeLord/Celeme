@@ -31,9 +31,6 @@ import tango.io.Stdout;
 import tango.time.StopWatch;
 import tango.io.device.File;
 
-version (AMDPerf)
-import perf = celeme.internal.amdperf;
-
 import opencl.cl;
 
 class CCLModel(float_t) : ICLModel
@@ -265,18 +262,6 @@ class CCLModel(float_t) : ICLModel
 		while(t < num_timesteps)
 		{
 			double time = TimeStepSize * t;
-			
-			version(AMDPerf)
-			{
-				perf.gpa_uint32 id;
-				const prof_t = 112;
-				if(t == prof_t)
-				{
-					perf.EnableCounters(1, "Wavefronts", "FastPath", "CompletePath");
-					id = perf.BeginSP();
-					perf.BeginSample("Deliver");
-				}
-			}
 
 			/* Call the deliver kernel.
 			 * Called first because it resets the record index to 0,
@@ -293,15 +278,6 @@ class CCLModel(float_t) : ICLModel
 				group.CallDeliverKernel(time, event_ptr);
 			}
 			deliver_est += timer.stop;
-			
-			version(AMDPerf)
-			{
-				if(t == prof_t)
-				{
-					perf.EndSample();
-					perf.BeginSample("Step");
-				}
-			}
 
 			/* Call the step kernel */
 			timer.start;
@@ -315,16 +291,6 @@ class CCLModel(float_t) : ICLModel
 				group.CallStepKernel(time, event_ptr);
 			}
 			step_est += timer.stop;
-			
-			version(AMDPerf)
-			{
-				if(t == prof_t)
-				{
-					perf.EndSample();
-					perf.EndSP();
-					Stdout(perf.GetSessionData(id)).nl;
-				}
-			}
 			
 			version(Perf)
 			{

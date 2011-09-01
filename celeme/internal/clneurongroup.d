@@ -190,6 +190,8 @@ $event_source_args$
 	int i = get_global_id(0);
 	if(i < count)
 	{
+$immutables$
+
 		/* Load values */
 $load_vals$
 		
@@ -1360,6 +1362,14 @@ for(int ii = 0; ii < num_fired; ii++)
 			source ~= "__global int2* _dest_syn_buffer,";
 		}
 		source.Inject(kernel_source, "$event_source_args$");
+		
+		/* Immutables */
+		source.Tab(2);
+		foreach(name, val; &type.AllImmutables)
+		{
+			source ~= "const $num_type$ " ~ name ~ " = " ~ Format("{:e6}", val.Value) ~ ";";
+		}
+		source.Inject(kernel_source, "$immutables$");
 		
 		/* Load vals */
 		source.Tab(2);

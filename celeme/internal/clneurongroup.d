@@ -73,7 +73,8 @@ __kernel void $type_name$_step
 		__global int* _record_idx_start,
 		__global $num_type$4* _record_buffer,
 		const int _record_buffer_size,
-$val_args$
+$rw_val_args$
+$ro_val_args$
 $constant_args$
 $random_state_args$
 $integrator_args$
@@ -111,7 +112,9 @@ $primary_exit_condition_init$
 
 $integrator_load$
 
-$load_vals$
+$load_rw_vals$
+
+$load_ro_vals$
 
 $load_rand_state$
 
@@ -181,7 +184,8 @@ const ArgOffsetInit = 0;
 const InitKernelTemplate = `
 __kernel void $type_name$_init
 	(
-$val_args$
+$rw_val_args$
+$ro_val_args$
 $constant_args$
 $event_source_args$
 		const int count
@@ -193,7 +197,9 @@ $event_source_args$
 $immutables$
 
 		/* Load values */
-$load_vals$
+$load_rw_vals$
+
+$load_ro_vals$
 		
 		/* Perform initialization */
 $init_vals$
@@ -296,11 +302,16 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
+		RWValues = new CMultiBuffer!(float_t)("rwvalues", 4, Count, true, true);
+		ROValues = new CMultiBuffer!(float_t)("rovalues", 4, Count, true, false);
+		
 		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)
 		{
-			ValueBufferRegistry[name] = ValueBuffers.length;
-			ValueBuffers ~= new CValueBuffer!(float_t)(state, Core, Count);
+			if(state.ReadOnly)
+				ROValues.AddValue(Core, name, state.Value);
+			else
+				RWValues.AddValue(Core, name, state.Value);
 		}
 		
 		/* Syn globals are special, so they get treated separately */
@@ -392,10 +403,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			SetGlobalArg(arg_id++, RecordIdxBufferStart);
 			SetGlobalArg(arg_id++, RecordBuffer);
 			SetGlobalArg(arg_id++, RecordLength);
-			foreach(buffer; ValueBuffers)
-			{
-				SetGlobalArg(arg_id++, buffer.Buffer);
-			}
+			arg_id = RWValues.SetArgs(StepKernel, arg_id);
+			arg_id = ROValues.SetArgs(StepKernel, arg_id);
 			arg_id += Constants.length;
 			if(NeedRandArgs)
 				arg_id = Rand.SetArgs(StepKernel, arg_id);
@@ -429,10 +438,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		{
 			/* Nothing to skip, so set it at 0 */
 			arg_id = 0;
-			foreach(buffer; ValueBuffers)
-			{
-				SetGlobalArg(arg_id++, buffer.Buffer);
-			}
+			arg_id = RWValues.SetArgs(InitKernel, arg_id);
+			arg_id = ROValues.SetArgs(InitKernel, arg_id);
 			arg_id += Constants.length;
 			if(NeedSrcSynCode)
 			{
@@ -513,10 +520,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 		
 		/* Write the default values to the global buffers*/
-		foreach(buffer; ValueBuffers)
-		{
-			buffer.Buffer[] = buffer.DefaultValue;
-		}
+		RWValues.Reset();
+		ROValues.Reset();
 		
 		foreach(buffer; SynGlobalBuffers)
 		{
@@ -532,8 +537,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		assert(Model.Initialized);
 		
 		float_t val = Constants[idx];
-		InitKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetInit, val);
-		StepKernel.SetGlobalArg(idx + ValueBuffers.length + ArgOffsetStep, val);
+		InitKernel.SetGlobalArg(idx + ValArgsOffset + ArgOffsetInit, val);
+		StepKernel.SetGlobalArg(idx + ValArgsOffset + ArgOffsetStep, val);
 	}
 	
 	void SetTolerance(char[] state, double tolerance)
@@ -600,13 +605,15 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		
 		kernel_source["$type_name$"] = Name;
 		
-		/* Value arguments */
+		/* RW Value arguments */
 		source.Tab(2);
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= "__global $num_type$* _" ~ name ~ "_buf,";
-		}
-		source.Inject(kernel_source, "$val_args$");
+		source.AddBlock(RWValues.ArgsCode);
+		source.Inject(kernel_source, "$rw_val_args$");
+		
+		/* RO Value arguments */
+		source.Tab(2);
+		source.AddBlock(ROValues.ArgsCode);
+		source.Inject(kernel_source, "$ro_val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
@@ -664,13 +671,15 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		source.AddBlock(Integrator.GetLoadCode(type));
 		source.Inject(kernel_source, "$integrator_load$");
 		
-		/* Load vals */
+		/* Load RW vals */
 		source.Tab;
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= "$num_type$ " ~ name ~ " = _" ~ name ~ "_buf[i];";
-		}
-		source.Inject(kernel_source, "$load_vals$");
+		source.AddBlock(RWValues.LoadCode);
+		source.Inject(kernel_source, "$load_rw_vals$");
+		
+		/* Load RO vals */
+		source.Tab;
+		source.AddBlock(ROValues.LoadCode);
+		source.Inject(kernel_source, "$load_ro_vals$");
 		
 		/* Synapse code */
 		source.Tab;
@@ -1143,11 +1152,7 @@ $save_syn_globals$
 		
 		/* Save values */
 		source.Tab;
-		foreach(name, state; &type.AllNonLocals)
-		{
-			if(!state.ReadOnly)
-				source ~= Format("_{0}_buf[i] = {0};", name);
-		}
+		source.AddBlock(RWValues.SaveCode);
 		source.Inject(kernel_source, "$save_vals$");
 		
 		/* Random stuff */
@@ -1340,13 +1345,15 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		kernel_source["$type_name$"] = Name;
 		
-		/* Value arguments */
+		/* RW Value arguments */
 		source.Tab(2);
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= Format("__global $num_type$* _{}_buf,", name);
-		}
-		source.Inject(kernel_source, "$val_args$");
+		source.AddBlock(RWValues.ArgsCode);
+		source.Inject(kernel_source, "$rw_val_args$");
+		
+		/* RO Value arguments */
+		source.Tab(2);
+		source.AddBlock(ROValues.ArgsCode);
+		source.Inject(kernel_source, "$ro_val_args$");
 		
 		/* Constant arguments */
 		source.Tab(2);
@@ -1373,10 +1380,15 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		/* Load vals */
 		source.Tab(2);
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= Format("$num_type$ {0} = _{0}_buf[i];", name);
-		}
+				/* Load RW vals */
+		source.Tab;
+		source.AddBlock(RWValues.LoadCode);
+		source.Inject(kernel_source, "$load_rw_vals$");
+		
+		/* Load RO vals */
+		source.Tab;
+		source.AddBlock(ROValues.LoadCode);
+		source.Inject(kernel_source, "$load_ro_vals$");
 		source.Inject(kernel_source, "$load_vals$");
 		
 		/* Perform initialization */
@@ -1386,10 +1398,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		/* Save values */
 		source.Tab(2);
-		foreach(name, state; &type.AllNonLocals)
-		{
-			source ~= Format("_{0}_buf[i] = {0};", name);
-		}
+		source.AddBlock(RWValues.SaveCode);
 		source.Inject(kernel_source, "$save_vals$");
 		
 		InitKernelSource = kernel_source[];
@@ -1409,11 +1418,11 @@ for(int ii = 0; ii < num_fired; ii++)
 			return Constants[*idx_ptr];
 		}
 		
-		idx_ptr = name in ValueBufferRegistry;
-		if(idx_ptr !is null)
-		{
-			return ValueBuffers[*idx_ptr].DefaultValue;
-		}
+		if(RWValues.HaveValue(name))
+			return RWValues[name];
+			
+		if(ROValues.HaveValue(name))
+			return ROValues[name];
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1436,12 +1445,11 @@ for(int ii = 0; ii < num_fired; ii++)
 			return val;
 		}
 		
-		idx_ptr = name in ValueBufferRegistry;
-		if(idx_ptr !is null)
-		{
-			ValueBuffers[*idx_ptr].DefaultValue = val;
-			return val;
-		}
+		if(RWValues.HaveValue(name))
+			return RWValues[name] = val;
+			
+		if(ROValues.HaveValue(name))
+			return ROValues[name] = val;
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1462,11 +1470,11 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 		assert(idx >= 0, "Invalid neuron index.");
 	
-		auto idx_ptr = name in ValueBufferRegistry;
-		if(idx_ptr !is null)
-		{
-			return ValueBuffers[*idx_ptr].Buffer[idx];
-		}
+		if(RWValues.HaveValue(name))
+			return RWValues[name, idx];
+			
+		if(ROValues.HaveValue(name))
+			return ROValues[name, idx];
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
@@ -1478,12 +1486,11 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 		assert(idx >= 0, "Invalid neuron index.");
 		
-		auto idx_ptr = name in ValueBufferRegistry;
-		if(idx_ptr !is null)
-		{
-			ValueBuffers[*idx_ptr].Buffer[idx] = val;
-			return val;
-		}
+		if(RWValues.HaveValue(name))
+			return RWValues[name, idx] = val;
+			
+		if(ROValues.HaveValue(name))
+			return ROValues[name, idx] = val;
 		
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
@@ -1543,12 +1550,11 @@ for(int ii = 0; ii < num_fired; ii++)
 	{
 		if(!Model.Initialized)
 			return;
-
-		/* TODO: Add safe releases to all of these */
-
-		foreach(buffer; ValueBuffers)
-			buffer.Release();
 			
+		RWValues.Release();
+		ROValues.Release();
+
+		/* TODO: Add safe releases to all of these */			
 		foreach(buffer; SynGlobalBuffers)
 			buffer.Release();
 			
@@ -1876,7 +1882,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		{
 			rand_offset = Rand.NumArgs;
 		}
-		return ValueBuffers.length + Constants.length + ArgOffsetStep + rand_offset;
+		return ValArgsOffset + Constants.length + ArgOffsetStep + rand_offset;
 	}
 	
 	override
@@ -1884,6 +1890,11 @@ for(int ii = 0; ii < num_fired; ii++)
 	{
 		if(RandLen)
 			Rand.Seed(seed);
+	}
+	
+	size_t ValArgsOffset()
+	{
+		return RWValues.length + ROValues.length;
 	}
 	
 	cl_program Program()
@@ -1955,8 +1966,8 @@ for(int ii = 0; ii < num_fired; ii++)
 	double[] Constants;
 	int[char[]] ConstantRegistry;
 	
-	CValueBuffer!(float_t)[] ValueBuffers;
-	int[char[]] ValueBufferRegistry;
+	CMultiBuffer!(float_t) RWValues;
+	CMultiBuffer!(float_t) ROValues;
 	
 	CSynGlobalBuffer!(float_t)[] SynGlobalBuffers;
 	int[char[]] SynGlobalBufferRegistry;

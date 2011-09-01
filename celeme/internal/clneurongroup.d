@@ -302,8 +302,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
-		RWValues = new CMultiBuffer!(float_t)("rwvalues", 4, Count, true, true);
-		ROValues = new CMultiBuffer!(float_t)("rovalues", 4, Count, true, false);
+		RWValues = new CMultiBuffer!(float_t)("rwvalues", 16 / float_t.sizeof, Count, true, true);
+		ROValues = new CMultiBuffer!(float_t)("rovalues", 16 / float_t.sizeof, Count, true, false);
 		
 		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)

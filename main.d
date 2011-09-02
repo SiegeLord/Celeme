@@ -133,6 +133,7 @@ void main(char[][] arg_list)
 	Stdout.formatln("Run time: {}", timer.stop);
 	
 	Stdout(model["Regular"]["glu_counter", 0, 0]).nl;
+	Stdout(model["Regular"]["glu_counter", 0, 1]).nl;
 	
 	timer.start;
 	

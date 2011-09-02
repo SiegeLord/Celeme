@@ -277,6 +277,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		NumDestSynapses = type.NumDestSynapses;
 		NumSrcSynapses = type.NumSrcSynapses;
 		MinDt = type.MinDt;
+		Parallel = parallel_delivery;
 		
 		RandLen = type.RandLen;
 		switch(RandLen)
@@ -375,7 +376,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
-		CreateDeliverKernel(type, parallel_delivery);
+		CreateDeliverKernel(type);
 	}
 	
 	void UnMapBuffers()
@@ -425,9 +426,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 					SetGlobalArg(arg_id++, buffer.Buffer);
 				}
 			}
-			foreach(_; range(NumSynThresholds))
+			if(Parallel)
 			{
-				SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize);
+				foreach(_; range(NumSynThresholds))
+				{
+					SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize);
+				}
 			}
 			SetGlobalArg(arg_id++, Count);
 		}
@@ -789,19 +793,21 @@ $save_vals$
 		int thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			source ~= Format("__local int _syn_thresh_{}_num;", thresh_idx);
+			if(Parallel)
+				source ~= Format("__local int _syn_thresh_{}_num;", thresh_idx);
 			thresh_idx++;
 		}
 		NumSynThresholds = thresh_idx;
 		if(NumSynThresholds)
 		{
-			source ~= "int _local_size = get_local_size(0);";
+			if(Parallel)
+				source ~= "int _local_size = get_local_size(0);";
 		}
 		source.Inject(kernel_source, "$syn_threshold_status$");
 		
 		/* Primary exit condition */
 		source.Tab;
-		if(NumSynThresholds)
+		if(NumSynThresholds && Parallel)
 		{
 			source.AddBlock(
 `__local int _num_complete;
@@ -811,13 +817,13 @@ if(_local_id == 0)
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_init$");
 		
-		if(NumSynThresholds)
+		if(NumSynThresholds && Parallel)
 			kernel_source["$primary_exit_condition$"] = "_num_complete < _local_size";
 		else
 			kernel_source["$primary_exit_condition$"] = "_cur_time < timestep";
 		
 		source.Tab(3);
-		if(NumSynThresholds)
+		if(NumSynThresholds && Parallel)
 		{
 			source.AddBlock(
 `if(_cur_time >= timestep)
@@ -825,51 +831,65 @@ if(_local_id == 0)
 		}
 		source.Inject(kernel_source, "$primary_exit_condition_check$");
 		
-		source.Tab;
-		thresh_idx = 0;
-		if(NumSynThresholds)
+		if(Parallel)
 		{
-			foreach(thresh; &type.AllSynThresholds)
+			source.Tab;
+			thresh_idx = 0;
+			if(NumSynThresholds)
 			{
-				source ~= Format("__local int* _syn_thresh_{}_arr,", thresh_idx);
-				thresh_idx++;
+				foreach(thresh; &type.AllSynThresholds)
+				{
+					source ~= Format("__local int* _syn_thresh_{}_arr,", thresh_idx);
+					thresh_idx++;
+				}
 			}
 		}
 		source.Inject(kernel_source, "$syn_thresh_array_arg$");
 		
-		/* Threshold statuses */
+		/* Threshold statuses (and non-parallel syn threshold statuses) */
 		source.Tab(2);
 		thresh_idx = 0;
 		foreach(thresh; &type.AllThresholds)
 		{
 			source ~= Format("bool thresh_{}_state = false;", thresh_idx);
-			
 			thresh_idx++;
 		}
 		NumThresholds = thresh_idx;
+		if(!Parallel)
+		{
+			thresh_idx = 0;
+			foreach(syn_thresh; &type.AllSynThresholds)
+			{
+				source ~= Format("bool syn_thresh_{}_state = false;", thresh_idx);
+				thresh_idx++;
+			}
+		}
 		source.Inject(kernel_source, "$threshold_status$");
 		
 		/* Syn threshold statuses init */
 		source.Tab(2);
-		thresh_idx = 0;
-		if(NumSynThresholds)
+		if(Parallel)
 		{
-			scope block = new CCode(
+			thresh_idx = 0;
+			if(NumSynThresholds)
+			{
+				scope block = new CCode(
 `if(_local_id == 0)
 {
 $thresh_set$
 }
 barrier(CLK_LOCAL_MEM_FENCE);`);
 
-			scope block_source = new CSourceConstructor;
-			block_source.Tab;
-			foreach(thresh; &type.AllSynThresholds)
-			{
-				block_source ~= Format("_syn_thresh_{}_num = 0;", thresh_idx);
-				thresh_idx++;
+				scope block_source = new CSourceConstructor;
+				block_source.Tab;
+				foreach(thresh; &type.AllSynThresholds)
+				{
+					block_source ~= Format("_syn_thresh_{}_num = 0;", thresh_idx);
+					thresh_idx++;
+				}
+				block_source.Inject(block, "$thresh_set$");
+				source.AddBlock(block);
 			}
-			block_source.Inject(block, "$thresh_set$");
-			source.AddBlock(block);
 		}
 		source.Inject(kernel_source, "$syn_threshold_status_init$");
 		
@@ -937,13 +957,25 @@ _any_thresh |= thresh_$thresh_idx$_state;
 		thresh_idx = 0;
 		foreach(thresh; &type.AllSynThresholds)
 		{
-			scope block = new CCode(
+			scope block = new CCode;
+			if(Parallel)
+			{
+				block = 
 `if(!syn_thresh_$thresh_idx$_pre_state && ($thresh_state$ $thresh_cond$))
 {
 	_any_thresh = true;
 	_syn_thresh_$thresh_idx$_arr[atomic_inc(&_syn_thresh_$thresh_idx$_num)] = i;
 }
-`);			
+`;
+			}
+			else
+			{
+				block = 
+`syn_thresh_$thresh_idx$_state = !syn_thresh_$thresh_idx$_pre_state && ($thresh_state$ $thresh_cond$);
+_any_thresh |= syn_thresh_$thresh_idx$_state;
+`;
+			}
+			
 			block["$thresh_idx$"] = thresh_idx;
 			block["$thresh_state$"] = thresh.State;
 			block["$thresh_cond$"] = thresh.Condition;
@@ -1041,7 +1073,10 @@ else //It is full, error
 		thresh_idx = 0;
 		foreach(syn_type, thresh; &type.AllSynThresholdsEx)
 		{
-			scope block = new CCode(
+			scope block = new CCode;
+			if(Parallel)
+			{
+				block = 
 `
 barrier(CLK_LOCAL_MEM_FENCE);
 if(_syn_thresh_$thresh_idx$_num > 0)
@@ -1071,32 +1106,57 @@ $save_syn_globals$
 		}
 	}
 }
-`);
-			scope block_source = new CSourceConstructor;
-			
-			char[] declare_locals;
-			char[] init_locals;
-			char[] thresh_src = thresh.Source.dup;
-			
-			foreach(name, val; &type.AllNonLocals)
+`;
+			}
+			else
 			{
-				if(thresh_src.c_find(name) != thresh_src.length)
-				{
-					declare_locals ~= Format("__local $num_type$ {}_local;\n", name);
-					init_locals ~= Format("{0}_local = {0};\n", name);
-					thresh_src = thresh_src.c_substitute(name, name ~ "_local");
-				}
+				block = 
+`
+if(syn_thresh_$thresh_idx$_state)
+{
+		int _syn_offset = i * $num_syn$;
+		for(int _g_syn_i = _syn_offset; _g_syn_i < $num_syn$ + _syn_offset; _g_syn_i++)
+		{
+			/* Load syn globals */
+$load_syn_globals$
+			/* Thresh source */
+$thresh_src$
+			/* Save syn globals */
+$save_syn_globals$
+		}
+}
+`;
 			}
 			
-			/* Declare locals */
-			block_source.Tab(2);
-			block_source.AddBlock(declare_locals);
-			block_source.Inject(block, "$declare_locals$");
+			scope block_source = new CSourceConstructor;
 			
-			/* Init locals */
-			block_source.Tab(3);
-			block_source.AddBlock(init_locals);
-			block_source.Inject(block, "$init_locals$");
+			char[] thresh_src = thresh.Source.dup;
+			
+			if(Parallel)
+			{
+				char[] declare_locals;
+				char[] init_locals;
+				
+				foreach(name, val; &type.AllNonLocals)
+				{
+					if(thresh_src.c_find(name) != thresh_src.length)
+					{
+						declare_locals ~= Format("__local $num_type$ {}_local;\n", name);
+						init_locals ~= Format("{0}_local = {0};\n", name);
+						thresh_src = thresh_src.c_substitute(name, name ~ "_local");
+					}
+				}
+				
+				/* Declare locals */
+				block_source.Tab(2);
+				block_source.AddBlock(declare_locals);
+				block_source.Inject(block, "$declare_locals$");
+				
+				/* Init locals */
+				block_source.Tab(3);
+				block_source.AddBlock(init_locals);
+				block_source.Inject(block, "$init_locals$");
+			}
 			
 			/* Load syn globals */
 			block_source.Tab(3);
@@ -1193,7 +1253,7 @@ $save_syn_globals$
 		StepKernelSource = kernel_source[];
 	}
 	
-	private void CreateDeliverKernel(CNeuronType type, bool parallel_delivery)
+	private void CreateDeliverKernel(CNeuronType type)
 	{
 		scope source = new CSourceConstructor;
 		
@@ -1218,7 +1278,7 @@ __global int* _fired_syn_buffer,`);
 		
 		/* Parallel init code */
 		source.Tab;
-		if(parallel_delivery)
+		if(Parallel)
 		{
 			source.AddBlock(
 `__local int fire_table_idx;
@@ -1266,7 +1326,7 @@ $deliver_code$
 				
 				/* Deliver code */
 				src_source.Tab(3);
-				if(parallel_delivery)
+				if(Parallel)
 				{
 					src_source ~= "fire_table[atomic_inc(&fire_table_idx)] = $num_event_sources$ * i + $event_source_idx$;";
 				}
@@ -1298,7 +1358,7 @@ for(int syn_id = 0; syn_id < num_synapses; syn_id++)
 		
 		/* Parallel delivery */
 		source.Tab;
-		if(NeedSrcSynCode && parallel_delivery)
+		if(NeedSrcSynCode && Parallel)
 		{
 			scope src = new CCode(
 `barrier(CLK_LOCAL_MEM_FENCE);
@@ -2023,4 +2083,6 @@ for(int ii = 0; ii < num_fired; ii++)
 	CIntegrator!(float_t) Integrator;
 	
 	CCLConnector!(float_t)[char[]] Connectors;
+	
+	bool Parallel = true;
 }

@@ -23,7 +23,12 @@ import tango.util.Convert;
 
 class CCode
 {
-	this(char[] src)
+	this(char[] src = "")
+	{
+		Source = src.dup;
+	}
+	
+	void opAssign(char[] src)
 	{
 		Source = src.dup;
 	}

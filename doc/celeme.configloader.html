@@ -20,7 +20,7 @@
 <div class="summary"><div class="cmnt">This module allows the loading of a model definition (including connectors,
  neuron types, mechanisms and synapses) from a configuration file.</div></div>
 <dl>
-<dt class="decl"><span class="rettyp">CMechanism[char[]]</span> <a class="symbol _function" name="LoadMechanisms" href="htmlsrc/celeme.configloader.html#L254">LoadMechanisms</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadMechanisms" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CMechanism[char[]]</span> <a class="symbol _function" name="LoadMechanisms" href="htmlsrc/celeme.configloader.html#L258">LoadMechanisms</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadMechanisms" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load mechanisms from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of mechanisms.
@@ -100,6 +100,9 @@
 <a href="#L69_ex1" name="L69_ex1">69</a>
 <a href="#L70_ex1" name="L70_ex1">70</a>
 <a href="#L71_ex1" name="L71_ex1">71</a>
+<a href="#L72_ex1" name="L72_ex1">72</a>
+<a href="#L73_ex1" name="L73_ex1">73</a>
+<a href="#L74_ex1" name="L74_ex1">74</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">mechanism</span> <span class="i">MechName</span>
 {
@@ -111,7 +114,10 @@
     <span class="lc">// Init code. Duplicate entries will be combined together.</span>
     <span class="i">init_code</span> = <span class="sl">""</span>;
 
-    <span class="lc">// Code run before the integration is performed. Duplicate entries will be combined together.</span>
+    <span class="lc">// Code run before any integration is performed. Duplicate entries will be combined together.</span>
+    <span class="i">pre_step</span> = <span class="sl">""</span>;
+
+    <span class="lc">// Code run before an integration step (by dt) is performed. Duplicate entries will be combined together.</span>
     <span class="i">pre_stage</span> = <span class="sl">""</span>;
 
     <span class="lc">// States</span>
@@ -174,7 +180,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L319">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L323">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load synapses from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of synapses.
@@ -244,7 +250,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L402">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L406">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load connectors from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of connectors.
@@ -277,7 +283,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L603">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L610">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load neuron types from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of neuron types.
@@ -369,6 +375,9 @@
 <a href="#L81_ex4" name="L81_ex4">81</a>
 <a href="#L82_ex4" name="L82_ex4">82</a>
 <a href="#L83_ex4" name="L83_ex4">83</a>
+<a href="#L84_ex4" name="L84_ex4">84</a>
+<a href="#L85_ex4" name="L85_ex4">85</a>
+<a href="#L86_ex4" name="L86_ex4">86</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">neuron</span> <span class="i">NeuronTypeName</span>
 {
@@ -389,6 +398,9 @@
 
     <span class="lc">// Minimum dt</span>
     <span class="i">min_dt</span> = <span class="n">0.01</span>;
+
+    <span class="lc">// Pre-step code.  Multiple entries will be combined together.</span>
+    <span class="i">pre_step</span> = <span class="sl">""</span>;
 
     <span class="lc">// Pre-stage code. Multiple entries will be combined together.</span>
     <span class="i">pre_stage</span> = <span class="sl">""</span>;
@@ -455,7 +467,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L702">LoadModel</a><span class="params">(char[] <em>file</em>, char[][] <em>include_directories</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>, bool <em>double_precision</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L710">LoadModel</a><span class="params">(char[] <em>file</em>, char[][] <em>include_directories</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>, bool <em>double_precision</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Loads a model from a configuration file.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -468,7 +480,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sat Aug 27 21:46:00 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sun Sep  4 21:46:29 2011. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

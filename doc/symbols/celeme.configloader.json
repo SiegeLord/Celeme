@@ -1,6 +1,6 @@
-["configloader",1,[],[1,715],[
-["LoadMechanisms",12,[],[254,277],[]],
-["LoadSynapses",12,[],[319,379],[]],
-["LoadConnectors",12,[],[402,442],[]],
-["LoadNeuronTypes",12,[],[603,688],[]],
-["LoadModel",12,[],[702,714],[]]]]
+["configloader",1,[],[1,723],[
+["LoadMechanisms",12,[],[258,281],[]],
+["LoadSynapses",12,[],[323,383],[]],
+["LoadConnectors",12,[],[406,446],[]],
+["LoadNeuronTypes",12,[],[610,696],[]],
+["LoadModel",12,[],[710,722],[]]]]

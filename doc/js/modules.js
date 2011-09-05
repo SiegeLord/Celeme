@@ -1,15 +1,13 @@
 var g_moduleList = [
-  "celeme.capi", "celeme.celeme", "celeme.celeme_util", "celeme.config",
-  "celeme.configloader", "celeme.imodel", "celeme.ineurongroup",
-  "celeme.recorder", "celeme.internal.adaptiveheun",
-  "celeme.internal.alignedarray", "celeme.internal.amdperf",
-  "celeme.internal.clconnector", "celeme.internal.clcore",
-  "celeme.internal.clmiscbuffers", "celeme.internal.clmodel",
-  "celeme.internal.clneurongroup", "celeme.internal.clrand",
-  "celeme.internal.frontend", "celeme.internal.heun",
-  "celeme.internal.iclmodel", "celeme.internal.iclneurongroup",
-  "celeme.internal.integrator", "celeme.internal.sourceconstructor",
-  "celeme.internal.util",
+  "celeme.celeme", "celeme.config", "celeme.celeme_util", "celeme.recorder",
+  "celeme.ineurongroup", "celeme.configloader", "celeme.capi", "celeme.imodel",
+  "celeme.internal.clmodel", "celeme.internal.util", "celeme.internal.clcore",
+  "celeme.internal.clmiscbuffers", "celeme.internal.alignedarray",
+  "celeme.internal.heun", "celeme.internal.clconnector",
+  "celeme.internal.frontend", "celeme.internal.clrand",
+  "celeme.internal.sourceconstructor", "celeme.internal.clneurongroup",
+  "celeme.internal.adaptiveheun", "celeme.internal.iclneurongroup",
+  "celeme.internal.iclmodel", "celeme.internal.integrator",
 ];
 
 var g_packageTree = new PackageTree(P('', [
@@ -17,7 +15,6 @@ var g_packageTree = new PackageTree(P('', [
     P('celeme.internal',[
       M('celeme.internal.adaptiveheun'),
       M('celeme.internal.alignedarray'),
-      M('celeme.internal.amdperf'),
       M('celeme.internal.clconnector'),
       M('celeme.internal.clcore'),
       M('celeme.internal.clmiscbuffers'),
@@ -44,4 +41,4 @@ var g_packageTree = new PackageTree(P('', [
 ])
 );
 
-var g_creationTime = 1314495961;
+var g_creationTime = 1315187189;

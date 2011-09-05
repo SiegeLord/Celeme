@@ -241,6 +241,16 @@ class CMechanism
 		Thresholds ~= thresh;
 	}
 	
+	void PreStepCode(char[] code)
+	{
+		PreStepCodeVal = code;
+	}
+	
+	char[] PreStepCode()
+	{
+		return PreStepCodeVal;
+	}
+	
 	void InitCode(char[] code)
 	{
 		InitCodeVal = code;
@@ -294,6 +304,7 @@ class CMechanism
 			
 		ret.InitCode = InitCode.dup;
 		
+		ret.PreStepCode = PreStepCode.dup;
 		ret.PreStageCode = PreStageCode.dup;
 		ret.States = States.deep_dup();
 		ret.Globals = Globals.deep_dup();
@@ -306,6 +317,10 @@ class CMechanism
 		
 		return ret;
 	}
+	
+	/* Pre-step is called only once per timestep, after the synaptic currents are taken care of but before the dynamics are solved.
+	 */
+	char[] PreStepCodeVal;
 	
 	/* Pre-stage is called only once per dt, before any of the stages are called.
 	 */
@@ -807,62 +822,52 @@ class CNeuronType
 		return ret;
 	}
 	
-	char[] GetPreStageSource()
+	private char[] GetFixedCode(char[] code, char[] delegate(CMechanism mech) mech_code_extractor)
 	{
 		char[] ret;
-		if(PreStageCode.length)
+		if(code.length)
 		{
-			ret ~= "{\n" ~ PreStageCode ~ "\n}\n";
+			ret ~= "{\n" ~ code ~ "\n}\n";
 		}
 		foreach(ii, mech; Mechanisms)
 		{
-			if(mech.PreStageCode.length)
+			auto mech_code = mech_code_extractor(mech);
+			if(mech_code.length)
 			{
 				auto prefix = MechanismPrefixes[ii];
-				auto pre_stage_src = mech.PreStageCode.dup;
+				auto src = mech_code.dup;
 				if(prefix != "")
 				{
 					foreach(val; &mech.AllValues)
 					{
 						auto name = val.Name;
-						pre_stage_src = pre_stage_src.c_substitute(name, prefix ~ "_" ~ name);
+						src = src.c_substitute(name, prefix ~ "_" ~ name);
 					}
 				}
-				ret ~= "{\n" ~ pre_stage_src ~ "\n}\n";
+				ret ~= "{\n" ~ src ~ "\n}\n";
 			}
 		}
 		return ret;
+	}
+	
+	char[] GetPreStepSource()
+	{
+		return GetFixedCode(PreStepCode, (CMechanism mech) { return mech.PreStepCode; });
+	}
+	
+	char[] GetPreStageSource()
+	{
+		return GetFixedCode(PreStageCode, (CMechanism mech) { return mech.PreStageCode; });
 	}
 	
 	char[] GetInitSource()
 	{
-		char[] ret;
-		if(InitCode.length)
-		{
-			ret ~= "{\n" ~ InitCode ~ "\n}\n";
-		}
-		foreach(ii, mech; Mechanisms)
-		{
-			if(mech.InitCode.length)
-			{
-				auto prefix = MechanismPrefixes[ii];
-				auto init_src = mech.InitCode.dup;
-				if(prefix != "")
-				{
-					foreach(val; &mech.AllValues)
-					{
-						auto name = val.Name;
-						init_src = init_src.c_substitute(name, prefix ~ "_" ~ name);
-					}
-				}
-				ret ~= "{\n" ~ init_src ~ "\n}\n";
-			}
-		}
-		return ret;
+		return GetFixedCode(InitCode, (CMechanism mech) { return mech.InitCode; });
 	}
 	
 	mixin(Prop!("char[]", "InitCode"));
 	mixin(Prop!("char[]", "PreStageCode"));
+	mixin(Prop!("char[]", "PreStepCode"));
 	
 	CConnector[] Connectors;
 	CMechanism[char[]] Values;
@@ -872,6 +877,7 @@ class CNeuronType
 	SSynType[] SynapseTypes;
 	char[] Name;
 	char[] InitCodeVal;
+	char[] PreStepCodeVal;
 	char[] PreStageCodeVal;
 	
 	/* Length of the random state: 0-4

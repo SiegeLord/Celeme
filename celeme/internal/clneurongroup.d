@@ -120,6 +120,8 @@ $load_rand_state$
 
 $synapse_code$
 
+$pre_step_code$
+
 	$barrier$
 		
 	while($primary_exit_condition$)
@@ -787,6 +789,11 @@ $save_vals$
 			source.AddBlock(all_syn_code);
 		}
 		source.Inject(kernel_source, "$synapse_code$");
+		
+		/* Pre-step code */
+		source.Tab;
+		source.AddBlock(type.GetPreStepSource());
+		source.Inject(kernel_source, "$pre_step_code$");
 		
 		/* Syn threshold statuses */
 		source.Tab;

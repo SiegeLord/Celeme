@@ -58,6 +58,7 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 	
 	mech.InitCode = GetMultiEntryText(mech_entry, "init_code");
 	mech.PreStageCode = GetMultiEntryText(mech_entry, "pre_stage");
+	mech.PreStepCode = GetMultiEntryText(mech_entry, "pre_step");
 	
 	foreach(val_entries; mech_entry["state"])
 	{
@@ -188,7 +189,10 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  *     // Init code. Duplicate entries will be combined together.
  *     init_code = "";
  *     
- *     // Code run before the integration is performed. Duplicate entries will be combined together.
+ *     // Code run before any integration is performed. Duplicate entries will be combined together.
+ *     pre_step = "";
+ * 
+ *     // Code run before an integration step (by dt) is performed. Duplicate entries will be combined together.
  *     pre_stage = "";
  *     
  *     // States
@@ -535,6 +539,9 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
  *     // Minimum dt
  *     min_dt = 0.01;
  * 
+ *     // Pre-step code.  Multiple entries will be combined together.
+ *     pre_step = "";
+ * 
  *     // Pre-stage code. Multiple entries will be combined together.
  *     pre_stage = "";
  * 
@@ -623,6 +630,7 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 			nrn_type.RandLen = nrn_entry.ValueOf!(int)("rand_state_len", 0);
 			nrn_type.MinDt = nrn_entry.ValueOf!(double)("min_dt", 0.01);
 			nrn_type.PreStageCode = GetMultiEntryText(nrn_entry, "pre_stage");
+			nrn_type.PreStepCode = GetMultiEntryText(nrn_entry, "pre_step");
 			nrn_type.InitCode = GetMultiEntryText(nrn_entry, "init_code");
 			
 			foreach(entries; nrn_entry["mechanism"])

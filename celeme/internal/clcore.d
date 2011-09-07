@@ -456,13 +456,14 @@ class CCLCore
 	}
 	
 	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
+	mixin(Prop!("bool", "GPU", "", "private"));
 	
 protected:
 	cl_context Context;
 	cl_command_queue Commands;
 	cl_platform_id Platform;
 	cl_device_id Device;
-	bool GPU = false;
+	bool GPUVal = false;
 	size_t NumComputeUnitsVal;
 }
 

@@ -31,7 +31,7 @@ def run():
 		shell('./main ' + join(argv[2:]))
 
 def lib():
-	ret = shell('ldc -c ' + join(celeme_objs) + ' -od=".objs_celeme"')
+	ret = shell('ldc -c -g ' + join(celeme_objs) + ' -od=".objs_celeme"')
 	if ret == 0:
 		ret = shell('ar -r libceleme.a ' + join(glob(".objs_celeme/*.o")))
 

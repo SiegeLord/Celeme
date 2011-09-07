@@ -353,8 +353,8 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		ErrorBuffer = Core.CreateBuffer!(int)(Count + 1, false, true);
 		RecordFlagsBuffer = Core.CreateBuffer!(int)(Count, true, false);
 		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength, false, true);
-		RecordIdxBuffer = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize);
-		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / Model.WorkgroupSize, true, false);
+		RecordIdxBuffer = Core.CreateBuffer!(cl_int)(Count / WorkgroupSize);
+		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / WorkgroupSize, true, false);
 		
 		if(NeedSrcSynCode)
 		{
@@ -432,7 +432,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			{
 				foreach(_; range(NumSynThresholds))
 				{
-					SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize);
+					SetLocalArg(arg_id++, int.sizeof * WorkgroupSize);
 				}
 			}
 			SetGlobalArg(arg_id++, Count);
@@ -467,7 +467,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 			if(NeedSrcSynCode)
 			{
 				/* Local fire table */
-				SetLocalArg(arg_id++, int.sizeof * Model.WorkgroupSize * NumEventSources);
+				SetLocalArg(arg_id++, int.sizeof * WorkgroupSize * NumEventSources);
 				/* Set the event source args */
 				SetGlobalArg(arg_id++, CircBufferStart);
 				SetGlobalArg(arg_id++, CircBufferEnd);
@@ -560,18 +560,14 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 	}
 	
-	void CallInitKernel(size_t workgroup_size, cl_event* ret_event = null)
+	void CallInitKernel(cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
 		if(NeedUnMap)
 			UnMapBuffers();
 		
-		size_t total_num = (Count / workgroup_size) * workgroup_size;
-		if(total_num < Count)
-			total_num += workgroup_size;
-		
-		InitKernel.Launch([total_num], [workgroup_size], ret_event);
+		InitKernel.Launch([Count], [WorkgroupSize], ret_event);
 	}
 	
 	void CallStepKernel(double sim_time, cl_event* ret_event = null)
@@ -584,7 +580,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		with(StepKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			Launch([Count], [Model.WorkgroupSize], ret_event);
+			Launch([Count], [WorkgroupSize], ret_event);
 		}
 	}
 	
@@ -598,8 +594,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		with(DeliverKernel)
 		{
 			SetGlobalArg(0, cast(float_t)sim_time);
-			
-			Launch([Count], [Model.WorkgroupSize], ret_event);
+			Launch([Count], [WorkgroupSize], ret_event);
 		}
 	}
 	
@@ -1726,7 +1721,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		/* Try finding a workgroup that contains this neuron */
 		auto num_rec_workgroups = RecordingWorkgroups.length;
-		auto workgroup = SRecordingWorkgroup(neuron_id / Model.WorkgroupSize);
+		auto workgroup = SRecordingWorkgroup(neuron_id / WorkgroupSize);
 		auto workgroup_idx = RecordingWorkgroups.find(workgroup);
 		
 		if(workgroup_idx != RecordingWorkgroups.length)
@@ -1991,6 +1986,14 @@ for(int ii = 0; ii < num_fired; ii++)
 	double TimeStepSize()
 	{
 		return Model.TimeStepSize;
+	}
+	
+	size_t WorkgroupSize()
+	{
+		if(Core.GPU)
+			return Core.GetGoodNumWorkitems(0);
+		else
+			return Count / Core.NumComputeUnits;
 	}
 	
 	mixin(Prop!("char[]", "Name", "override", "private"));

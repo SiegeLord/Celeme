@@ -80,11 +80,8 @@ class CCLModel(float_t) : ICLModel
 			
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
-			
-		auto actual_number = (number / WorkgroupSize) * WorkgroupSize;
-		if(actual_number < number)
-			actual_number += WorkgroupSize;
-		number = actual_number;
+
+		number = Core.GetGoodNumWorkitems(number);
 		
 		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
@@ -231,7 +228,7 @@ class CCLModel(float_t) : ICLModel
 		/* Initialize */
 		foreach(group; NeuronGroups)
 		{
-			group.CallInitKernel(WorkgroupSize);
+			group.CallInitKernel();
 		}
 	}
 	
@@ -441,12 +438,6 @@ class CCLModel(float_t) : ICLModel
 		assert(dest_nrn_range[1] > dest_nrn_range[0], "Invalid source range.");
 		
 		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type, args);
-	}
-	
-	override
-	int WorkgroupSize()
-	{
-		return 64;
 	}
 	
 	mixin(Prop!("double", "TimeStepSize", "override", "override"));

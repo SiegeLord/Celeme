@@ -455,6 +455,16 @@ class CCLCore
 		clFinish(Commands);
 	}
 	
+	size_t GetGoodNumWorkitems(size_t cur_num)
+	{
+		size_t mult = GPU ? 64 : NumComputeUnits;
+		
+		if(cur_num == 0)
+			return mult;
+		else
+			return (cur_num / mult) * mult + ((cur_num % mult == 0) ? 0 : mult);
+	}
+	
 	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
 	mixin(Prop!("bool", "GPU", "", "private"));
 	

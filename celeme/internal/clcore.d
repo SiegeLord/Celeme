@@ -367,6 +367,8 @@ class CCLCore
 		
 		Device = devices[0];
 		
+		NumComputeUnits = GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS);
+		
 		/* Create a compute context */
 		Context = clCreateContext(null, 1, &Device, null, null, &err);
 		assert(err == 0, "Failed to create a compute context: " ~ GetCLErrorString(err));
@@ -453,12 +455,15 @@ class CCLCore
 		clFinish(Commands);
 	}
 	
+	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
+	
 protected:
 	cl_context Context;
 	cl_command_queue Commands;
 	cl_platform_id Platform;
 	cl_device_id Device;
 	bool GPU = false;
+	size_t NumComputeUnitsVal;
 }
 
 class CCLException : Exception

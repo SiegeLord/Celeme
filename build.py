@@ -46,6 +46,7 @@ def c():
 	shell('gcc test.c -o test -L/usr/local/d/ -L. -lceleme -ltango_nomain -lm -ldl -lpthread -L' + opencl_path + ' -lOpenCL -std=c99')
 
 def clean():
+	rm(glob(".deps"));
 	rm(glob(".objs/*.o"))
 	_dbuild()
 

@@ -281,6 +281,12 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		MinDt = type.MinDt;
 		Parallel = parallel_delivery;
 		
+		auto good_workgroup_count = Core.GoodNumWorkgroups;
+		if(good_workgroup_count)
+			WorkgroupSize = Count / good_workgroup_count;
+		else
+			WorkgroupSize = Core.GetGoodNumWorkitems(0);
+		
 		RandLen = type.RandLen;
 		switch(RandLen)
 		{
@@ -1988,14 +1994,6 @@ for(int ii = 0; ii < num_fired; ii++)
 		return Model.TimeStepSize;
 	}
 	
-	size_t WorkgroupSize()
-	{
-		if(Core.GPU)
-			return Core.GetGoodNumWorkitems(0);
-		else
-			return Count / Core.NumComputeUnits;
-	}
-	
 	mixin(Prop!("char[]", "Name", "override", "private"));
 	mixin(Prop!("int", "NumEventSources", "override", "private"));
 	mixin(Prop!("int", "NumSynThresholds", "override", "private"));
@@ -2095,4 +2093,6 @@ for(int ii = 0; ii < num_fired; ii++)
 	CCLConnector!(float_t)[char[]] Connectors;
 	
 	bool Parallel = true;
+	
+	size_t WorkgroupSize = 1;
 }

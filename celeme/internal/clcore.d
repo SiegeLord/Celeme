@@ -455,9 +455,27 @@ class CCLCore
 		clFinish(Commands);
 	}
 	
+	/* Returns 0 if the device doesn't care */
+	size_t GoodNumWorkgroups()
+	{
+		if(GPU)
+			return 0;
+
+		/* Overloading the CPU seems to do better than doing 1 workgroup per core */
+		switch(NumComputeUnits)
+		{
+			case 4:
+				return 7;
+			case 6:
+				return 11;
+			default:
+				return NumComputeUnits;
+		}
+	}
+	
 	size_t GetGoodNumWorkitems(size_t cur_num)
 	{
-		size_t mult = GPU ? 64 : NumComputeUnits;
+		size_t mult = GPU ? 64 : GoodNumWorkgroups;
 		
 		if(cur_num == 0)
 			return mult;

@@ -274,6 +274,7 @@ class CCLModel(float_t) : ICLModel
 				}
 				group.CallDeliverKernel(time, event_ptr);
 			}
+			version(Perf) Core.Finish();
 			deliver_est += timer.stop;
 
 			/* Call the step kernel */
@@ -287,6 +288,7 @@ class CCLModel(float_t) : ICLModel
 				}
 				group.CallStepKernel(time, event_ptr);
 			}
+			version(Perf) Core.Finish();
 			step_est += timer.stop;
 			
 			version(Perf)

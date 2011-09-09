@@ -566,7 +566,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 	}
 	
-	void CallInitKernel(cl_event* ret_event = null)
+	final void CallInitKernel(cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
@@ -576,7 +576,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		InitKernel.Launch([Count], [WorkgroupSize], ret_event);
 	}
 	
-	void CallStepKernel(double sim_time, cl_event* ret_event = null)
+	final void CallStepKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
@@ -590,7 +590,7 @@ class CNeuronGroup(float_t) : ICLNeuronGroup
 		}
 	}
 	
-	void CallDeliverKernel(double sim_time, cl_event* ret_event = null)
+	final void CallDeliverKernel(double sim_time, cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
 		
@@ -1678,7 +1678,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		}
 	}
 	
-	void UpdateRecorders(int timestep, bool last = false)
+	final void UpdateRecorders(int timestep, bool last = false)
 	{
 		assert(Model.Initialized);
 		

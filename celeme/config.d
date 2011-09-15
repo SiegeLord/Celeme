@@ -27,11 +27,11 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * 
  * ---
  * sentinel; // This one does not hold any value
- * size = 5;
- * mass = 1.2;
- * length = 1.3e-5;
- * name = "Test";
- * some_code = `printf("%d")`;
+ * size 5;
+ * mass 1.2;
+ * length 1.3e-5;
+ * name "Test";
+ * some_code `printf("%d")`;
  * ---
  * 
  * Values can be integers, floating point literals and strings.
@@ -44,8 +44,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * ---
  * address
  * {
- *    street = "Quiet St.";
- *    number = 125;
+ *    street "Quiet St.";
+ *    number 125;
  * }
  * ---
  * 
@@ -116,8 +116,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * When used like that, only the last match to the specifier is used:
  * 
  * ---
- * A a = 1;
- * A a = 6;
+ * A a 1;
+ * A a 6;
  * B
  * {
  *     include A;
@@ -131,11 +131,11 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * ---
  * char[] file = 
  * `
- * value = 5;
- * value = 7;
+ * value 5;
+ * value 7;
  * container
  * {
- *     contents = "Hello";
+ *     contents "Hello";
  * }
  * `;
  * 

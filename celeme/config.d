@@ -36,8 +36,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * 
  * Values can be integers, floating point literals and strings.
  * Strings can either be delimeted by the " character, or the ` character.
- * The former are escaped strings, while the latter are WYSIWYG strings,
- * useful for embedding code.
+ * The former support standard escape characters, while the latter have only a single escape character: \` which
+ * transforms to `.
  * 
  * Aggregate entries contain children entries:
  * 
@@ -871,7 +871,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 				if(str[0] == '"')
 					str = unescape(str[1..$-1]);
 				else
-					str = str[1..$-1];
+					str = TextUtil.substitute(str[1..$-1], "\\`", "`");
 				sval = str;
 				break;
 			}
@@ -1183,7 +1183,11 @@ unittest
 				include C.H;
 			}
 		}
-	`;
+		
+		a "abc\ndef\"";
+	`.dup;
+	
+	src ~= r"b `\\`\n`;";
 	
 	auto cfg = LoadConfig("test", null, src);
 	
@@ -1196,4 +1200,8 @@ unittest
 	assert(B.ValueOf!(int)("b") == 8);
 	assert(B["D"].length == 0);
 	assert(C["B", true].ValueOf!(int)("a") == 1);
+	assert(cfg.ValueOf!(char[])("a") == 
+`abc
+def"`);
+	assert(cfg.ValueOf!(char[])("b") == r"\`\n");
 }

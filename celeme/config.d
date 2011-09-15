@@ -400,7 +400,6 @@ enum EToken
 	Integer,
 	Double,
 	Boolean,
-	Assign,
 	LeftBrace,
 	RightBrace,
 	Dot,
@@ -414,7 +413,7 @@ struct SToken
 {
 	char[] String;
 	int Line;
-	int Type;
+	EToken Type;
 }
 
 class CConfigException : Exception
@@ -682,8 +681,6 @@ class CTokenizer
 				tok.Type = EToken.Name;
 			else if(ConsumeChar(Source, ';', end))
 				tok.Type = EToken.SemiColon;
-			else if(ConsumeChar(Source, '=', end))
-				tok.Type = EToken.Assign;
 			else if(ConsumeChar(Source, '{', end))
 				tok.Type = EToken.LeftBrace;
 			else if(ConsumeChar(Source, '}', end))
@@ -729,7 +726,7 @@ class CParser
 		return CurToken.Type == EToken.EOF;
 	}
 	
-	int Advance()
+	EToken Advance()
 	{
 		CurToken = NextToken;
 		NextToken = Tokenizer.Next();
@@ -737,7 +734,7 @@ class CParser
 		return Peek;
 	}
 	
-	int Peek()
+	EToken Peek()
 	{
 		return CurToken.Type;
 	}
@@ -836,65 +833,63 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 		parent.AddEntry(entry);
 	}
 	
+	CSingleValue create_single_value(char[] name, EToken token_type)
+	{
+		auto sval = new CSingleValue(name);
+		add(sval);
+				
+		switch(token_type)
+		{
+			case EToken.Boolean:
+			{
+				sval = parser.CurToken.String == "true";
+				break;
+			}
+			case EToken.Integer:
+			{
+				uint len;
+				auto val = cast(int)Integer.parse(parser.CurToken.String, 0, &len);
+				
+				if(len)
+					sval = val;
+				
+				break;
+			}
+			case EToken.Double:
+			{
+				uint len;
+				auto val = cast(double)Float.parse(parser.CurToken.String, &len);
+				
+				if(len)
+					sval = val;
+				
+				break;
+			}
+			case EToken.String:
+			{
+				auto str = parser.CurToken.String;
+				if(str[0] == '"')
+					str = unescape(str[1..$-1]);
+				else
+					str = str[1..$-1];
+				sval = str;
+				break;
+			}
+			default:
+				throw new CConfigException("Expected a value, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+		}
+		
+		return sval;
+	}
+	
 	if(parser.Peek == EToken.Name)
 	{
 		CConfigEntry ret;
 		auto name = parser.CurToken.String;
+		EToken token_type;
 		
-		switch(parser.Advance())
+		switch(token_type = parser.Advance())
 		{
-			case EToken.Assign:
-			{
-				auto sval = new CSingleValue(name);
-				add(sval);
-				
-				switch(parser.Advance())
-				{
-					case EToken.Boolean:
-					{
-						sval = parser.CurToken.String == "true";
-						break;
-					}
-					case EToken.Integer:
-					{
-						uint len;
-						auto val = cast(int)Integer.parse(parser.CurToken.String, 0, &len);
-						
-						if(len)
-							sval = val;
-						
-						break;
-					}
-					case EToken.Double:
-					{
-						uint len;
-						auto val = cast(double)Float.parse(parser.CurToken.String, &len);
-						
-						if(len)
-							sval = val;
-						
-						break;
-					}
-					case EToken.String:
-					{
-						auto str = parser.CurToken.String;
-						if(str[0] == '"')
-							str = unescape(str[1..$-1]);
-						else
-							str = str[1..$-1];
-						sval = str;
-						break;
-					}
-					default:
-						throw new CConfigException("Expected a value, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
-				}
-				if(parser.Advance() != EToken.SemiColon)
-					throw new CConfigException("Expected a semicolon, found: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
-				
-				parser.Advance();
-				ret = sval;
-				break;
-			}
 			case EToken.LeftBrace:
 			{
 				auto line = parser.CurToken.Line;
@@ -938,7 +933,14 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 				break;
 			}
 			default:
-				throw new CConfigException("Expected a '{' or a '=', not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+			{
+				ret = create_single_value(name, token_type);
+				if(parser.Advance() != EToken.SemiColon)
+					throw new CConfigException("Expected a semicolon, found: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				
+				parser.Advance();
+				break;
+			}
 		}
 		return ret;
 	}
@@ -1160,10 +1162,10 @@ unittest
 	auto src = `
 		A
 		{
-			a = 6;
+			a 6;
 			
-			C b = 7;
-			C b = 8;
+			C b	7;
+			C b 8;
 			D;
 		}
 		
@@ -1175,7 +1177,7 @@ unittest
 		
 		C
 		{
-			H a = 1;
+			H a 1;
 			B
 			{
 				include C.H;

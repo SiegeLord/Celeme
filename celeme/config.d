@@ -210,6 +210,23 @@ class CConfigEntry
 	}
 	
 	/**
+	 * Duplicate this entry
+	 */
+	CConfigEntry dup()
+	{
+		auto ret = new CConfigEntry(Name);
+		return copy(ret);
+	}
+	
+	/**
+	 * Copy this entry
+	 */
+	CConfigEntry copy(CConfigEntry ret)
+	{
+		return ret;
+	}
+	
+	/**
 	 * Get the value of this entry
 	 * 
 	 * Params:
@@ -261,7 +278,7 @@ class CConfigEntry
 		if(is_def !is null)
 			*is_def = false;
 
-		auto ret = opIndex(name, true);
+		auto ret = this[name, true];
 		
 		if(ret !is null)
 			return ret.Value!(T)(def, is_def);
@@ -278,14 +295,11 @@ class CConfigEntry
 	 * Params:
 	 *     name = Name to match.
 	 * 
-	 * Returns: An array of entries if some were found. null otherwise.
+	 * Returns: Returns an iterable fruct of all the entries that match this name.
 	 */
-	CConfigEntry[] opIndex(char[] name)
+	SEntryFruct opIndex(char[] name)
 	{
-		auto aggr = cast(CAggregate)this;
-		if(aggr !is null)
-			return aggr.opIndex(name);
-		return null;
+		return SEntryFruct(cast(CAggregate)this, name);
 	}
 	
 	/**
@@ -298,35 +312,46 @@ class CConfigEntry
 	 */
 	CConfigEntry opIndex(char[] name, bool last)
 	{
-		auto aggr = cast(CAggregate)this;
-		if(aggr !is null)
-		{
-			auto arr = aggr.opIndex(name);
-			if(arr !is null)
-				return arr[$ - 1];
-		}
-		return null;
+		CConfigEntry ret;
+		foreach(entry; this[name])
+			ret = entry;
+		return ret;
 	}
 	
 	struct SEntryFruct
 	{
 		CAggregate Aggregate;
+		char[] NameFilter;
 		
 		int opApply(int delegate(ref CConfigEntry entry) dg)
 		{
 			if(Aggregate is null)
 				return 0;
 
-			foreach(entries; Aggregate.Children)
+			CConfigEntry entry = Aggregate.First;
+			while(entry)
 			{
-				foreach(entry; entries)
+				if(NameFilter == null || entry.Name == NameFilter)
 				{
 					if(int ret = dg(entry))
+					{
 						return ret;
+					}
 				}
+				
+				entry = entry.Next;
 			}
 			
 			return 0;
+		}
+		
+		size_t length()
+		{
+			size_t ret = 0;
+			foreach(entry; *this)
+				ret++;
+			
+			return ret;
 		}
 	}
 	
@@ -335,7 +360,7 @@ class CConfigEntry
 	 */
 	SEntryFruct opSlice()
 	{
-		return SEntryFruct(cast(CAggregate)this);
+		return SEntryFruct(cast(CAggregate)this, null);
 	}
 	
 	/**
@@ -358,6 +383,11 @@ class CConfigEntry
 	 * Name of this entry.
 	 */
 	char[] Name;
+	
+	/**
+	 * Next entry in the single linked list of entries.
+	 */
+	CConfigEntry Next;
 }
 
 private:
@@ -735,18 +765,38 @@ class CAggregate : CConfigEntry
 		super(name);
 	}
 	
-	alias CConfigEntry.opIndex opIndex;
-	
-	CConfigEntry[] opIndex(char[] name)
+	void AddEntry(CConfigEntry entry)
 	{
-		auto entry_ptr = name in Children;
-		if(entry_ptr !is null)
-			return *entry_ptr;
+		if(First is null)
+			First = entry;
 		else
-			return null;
+			Last.Next = entry;
+		
+		Last = entry;
+		Last.Next = null;
 	}
 	
-	CConfigEntry[][char[]] Children;
+	CAggregate dup()
+	{
+		return copy(new CAggregate(Name));
+	}
+	
+	CAggregate copy(CAggregate ret)
+	{
+		super.copy(ret);
+		
+		CConfigEntry entry = First;
+		while(entry)
+		{
+			ret.AddEntry(entry.dup);
+			entry = entry.Next;
+		}
+		
+		return ret;
+	}
+	
+	CConfigEntry First;
+	CConfigEntry Last;
 }
 
 class CSingleValue : CConfigEntry
@@ -754,6 +804,20 @@ class CSingleValue : CConfigEntry
 	this(char[] name)
 	{
 		super(name);
+	}
+	
+	CSingleValue dup()
+	{
+		return copy(new CSingleValue(Name));
+	}
+	
+	CSingleValue copy(CSingleValue ret)
+	{
+		super.copy(ret);
+		
+		ret.Val = Val;
+		
+		return ret;
 	}
 	
 	void opAssign(T)(T val)
@@ -769,7 +833,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 {
 	void add(CConfigEntry entry)
 	{
-		parent.Children[entry.Name] ~= entry;
+		parent.AddEntry(entry);
 	}
 	
 	if(parser.Peek == EToken.Name)
@@ -1037,11 +1101,11 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 				{
 					bool found = L != Array.find(symbol_filters, child.Name);
 					if((include && found) || (!include && !found))
-						ret.Children[child.Name] ~= child;
+						ret.AddEntry(child.dup);
 				}
 				else
 				{
-					ret.Children[child.Name] ~= child;
+					ret.AddEntry(child.dup);
 				}
 			}
 			
@@ -1123,6 +1187,8 @@ unittest
 	
 	auto B = cfg["B", true];
 	auto C = cfg["C", true];
+	assert(B !is null);
+	assert(C !is null);
 	
 	assert(B.ValueOf!(int)("a") == 6);
 	assert(B.ValueOf!(int)("b") == 8);

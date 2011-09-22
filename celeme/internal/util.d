@@ -23,19 +23,7 @@ import tango.sys.Process;
 import tango.io.stream.Text;
 import tango.io.Stdout;
 import tango.stdc.stringz;
-
-private char[] c_str_buf;
-char* c_str(char[] dstr)
-{
-	if(dstr.length >= c_str_buf.length)
-		c_str_buf.length = dstr.length + 1;
-	return toStringz(dstr, c_str_buf);
-}
-
-void println(T...)(char[] fmt, T args)
-{
-	Stdout.formatln(fmt, args);
-}
+public import dutil.General;
 
 bool c_allowed_char(char c)
 {
@@ -118,88 +106,4 @@ unittest
 	
 	a = a.c_substitute("eta", "gddd");
 	assert(a == "Kappa beta gamma gddd", a);
-}
-
-T[] deep_dup(T)(T[] arr)
-{
-	T[] ret;
-	ret.length = arr.length;
-	foreach(ii, el; arr)
-		ret[ii] = el.dup;
-	return ret;
-}
-
-range_fruct!(T) range(T)(T end)
-{
-	range_fruct!(T) ret;
-	ret.end = end;
-	return ret;
-}
-
-range_fruct!(T) range(T)(T start, T end)
-{
-	range_fruct!(T) ret;
-	ret.start = start;
-	ret.end = end;
-	return ret;
-}
-
-range_fruct!(T) range(T)(T start, T end, T step)
-{
-	range_fruct!(T) ret;
-	ret.start = start;
-	ret.end = end;
-	ret.step = step;
-	return ret;
-}
-
-struct range_fruct(T)
-{	
-	int opApply(int delegate(ref T ii) dg)
-	{
-		for(T ii = start; ii < end; ii += step)
-		{
-			if(int ret = dg(ii))
-				return ret;
-		}
-		return 0;
-	}
-	
-	T start = 0;
-	T end = 0;
-	T step = 1;
-}
-
-char[] GetGitRevisionHash()
-{
-	char[] ret;
-	try
-	{
-		auto git = new Process(true, "git rev-parse HEAD");
-		git.execute();
-		auto input = new TextInput(git.stdout);
-		input.readln(ret);
-		git.wait();
-	}
-	catch(Exception e)
-	{
-		Stdout(e).nl;
-	}
-	return ret;
-}
-
-char[] Prop(char[] type, char[] name, char[] get_attr = "", char[] set_attr = "")()
-{
-	return
-	get_attr ~ "
-	" ~ type ~ " " ~ name ~ "()
-	{
-		return " ~ name ~ "Val;
-	}
-	
-	" ~ set_attr ~ "
-	void " ~ name ~ "(" ~ type ~ " val)
-	{
-		" ~ name ~ "Val = val;
-	}";
 }

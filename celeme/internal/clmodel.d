@@ -26,14 +26,15 @@ import celeme.internal.util;
 import celeme.internal.iclmodel;
 import celeme.ineurongroup;
 
+import opencl.cl;
+import dutil.Disposable;
+
 import tango.text.Util;
 import tango.io.Stdout;
 import tango.time.StopWatch;
 import tango.io.device.File;
 
-import opencl.cl;
-
-class CCLModel(float_t) : ICLModel
+class CCLModel(float_t) : CDisposable, ICLModel
 {
 	static if(is(float_t == float))
 	{
@@ -348,24 +349,26 @@ class CCLModel(float_t) : ICLModel
 	}
 	
 	override
-	void Shutdown()
+	void Dispose()
 	{
 		foreach(group; NeuronGroups)
-			group.Shutdown();
+			group.Dispose();
 		
 		/* TODO: Add safe releases to all of these */
 		if(Initialized)
 		{				
 			clReleaseProgram(Program);
 			
-			FiredSynBuffer.Release();
-			FiredSynIdxBuffer.Release();
+			FiredSynBuffer.Dispose();
+			FiredSynIdxBuffer.Dispose();
 		}
 		
-		Core.Shutdown();
+		Core.Dispose();
 		
 		Generated = false;
 		Initialized = false;
+		
+		super.Dispose();
 	}
 	
 	/*

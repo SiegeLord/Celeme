@@ -25,6 +25,7 @@ import celeme.internal.iclneurongroup;
 import celeme.internal.sourceconstructor;
 
 import opencl.cl;
+import dutil.Disposable;
 
 import tango.text.Util;
 import tango.util.Convert;
@@ -100,7 +101,7 @@ $save_rand_state$
 }
 `; 
 
-class CCLConnector(float_t)
+class CCLConnector(float_t) : CDisposable
 {
 	this(ICLNeuronGroup group, CConnector conn)
 	{
@@ -264,9 +265,10 @@ class CCLConnector(float_t)
 		return ret;
 	}
 	
-	void Shutdown()
+	void Dispose()
 	{
-		ConnectKernel.Release();
+		ConnectKernel.Dispose();
+		super.Dispose();
 	}
 	
 	char[] Name;

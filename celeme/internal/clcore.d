@@ -21,12 +21,13 @@ module celeme.internal.clcore;
 import celeme.internal.util;
 
 import opencl.cl;
+import dutil.Disposable;
 
 import tango.io.Stdout;
 import tango.util.Convert;
 import tango.util.MinMax;
 
-class CCLKernel
+class CCLKernel : CDisposable
 {
 	this(CCLCore core, cl_program program, char[] name)
 	{
@@ -39,9 +40,6 @@ class CCLKernel
 		{
 			throw new Exception("Failed to create '" ~ Name ~ "' kernel.");
 		}
-		
-		//println("Created: {}", Name);
-		NumKernels++;
 	}
 	
 	void SetGlobalArg(T)(uint argnum, T arg)
@@ -91,11 +89,10 @@ class CCLKernel
 		Core.LaunchKernel(this, num_work_items, workgroup_size, event);
 	}
 	
-	void Release()
+	void Dispose()
 	{
 		clReleaseKernel(Kernel);
-		NumKernels--;
-		//println("Released: {}", Name);
+		super.Dispose();
 	}
 	
 	CCLCore Core;
@@ -103,7 +100,7 @@ class CCLKernel
 	char[] Name;
 }
 
-class CCLBufferBase
+class CCLBufferBase : CDisposable
 {
 	cl_mem Buffer()
 	{
@@ -168,8 +165,6 @@ class CCLBuffer(T) : CCLBufferBase
 			HostBuffer = BufferVal;
 			assert(err == 0, GetCLErrorString(err));
 		}
-		
-		NumBuffers++;
 	}
 	
 	T[] MapWrite(size_t start = 0, size_t end = 0)
@@ -220,14 +215,14 @@ class CCLBuffer(T) : CCLBufferBase
 		}
 	}
 	
-	void Release()
+	void Dispose()
 	{
 		UnMap();
 		clReleaseMemObject(Buffer);
 		if(UseTwoBuffers)
 			clReleaseMemObject(HostBuffer);
 		
-		NumBuffers--;
+		super.Dispose();
 	}
 	
 	void UnMap()
@@ -297,7 +292,7 @@ protected:
 	T[] Mapped;
 }
 
-class CCLCore
+class CCLCore : CDisposable
 {
 	this(bool use_gpu = false, bool verbose = false)
 	{
@@ -402,10 +397,11 @@ class CCLCore
 		}
 	}
 	
-	void Shutdown()
+	void Dispose()
 	{
 		clReleaseCommandQueue(Commands);
 		clReleaseContext(Context);
+		super.Dispose();
 	}
 	
 	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 1)
@@ -659,12 +655,3 @@ char[] GetCLErrorString(cl_int ret_code)
 	}
 	assert(0);
 }
-
-int NumBuffers = 0;
-int NumKernels = 0;
-
-/+static ~this()
-{
-	println("NumBuffers: {}", NumBuffers);
-	println("NumKernels: {}", NumKernels);
-}+/

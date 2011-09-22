@@ -38,9 +38,9 @@ interface IModel
 	void Initialize();
 	
 	/**
-	 * Shuts the model down, destroying all of its resources.
+	 * Disposes of the model resources.
 	 */
-	void Shutdown();
+	void Dispose();
 	
 	/**
 	 * Adds a new neuron group from an internal registry.

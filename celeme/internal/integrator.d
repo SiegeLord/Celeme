@@ -28,7 +28,9 @@ import celeme.internal.frontend;
 import celeme.internal.clcore;
 import celeme.internal.sourceconstructor;
 
-class CIntegrator(float_t)
+import dutil.Disposable;
+
+class CIntegrator(float_t) : CDisposable
 {
 	this(ICLNeuronGroup group, CNeuronType type)
 	{
@@ -103,9 +105,9 @@ class CIntegrator(float_t)
 	/*
 	 * Destroys any buffers associated with this integrator.
 	 */
-	void Shutdown()
+	void Dispose()
 	{
-		
+		super.Dispose;
 	}
 	
 	ICLNeuronGroup Group;

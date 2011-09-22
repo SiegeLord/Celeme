@@ -257,9 +257,11 @@ if(_cur_time < timestep && _cur_time + _dt >= timestep)
 	}
 	
 	override
-	void Shutdown()
+	void Dispose()
 	{
-		DtBuffer.Release();
+		DtBuffer.Dispose();
+		
+		super.Dispose;
 	}
 	
 	CCLBuffer!(float_t) DtBuffer;

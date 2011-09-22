@@ -34,6 +34,7 @@ import celeme.internal.clrand;
 import celeme.internal.clmiscbuffers;
 
 import opencl.cl;
+import dutil.Disposable;
 
 import tango.io.Stdout;
 import tango.text.Util;
@@ -250,7 +251,7 @@ enum
 	CIRC_BUFFER_ERROR = 2
 }
 
-class CNeuronGroup(float_t) : ICLNeuronGroup
+class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 {
 	static if(is(float_t == float))
 	{
@@ -1614,45 +1615,47 @@ for(int ii = 0; ii < num_fired; ii++)
 		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
 	}
 	
-	void Shutdown()
+	void Dispose()
 	{
 		if(!Model.Initialized)
 			return;
 			
-		RWValues.Release();
-		ROValues.Release();
+		RWValues.Dispose();
+		ROValues.Dispose();
 
 		/* TODO: Add safe releases to all of these */			
 		foreach(buffer; SynGlobalBuffers)
-			buffer.Release();
+			buffer.Dispose();
 			
 		foreach(buffer; SynapseBuffers)
-			buffer.Release();
+			buffer.Dispose();
 			
 		foreach(buffer; EventSourceBuffers)
-			buffer.Release();
+			buffer.Dispose();
 
-		CircBufferStart.Release();
-		CircBufferEnd.Release();
-		CircBuffer.Release();
-		ErrorBuffer.Release();
-		RecordFlagsBuffer.Release();
-		RecordBuffer.Release();
-		RecordIdxBuffer.Release();
-		RecordIdxBufferStart.Release();
-		DestSynBuffer.Release();
+		CircBufferStart.Dispose();
+		CircBufferEnd.Dispose();
+		CircBuffer.Dispose();
+		ErrorBuffer.Dispose();
+		RecordFlagsBuffer.Dispose();
+		RecordBuffer.Dispose();
+		RecordIdxBuffer.Dispose();
+		RecordIdxBufferStart.Dispose();
+		DestSynBuffer.Dispose();
 		
-		InitKernel.Release();
-		StepKernel.Release();
-		DeliverKernel.Release();
+		InitKernel.Dispose();
+		StepKernel.Dispose();
+		DeliverKernel.Dispose();
 		
-		Integrator.Shutdown();
+		Integrator.Dispose();
 		
 		foreach(conn; Connectors)
-			conn.Shutdown();
+			conn.Dispose();
 		
 		if(RandLen)
-			Rand.Shutdown();
+			Rand.Dispose();
+
+		super.Dispose();
 	}
 	
 	void SetRecordSizeAndStart()

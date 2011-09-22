@@ -23,6 +23,7 @@ import celeme.internal.clcore;
 import celeme.internal.util;
 
 import opencl.cl;
+import dutil.Disposable;
 
 import tango.core.Traits;
 import tango.text.convert.Format;
@@ -34,7 +35,7 @@ private struct SValueHolder(T)
 	T DefaultValue;
 }
 
-class CMultiBuffer(T)
+class CMultiBuffer(T) : CDisposable
 {
 	this(char[] prefix, size_t n, size_t count, bool read = true, bool write = true)
 	{
@@ -124,10 +125,11 @@ class CMultiBuffer(T)
 		}
 	}
 	
-	void Release()
+	void Dispose()
 	{
 		foreach(buf; Buffers)
-			buf.Release;
+			buf.Dispose;
+		super.Dispose();
 	}
 	
 	char[] ArgsCode()
@@ -213,7 +215,7 @@ private:
 	bool Write = true;
 }
 
-class CValueBuffer(T)
+class CValueBuffer(T) : CDisposable
 {
 	this(CValue val, CCLCore core, size_t count)
 	{
@@ -226,16 +228,17 @@ class CValueBuffer(T)
 		return DefaultValue = val;
 	}
 	
-	void Release()
+	void Dispose()
 	{
-		Buffer.Release();
+		Buffer.Dispose();
+		super.Dispose();
 	}
 		
 	CCLBuffer!(T) Buffer;	
 	double DefaultValue;
 }
 
-class CSynGlobalBuffer(T)
+class CSynGlobalBuffer(T) : CDisposable
 {
 	this(CValue val, CCLCore core, size_t num_syn)
 	{
@@ -243,16 +246,17 @@ class CSynGlobalBuffer(T)
 		Buffer = core.CreateBuffer!(T)(num_syn, true, !val.ReadOnly);
 	}
 	
-	void Release()
+	void Dispose()
 	{
-		Buffer.Release();
+		Buffer.Dispose();
+		super.Dispose();
 	}
 	
 	CCLBuffer!(T) Buffer;
 	double DefaultValue;
 }
 
-class CEventSourceBuffer
+class CEventSourceBuffer : CDisposable
 {
 	this(CCLCore core, int nrn_count)
 	{
@@ -260,16 +264,17 @@ class CEventSourceBuffer
 		FreeIdx[] = 0;
 	}
 	
-	void Release()
+	void Dispose()
 	{
-		FreeIdx.Release();
+		FreeIdx.Dispose();
+		super.Dispose();
 	}
 	
 	/* Last free index */
 	CCLBuffer!(int) FreeIdx;
 }
 
-class CSynapseBuffer
+class CSynapseBuffer : CDisposable
 {
 	this(CCLCore core, int offset, int count, int nrn_count)
 	{
@@ -279,9 +284,10 @@ class CSynapseBuffer
 		Count = count;
 	}
 	
-	void Release()
+	void Dispose()
 	{
-		FreeIdx.Release();
+		FreeIdx.Dispose();
+		super.Dispose();
 	}
 	/* Last free index */
 	CCLBuffer!(int) FreeIdx;

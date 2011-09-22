@@ -25,6 +25,7 @@ import tango.math.random.Random;
 import tango.util.Convert;
 
 import opencl.cl;
+import dutil.Disposable;
 
 /*
  * Taken from NVidia's GPU gems 3.37
@@ -69,7 +70,7 @@ $num_type$ rand2(uint2* zp)
 ];
 
 
-class CCLRand
+class CCLRand : CDisposable
 {
 	char[] GetLoadCode()
 	{
@@ -101,9 +102,9 @@ class CCLRand
 		
 	}
 	
-	void Shutdown()
+	void Dispose()
 	{
-		
+		super.Dispose();
 	}
 	
 	int NumArgs()
@@ -194,9 +195,10 @@ class CCLRandImpl(uint N) : CCLRand
 	}
 	
 	override
-	void Shutdown()
+	void Dispose()
 	{
-		State.Release();
+		State.Dispose();
+		super.Dispose();
 	}
 	
 	override

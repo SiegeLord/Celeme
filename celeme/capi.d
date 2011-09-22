@@ -95,7 +95,7 @@ void celeme_shutdown()
 		Runtime.terminate();
 		
 		foreach(model; Models)
-			model.Shutdown();
+			model.Dispose();
 		
 		Models.length = 0;
 	}
@@ -213,7 +213,7 @@ IModel celeme_create_model(int type, bool gpu)
  *     model - Model to destroy.
  * 
  * See_Also: 
- *     $(SYMLINK2 celeme.imodel, IModel.Shutdown, IModel.Shutdown)
+ *     $(SYMLINK2 celeme.imodel, IModel.Dispose, IModel.Dispose)
  * 
  * C signature:
  * ---
@@ -228,7 +228,7 @@ void celeme_destroy_model(IModel model)
 		auto len = Models.remove(model, &iser!(IModel));
 		if(len < Models.length)
 		{
-			Models[$ - 1].Shutdown();
+			Models[$ - 1].Dispose();
 			Models.length = len;
 		}
 	}

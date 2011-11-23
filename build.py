@@ -13,7 +13,7 @@ def rm(file_list):
 def shell(cmd):
 	return call(cmd, shell=True)
 
-opencl_path = '/usr/local/atistream/lib/x86_64'
+opencl_path = '/usr/local/amdapp/lib/x86_64'
 perf_str = '-d-version=Perf'
 perf_str = ''
 

@@ -1225,11 +1225,12 @@ $save_syn_globals$
 		source.Inject(kernel_source, "$save_vals$");
 		
 		/* Random stuff */
+		kernel_source["randn()"] = "(sqrt(-2 * log(rand() + 0.000001)) * cospi(2 * rand()))";
 		NeedRandArgs = kernel_source[].containsPattern("rand()");
 		if(NeedRandArgs)
 		{
 			if(!RandLen)
-				throw new Exception("Found rand() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
+				throw new Exception("Found rand()/randn() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
 				
 			kernel_source["rand()"] = Format("rand{}(&_rand_state)", RandLen);
 		}

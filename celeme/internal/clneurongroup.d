@@ -100,13 +100,7 @@ $primary_exit_condition_init$
 	const $num_type$ timestep = $time_step$;
 	int _record_flags = _record_flags_buffer[i];
 	
-	__local int _local_record_idx;
-	__local int _local_record_idx_start;
-	if(_local_id == 0)
-	{
-		_local_record_idx = _record_idx[_group_id];
-		_local_record_idx_start = _record_idx_start[_group_id];
-	}
+$record_load$
 	
 	$num_type$ _dt;
 	$num_type$ t = _t;
@@ -175,11 +169,7 @@ $save_vals$
 
 $save_rand_state$
 
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if(_local_id == 0)
-	{
-		_record_idx[_group_id] = _local_record_idx;
-	}
+$record_save$
 }
 `;
 
@@ -673,6 +663,30 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			source ~= "const $num_type$ " ~ name ~ " = " ~ Format("{:e6}", val.Value) ~ ";";
 		}
 		source.Inject(kernel_source, "$immutables$");
+		
+		/* Record load */
+		source.Tab;
+		if(Parallel)
+		{
+			source.AddBlock(
+`__local int _local_record_idx;
+__local int _local_record_idx_start;
+if(_local_id == 0)
+{
+	_local_record_idx = _record_idx[_group_id];
+	_local_record_idx_start = _record_idx_start[_group_id];
+}`);
+		}
+		else
+		{
+			/* Global atomics are as fast as local ones on the CPU, so use them instead.
+			 */
+			source.AddBlock(
+`#define _local_record_idx _record_idx[_group_id]
+int _local_record_idx_start = _record_idx_start[_group_id];
+`);
+		}
+		source.Inject(kernel_source, "$record_load$");
 		
 		/* Integrator load */
 		source.Tab;
@@ -1253,12 +1267,26 @@ $save_syn_globals$
 			source ~= Rand.GetSaveCode();
 		source.Inject(kernel_source, "$save_rand_state$");
 		
+		/* Record save */
+		source.Tab;
+		if(Parallel)
+		{
+			source.AddBlock(
+`
+$barrier$
+if(_local_id == 0)
+{
+	_record_idx[_group_id] = _local_record_idx;
+}`);
+		}
+		source.Inject(kernel_source, "$record_save$");
+		
 		kernel_source["reset_dt()"] = FixedStep ? "" : "_dt = $min_dt$f";
 		kernel_source["$min_dt$"] = MinDt;
 		kernel_source["$time_step$"] = Model.TimeStepSize;
 		kernel_source["$record_error$"] = RECORD_ERROR;
 		kernel_source["$circ_buffer_error$"] = CIRC_BUFFER_ERROR;
-		kernel_source["$barrier$"] = "barrier(CLK_LOCAL_MEM_FENCE);";
+		kernel_source["$barrier$"] = Parallel ? "barrier(CLK_LOCAL_MEM_FENCE);" : "";
 		
 		StepKernelSource = kernel_source[];
 	}

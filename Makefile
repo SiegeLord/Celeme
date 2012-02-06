@@ -67,7 +67,7 @@ $(LIBRARY_NAME) : $(CELEME_FILES)
 	ar -r $(LIBRARY_NAME) .objs_celeme/*.o
 
 $(C_EXAMPLE_NAME) : $(C_EXAMPLE_FILES) $(LIBRARY_NAME)
-	gcc $(C_EXAMPLE_FILES) -o $(C_EXAMPLE_NAME) -L. -lceleme -ltango_nomain -lm -ldl -lpthread -L$(OPENCL_PATH) -lOpenCL -std=c99
+	gcc $(C_EXAMPLE_FILES) -o $(C_EXAMPLE_NAME) -L. -lceleme -ltango-ldc -ldruntime-ldc -lrt -lm -ldl -lpthread -L$(OPENCL_PATH) -lOpenCL -std=c99
 
 $(PYCELEME_NAME) : $(PYCELEME_FILES) $(CELEME_FILES)
 	$(call d_build,$(PYCELEME_NAME),$(PYCELEME_FILES) $(CELEME_FILES) $(DUTIL_FILES) $(PYTHON_FILES), -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl -L-lpython2.6 $(PERF_STR))

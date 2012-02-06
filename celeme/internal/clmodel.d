@@ -38,11 +38,11 @@ class CCLModel(float_t) : CDisposable, ICLModel
 {
 	static if(is(float_t == float))
 	{
-		char[] NumStr = "float";
+		enum NumStr = "float";
 	}
 	else static if(is(float_t == double))
 	{
-		char[] NumStr = "double";
+		enum NumStr = "double";
 	}
 	else
 	{
@@ -57,19 +57,19 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(char[] type_name, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(cstring type_name, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(Registry !is null, "No neuron types available.");
 		
 		auto type_ptr = type_name in Registry;
 		if(type_ptr is null)
-			throw new Exception("The registry has no neuron type named '" ~ type_name ~ "'.");
+			throw new Exception("The registry has no neuron type named '" ~ type_name.idup ~ "'.");
 		
 		AddNeuronGroup(*type_ptr, number, name, adaptive_dt, parallel_delivery);
 	}
 	
 	override
-	void AddNeuronGroup(CNeuronType type, int number, char[] name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(CNeuronType type, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
@@ -80,9 +80,9 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			name = type.Name;
 			
 		if((name in NeuronGroups) !is null)
-			throw new Exception("A group named '" ~ name ~ "' already exists in this model.");
+			throw new Exception("A group named '" ~ name.idup ~ "' already exists in this model.");
 
-		number = Core.GetGoodNumWorkitems(number);
+		number = cast(int)Core.GetGoodNumWorkitems(cast(int)number);
 		
 		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
@@ -183,16 +183,16 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	INeuronGroup opIndex(char[] name)
+	INeuronGroup opIndex(cstring name)
 	{
 		return GetGroup(name);
 	}
 	
-	CNeuronGroup!(float_t) GetGroup(char[] name)
+	CNeuronGroup!(float_t) GetGroup(cstring name)
 	{
 		auto ret_ptr = name in NeuronGroups;
 		if(ret_ptr is null)
-			throw new Exception("No group named '" ~ name ~ "' exists in this model");
+			throw new Exception("No group named '" ~ name.idup ~ "' exists in this model");
 		return *ret_ptr;
 	}
 	
@@ -376,7 +376,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	 * to a neuron at index dest_nrn_id from dest_group.
 	 */
 	override
-	void SetConnection(char[] src_group, int src_nrn_id, int src_event_source, int src_slot, char[] dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
+	void SetConnection(cstring src_group, int src_nrn_id, int src_event_source, int src_slot, cstring dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
 	{
 		assert(Initialized);
 		
@@ -396,7 +396,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	SSlots Connect(char[] src_group, int src_nrn_id, int src_event_source, char[] dest_group, int dest_nrn_id, int dest_syn_type)
+	SSlots Connect(cstring src_group, int src_nrn_id, int src_event_source, cstring dest_group, int dest_nrn_id, int dest_syn_type)
 	{
 		assert(Initialized);
 		
@@ -427,7 +427,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void ApplyConnector(char[] connector_name, int multiplier, char[] src_group, int[2] src_nrn_range, int src_event_source, char[] dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
+	void ApplyConnector(cstring connector_name, int multiplier, cstring src_group, int[2] src_nrn_range, int src_event_source, cstring dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
 	{
 		assert(Initialized);
 		
@@ -469,7 +469,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	
 	CCLCore CoreVal;
 	CNeuronGroup!(float_t)[char[]] NeuronGroups;
-	char[] Source;
+	cstring Source;
 	
 	bool InitializedVal = false;
 	bool Generated = false;

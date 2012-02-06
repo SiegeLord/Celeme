@@ -26,7 +26,7 @@ import tango.io.Stdout;
 /* A front end value, primarily stores the name and default value */
 class CValue
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		Name = name;
 	}
@@ -49,13 +49,13 @@ class CValue
 		return ret;
 	}
 	
-	char[] Name;
+	cstring Name;
 	double Value = 0;
 	bool ReadOnly = false;
 	double Tolerance = 0.1;
 }
 
-bool IsValidName(char[] name)
+bool IsValidName(cstring name)
 {
 	return name != "t"
 	    && name != "dt"
@@ -67,9 +67,9 @@ bool IsValidName(char[] name)
 
 struct SThreshold
 {
-	char[] State;
-	char[] Condition;
-	char[] Source;
+	cstring State;
+	cstring Condition;
+	cstring Source;
 	bool IsEventSource = false;
 	bool ResetTime = false;
 	
@@ -81,9 +81,9 @@ struct SThreshold
 
 struct SSynThreshold
 {
-	char[] State;
-	char[] Condition;
-	char[] Source;
+	cstring State;
+	cstring Condition;
+	cstring Source;
 	
 	SSynThreshold dup()
 	{
@@ -91,15 +91,15 @@ struct SSynThreshold
 	}
 }
 
-char[] AddMechFunc(char[] name)()
+cstring AddMechFunc(cstring name)()
 {
 	return 
-	`CValue Add` ~ name ~ `(char[] name)
+	`CValue Add` ~ name ~ `(cstring name)
 		{
 			if(!IsValidName(name))
-				throw new Exception("The name '" ~ name ~ "' is reserved.");
+				throw new Exception("The name '" ~ name.idup ~ "' is reserved.");
 			if(IsDuplicateName(name))
-				throw new Exception("'" ~ name ~ "' already exists in mechanism '" ~ Name ~ "'.");
+				throw new Exception("'" ~ name.idup ~ "' already exists in mechanism '" ~ Name.idup ~ "'.");
 			auto val = new CValue(name);				
 			` ~ name ~ `s ~= val;
 			return val;
@@ -109,7 +109,7 @@ char[] AddMechFunc(char[] name)()
 
 class CMechanism
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		Name = name;
 	}
@@ -120,16 +120,16 @@ class CMechanism
 	mixin(AddMechFunc!("Constant"));
 	mixin(AddMechFunc!("Immutable"));
 	
-	void AddExternal(char[] name)
+	void AddExternal(cstring name)
 	{
 		if(!IsValidName(name))
-			throw new Exception("The name '" ~ name ~ "' is reserved.");
+			throw new Exception("The name '" ~ name.idup ~ "' is reserved.");
 		if(IsDuplicateName(name))
-			throw new Exception("'" ~ name ~ "' exists in mechanism '" ~ Name ~ "'.");
+			throw new Exception("'" ~ name.idup ~ "' exists in mechanism '" ~ Name.idup ~ "'.");
 		Externals ~= name;
 	}
 	
-	void RemoveValue(char[] name)
+	void RemoveValue(cstring name)
 	{		
 		bool try_remove(ref CValue[] arr)
 		{
@@ -154,10 +154,10 @@ class CMechanism
 			return;
 		}
 		
-		throw new Exception("Mechanism does not have a value named '" ~ name ~ "'.");
+		throw new Exception("Mechanism does not have a value named '" ~ name.idup ~ "'.");
 	}
 	
-	bool IsDuplicateName(char[] name)
+	bool IsDuplicateName(cstring name)
 	{
 		/* TODO: LOL OPTIMIZE */
 		foreach(val; &AllValues)
@@ -218,7 +218,7 @@ class CMechanism
 		return 0;
 	}
 	
-	void SetStage(int stage, char[] source)
+	void SetStage(int stage, cstring source)
 	{
 		assert(stage >= 0, "stage must be greater than or equal to 0");
 		assert(stage < 3, "stage must be less than 3");
@@ -226,7 +226,7 @@ class CMechanism
 		Stages[stage] = source;
 	}
 	
-	void AddThreshold(char[] state, char[] condition, char[] source, bool event_source = false, bool resetting = false)
+	void AddThreshold(cstring state, cstring condition, cstring source, bool event_source = false, bool resetting = false)
 	{
 		SThreshold thresh;
 		thresh.State = state;
@@ -241,37 +241,37 @@ class CMechanism
 		Thresholds ~= thresh;
 	}
 	
-	void PreStepCode(char[] code)
+	void PreStepCode(cstring code)
 	{
 		PreStepCodeVal = code;
 	}
 	
-	char[] PreStepCode()
+	cstring PreStepCode()
 	{
 		return PreStepCodeVal;
 	}
 	
-	void InitCode(char[] code)
+	void InitCode(cstring code)
 	{
 		InitCodeVal = code;
 	}
 	
-	char[] InitCode()
+	cstring InitCode()
 	{
 		return InitCodeVal;
 	}
 	
-	void PreStageCode(char[] code)
+	void PreStageCode(cstring code)
 	{
 		PreStageCodeVal = code;
 	}
 	
-	char[] PreStageCode()
+	cstring PreStageCode()
 	{
 		return PreStageCodeVal;
 	}
 	
-	CValue opIndex(char[] name)
+	CValue opIndex(cstring name)
 	{
 		/* TODO: LOL OPTIMIZE */
 		foreach(val; &AllValues)
@@ -280,10 +280,10 @@ class CMechanism
 				return val;
 		}
 		
-		throw new Exception("'" ~ Name ~ "' does not have a '" ~ name ~ "' value.");
+		throw new Exception("'" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' value.");
 	}
 	
-	CValue opIndexAssign(double val, char[] name)
+	CValue opIndexAssign(double val, cstring name)
 	{
 		auto value = opIndex(name);
 		value = val;
@@ -320,11 +320,11 @@ class CMechanism
 	
 	/* Pre-step is called only once per timestep, after the synaptic currents are taken care of but before the dynamics are solved.
 	 */
-	char[] PreStepCodeVal;
+	cstring PreStepCodeVal;
 	
 	/* Pre-stage is called only once per dt, before any of the stages are called.
 	 */
-	char[] PreStageCodeVal;
+	cstring PreStageCodeVal;
 	
 	/* Mechanism evaluation proceeds in stages. Each mechanism's stage N is run at the same time,
 	 * and before stage N + 1. The suggested nature of operations that go in each stage is as follows:
@@ -332,16 +332,16 @@ class CMechanism
 	 * 1 - Modify local variables
 	 * 2 - Compute state derivatives
 	 */
-	char[][3] Stages;
-	char[] Name;
+	cstring[3] Stages;
+	cstring Name;
 	
 	/* Externals are value names that come from other mechanisms. */
-	char[][] Externals;
+	cstring[] Externals;
 	
 	/* The init function gets called after each value gets the default value set to it. Thus, most init
 	 * functions should be empty OR set the state initial values given the globals
 	 */
-	char[] InitCodeVal;
+	cstring InitCodeVal;
 	
 	/* States are the dynamical states. They have a first derivative (referred to as state_name' inside the
 	 * stage sources. You should never modify a state's value directly outside of a threshold. Or the init
@@ -377,14 +377,15 @@ class CMechanism
 
 class CSynapse : CMechanism
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		super(name);
 	}
 	
 	mixin(AddMechFunc!("SynGlobal"));
 	
-	bool IsDuplicateName(char[] name)
+	override
+	bool IsDuplicateName(cstring name)
 	{
 		auto ret = super.IsDuplicateName(name);
 		if(ret)
@@ -397,10 +398,10 @@ class CSynapse : CMechanism
 		return false;
 	}
 	
-	mixin(Prop!("char[]", "SynCode"));
-	mixin(Prop!("char[]", "SynThreshCode"));
+	mixin(Prop!("cstring", "SynCode"));
+	mixin(Prop!("cstring", "SynThreshCode"));
 	
-	void AddSynThreshold(char[] state, char[] condition, char[] source)
+	void AddSynThreshold(cstring state, cstring condition, cstring source)
 	{
 		SSynThreshold thresh;
 		thresh.State = state;
@@ -420,7 +421,8 @@ class CSynapse : CMechanism
 		return 0;
 	}
 	
-	CValue opIndex(char[] name)
+	override
+	CValue opIndex(cstring name)
 	{
 		/* TODO: LOL OPTIMIZE */
 		foreach(val; &AllValues)
@@ -435,8 +437,10 @@ class CSynapse : CMechanism
 				return val;
 		}
 		
-		throw new Exception("'" ~ Name ~ "' does not have a '" ~ name ~ "' value.");
+		throw new Exception("'" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' value.");
 	}
+	
+	alias CMechanism.dup dup;
 	
 	CSynapse dup(CSynapse ret = null)
 	{
@@ -457,8 +461,8 @@ class CSynapse : CMechanism
 	 */
 	CValue[] SynGlobals;
 	
-	char[] SynCodeVal;
-	char[] SynThreshCodeVal;
+	cstring SynCodeVal;
+	cstring SynThreshCodeVal;
 	
 	SSynThreshold[] SynThresholds;
 }
@@ -467,18 +471,18 @@ struct SSynType
 {
 	CSynapse Synapse;
 	int NumSynapses;
-	char[] Prefix;
+	cstring Prefix;
 }
 
 class CNeuronType
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		Name = name;
 	}
 	
 	/* Returns null if it isn't duplicate and the name of the containing mechanism if it is */
-	char[] IsDuplicateName(char[] name)
+	cstring IsDuplicateName(cstring name)
 	{
 		auto old_mech = name in Values;
 		if(old_mech !is null)
@@ -500,13 +504,13 @@ class CNeuronType
 		foreach(c; Connectors)
 		{
 			if(c.Name == conn.Name)
-				throw new Exception("Connector '" ~ c.Name ~ "' already exists in this neuron type.");
+				throw new Exception("Connector '" ~ c.Name.idup ~ "' already exists in this neuron type.");
 		}
 		
 		Connectors ~= conn;
 	}
 	
-	void AddMechanism(CMechanism mech, char[] prefix = "", bool no_dup = false)
+	void AddMechanism(CMechanism mech, cstring prefix = "", bool no_dup = false)
 	{
 		assert(mech);
 		if(!no_dup)
@@ -517,7 +521,7 @@ class CNeuronType
 			auto mech_name = IsDuplicateName(name);
 			if(mech_name !is null)
 			{
-				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ mech_name ~ "' mechanism.");
+				throw new Exception("'" ~ name.idup ~ "' has already been added by the '" ~ mech_name.idup ~ "' mechanism.");
 			}
 
 			Values[name] = mech;
@@ -529,7 +533,7 @@ class CNeuronType
 		MechanismPrefixes ~= prefix;
 	}
 	
-	void AddSynapse(CSynapse syn, int num_slots, char[] prefix = "", bool no_dup = false)
+	void AddSynapse(CSynapse syn, int num_slots, cstring prefix = "", bool no_dup = false)
 	{
 		if(!no_dup)
 			syn = syn.dup;
@@ -540,7 +544,7 @@ class CNeuronType
 			auto mech_name = IsDuplicateName(name);
 			if(mech_name !is null)
 			{
-				throw new Exception("'" ~ name ~ "' has already been added by the '" ~ mech_name ~ "' mechanism.");
+				throw new Exception("'" ~ name.idup ~ "' has already been added by the '" ~ mech_name.idup ~ "' mechanism.");
 			}
 			
 			SynGlobals[name] = syn;
@@ -560,7 +564,7 @@ class CNeuronType
 	/* Double checks that each mechanism has its externals satisfied*/
 	void VerifyExternals()
 	{
-		char[] error;
+		cstring error;
 		foreach(mech; Mechanisms)
 		{
 			foreach(external; mech.Externals)
@@ -572,10 +576,10 @@ class CNeuronType
 			}
 		}
 		if(error.length)
-			throw new Exception("Unreasolved externals in '" ~ Name ~ "' neuron type." ~ error);
+			throw new Exception("Unreasolved externals in '" ~ Name.idup ~ "' neuron type." ~ error.idup);
 	}
 	
-	int AllSynGlobals(int delegate(ref char[] name, ref CValue value) dg)
+	int AllSynGlobals(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(syn_type; SynapseTypes)
 		{
@@ -589,7 +593,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllImmutables(int delegate(ref char[] name, ref CValue value) dg)
+	int AllImmutables(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -603,7 +607,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllStates(int delegate(ref char[] name, ref CValue value) dg)
+	int AllStates(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -618,7 +622,7 @@ class CNeuronType
 	}
 	
 	/* I.e. all globals */
-	int AllNonLocals(int delegate(ref char[] name, ref CValue value) dg)
+	int AllNonLocals(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -638,7 +642,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllConstants(int delegate(ref char[] name, ref CValue value) dg)
+	int AllConstants(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -652,7 +656,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllLocals(int delegate(ref char[] name, ref CValue value) dg)
+	int AllLocals(int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -781,9 +785,9 @@ class CNeuronType
 		return 0;
 	}
 	
-	char[] GetEvalSource()
+	cstring GetEvalSource()
 	{
-		char[] ret;
+		cstring ret;
 		foreach(ii; range(3))
 		{
 			foreach(jj, mech; Mechanisms)
@@ -822,9 +826,9 @@ class CNeuronType
 		return ret;
 	}
 	
-	private char[] GetFixedCode(char[] code, char[] delegate(CMechanism mech) mech_code_extractor)
+	private cstring GetFixedCode(cstring code, cstring delegate(CMechanism mech) mech_code_extractor)
 	{
-		char[] ret;
+		cstring ret;
 		if(code.length)
 		{
 			ret ~= "{\n" ~ code ~ "\n}\n";
@@ -850,35 +854,35 @@ class CNeuronType
 		return ret;
 	}
 	
-	char[] GetPreStepSource()
+	cstring GetPreStepSource()
 	{
 		return GetFixedCode(PreStepCode, (CMechanism mech) { return mech.PreStepCode; });
 	}
 	
-	char[] GetPreStageSource()
+	cstring GetPreStageSource()
 	{
 		return GetFixedCode(PreStageCode, (CMechanism mech) { return mech.PreStageCode; });
 	}
 	
-	char[] GetInitSource()
+	cstring GetInitSource()
 	{
 		return GetFixedCode(InitCode, (CMechanism mech) { return mech.InitCode; });
 	}
 	
-	mixin(Prop!("char[]", "InitCode"));
-	mixin(Prop!("char[]", "PreStageCode"));
-	mixin(Prop!("char[]", "PreStepCode"));
+	mixin(Prop!("cstring", "InitCode"));
+	mixin(Prop!("cstring", "PreStageCode"));
+	mixin(Prop!("cstring", "PreStepCode"));
 	
 	CConnector[] Connectors;
 	CMechanism[char[]] Values;
 	CMechanism[] Mechanisms;
-	char[][] MechanismPrefixes;
+	cstring[] MechanismPrefixes;
 	CSynapse[char[]] SynGlobals;
 	SSynType[] SynapseTypes;
-	char[] Name;
-	char[] InitCodeVal;
-	char[] PreStepCodeVal;
-	char[] PreStageCodeVal;
+	cstring Name;
+	cstring InitCodeVal;
+	cstring PreStepCodeVal;
+	cstring PreStageCodeVal;
 	
 	/* Length of the random state: 0-4
 	 * 0 is no rand required */
@@ -895,7 +899,7 @@ class CNeuronType
 
 class CConnector
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		Name = name;
 	}
@@ -912,18 +916,18 @@ class CConnector
 		return ret;
 	}
 	
-	CValue AddConstant(char[] name)
+	CValue AddConstant(cstring name)
 	{
 		if(!IsValidName(name))
-			throw new Exception("The name '" ~ name ~ "' is reserved.");
+			throw new Exception("The name '" ~ name.idup ~ "' is reserved.");
 		if(IsDuplicateName(name))
-			throw new Exception("'" ~ name ~ "' already exists in connector '" ~ Name ~ "'.");
+			throw new Exception("'" ~ name.idup ~ "' already exists in connector '" ~ Name.idup ~ "'.");
 		auto val = new CValue(name);				
 		Constants ~= val;
 		return val;
 	}
 	
-	bool IsDuplicateName(char[] name)
+	bool IsDuplicateName(cstring name)
 	{
 		foreach(val; Constants)
 		{
@@ -933,12 +937,12 @@ class CConnector
 		return false;
 	}
 	
-	void SetCode(char[] code)
+	void SetCode(cstring code)
 	{
 		Code = code;
 	}
 	
 	CValue[] Constants;
-	char[] Code;
-	char[] Name;
+	cstring Code;
+	cstring Name;
 }

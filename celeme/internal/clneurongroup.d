@@ -266,7 +266,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, int count, char[] name, int sink_offset, int nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
+	this(ICLModel model, CNeuronType type, int count, cstring name, int sink_offset, int nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -398,7 +398,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 	 * and to create the local kernels*/
 	void Initialize()
 	{
-		int arg_id;
+		size_t arg_id;
 		/* Step kernel */
 		auto program = Program;
 		StepKernel = Core.CreateKernel(program, Name ~ "_step");
@@ -545,7 +545,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		CommonRecorder.Length = 0;
 	}
 	
-	void SetConstant(int idx)
+	void SetConstant(size_t idx)
 	{
 		assert(Model.Initialized);
 		
@@ -554,7 +554,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		StepKernel.SetGlobalArg(idx + ValArgsOffset + ArgOffsetStep, val);
 	}
 	
-	void SetTolerance(char[] state, double tolerance)
+	void SetTolerance(cstring state, double tolerance)
 	{
 		auto adaptive = cast(CAdaptiveIntegrator!(float_t))Integrator;
 		if(adaptive !is null)
@@ -1139,7 +1139,7 @@ $save_syn_globals$
 			
 			scope block_source = new CSourceConstructor;
 			
-			char[] thresh_src = thresh.Source.dup;
+			cstring thresh_src = thresh.Source.dup;
 			
 			if(Parallel)
 			{
@@ -1230,7 +1230,7 @@ $save_syn_globals$
 		if(NeedRandArgs)
 		{
 			if(!RandLen)
-				throw new Exception("Found rand()/randn() but neuron type '" ~ type.Name ~ "' does not have random_state_len > 0.");
+				throw new Exception("Found rand()/randn() but neuron type '" ~ type.Name.idup ~ "' does not have random_state_len > 0.");
 				
 			kernel_source["rand()"] = Format("rand{}(&_rand_state)", RandLen);
 		}
@@ -1480,7 +1480,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	double opIndex(char[] name)
+	double opIndex(cstring name)
 	{
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
@@ -1500,11 +1500,11 @@ for(int ii = 0; ii < num_fired; ii++)
 			return SynGlobalBuffers[*idx_ptr].DefaultValue;
 		}
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
 	override
-	double opIndexAssign(double val, char[] name)
+	double opIndexAssign(double val, cstring name)
 	{	
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
@@ -1528,13 +1528,13 @@ for(int ii = 0; ii < num_fired; ii++)
 			return val;
 		}
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
 	/* These two functions can be used to modify values after the model has been created.
 	 */
 	override
-	double opIndex(char[] name, int idx)
+	double opIndex(cstring name, int idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
@@ -1546,11 +1546,11 @@ for(int ii = 0; ii < num_fired; ii++)
 		if(ROValues.HaveValue(name))
 			return ROValues[name, idx];
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
 	override
-	double opIndexAssign(double val, char[] name, int idx)
+	double opIndexAssign(double val, cstring name, int idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
@@ -1562,14 +1562,14 @@ for(int ii = 0; ii < num_fired; ii++)
 		if(ROValues.HaveValue(name))
 			return ROValues[name, idx] = val;
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
 	/* These two functions can be used to modify synglobals after the model has been created.
 	 * syn_idx refers to the synapse index in this type (i.e. each successive type has indices starting from 0)
 	 */
 	override
-	double opIndex(char[] name, int nrn_idx, int syn_idx)
+	double opIndex(cstring name, int nrn_idx, int syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
@@ -1588,11 +1588,11 @@ for(int ii = 0; ii < num_fired; ii++)
 			return buffer[idx];
 		}
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
 	override
-	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx)
+	double opIndexAssign(double val, cstring name, int nrn_idx, int syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
@@ -1613,9 +1613,10 @@ for(int ii = 0; ii < num_fired; ii++)
 			return val;
 		}
 		
-		throw new Exception("Neuron group '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
+	override
 	void Dispose()
 	{
 		if(!Model.Initialized)
@@ -1672,7 +1673,7 @@ for(int ii = 0; ii < num_fired; ii++)
 			
 			foreach(ii, workgroup; RecordingWorkgroups)
 			{
-				RecordIdxBufferStart[workgroup.Id] = ii * rec_size;
+				RecordIdxBufferStart[workgroup.Id] = cast(int)(ii * rec_size);
 			}
 		}
 		else
@@ -1904,11 +1905,11 @@ for(int ii = 0; ii < num_fired; ii++)
 		return SynapseBuffers[type].SlotOffset;
 	}
 	
-	void Connect(char[] connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args)
+	void Connect(cstring connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args)
 	{
 		auto conn_ptr = connector_name in Connectors;
 		if(conn_ptr is null)
-			throw new Exception("Neuron group '" ~ Name ~ "' does not have a connector named '" ~ connector_name ~ "'.");
+			throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a connector named '" ~ connector_name.idup ~ "'.");
 		
 		auto conn = *conn_ptr;
 		
@@ -1954,7 +1955,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		{
 			rand_offset = Rand.NumArgs;
 		}
-		return ValArgsOffset + Constants.length + ArgOffsetStep + rand_offset;
+		return cast(int)(ValArgsOffset + Constants.length + ArgOffsetStep + rand_offset);
 	}
 	
 	override
@@ -1998,7 +1999,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		return Model.TimeStepSize;
 	}
 	
-	mixin(Prop!("char[]", "Name", "override", "private"));
+	mixin(Prop!("cstring", "Name", "override", "private"));
 	mixin(Prop!("int", "NumEventSources", "override", "private"));
 	mixin(Prop!("int", "NumSynThresholds", "override", "private"));
 	mixin(Prop!("int", "NumSrcSynapses", "override", "private"));
@@ -2013,19 +2014,19 @@ for(int ii = 0; ii < num_fired; ii++)
 	CRecorder CommonRecorder;
 	
 	/* Holds the id's where we are recording events, may have duplicates (we only care if it's empty or not though) */
-	int[] CommonRecorderIds;
+	size_t[] CommonRecorderIds;
 	/* Like the above, but groups them by recording group */
 	struct SRecordingWorkgroup
 	{
-		int[] NeuronIds;
-		int Id;
+		size_t[] NeuronIds;
+		size_t Id;
 		
 		bool opEquals(SRecordingWorkgroup other)
 		{
 			return other.Id == Id;
 		}
 		
-		static SRecordingWorkgroup opCall(int id)
+		static SRecordingWorkgroup opCall(size_t id)
 		{
 			SRecordingWorkgroup ret;
 			ret.Id = id;
@@ -2036,21 +2037,21 @@ for(int ii = 0; ii < num_fired; ii++)
 	
 	
 	double[] Constants;
-	int[char[]] ConstantRegistry;
+	size_t[char[]] ConstantRegistry;
 	
 	CMultiBuffer!(float_t) RWValues;
 	CMultiBuffer!(float_t) ROValues;
 	
 	CSynGlobalBuffer!(float_t)[] SynGlobalBuffers;
-	int[char[]] SynGlobalBufferRegistry;
+	size_t[char[]] SynGlobalBufferRegistry;
 	
-	char[] NameVal;
+	cstring NameVal;
 	int CountVal = 0;
 	ICLModel Model;
 	
-	char[] StepKernelSource;
-	char[] InitKernelSource;
-	char[] DeliverKernelSource;
+	cstring StepKernelSource;
+	cstring InitKernelSource;
+	cstring DeliverKernelSource;
 	
 	CCLKernel InitKernel;
 	CCLKernel StepKernel;

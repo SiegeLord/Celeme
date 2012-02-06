@@ -31,13 +31,13 @@ import celeme.internal.clmodel;
 
 import tango.text.convert.Format;
 
-char[] GetMultiEntryText(CConfigEntry base_entry, char[] entry_name)
+cstring GetMultiEntryText(CConfigEntry base_entry, cstring entry_name)
 {
-	char[] ret;
+	cstring ret;
 	
 	foreach(entry; base_entry[entry_name])
 	{
-		ret ~= entry.Value!(char[])("");
+		ret ~= entry.Value!(cstring)("");
 	}
 	
 	return ret;
@@ -151,11 +151,11 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 
 	foreach(entry; mech_entry["threshold"])
 	{
-		auto state = entry.ValueOf!(char[])("state", null);
+		auto state = entry.ValueOf!(cstring)("state", null);
 		if(state is null)
 			throw new Exception("All thresholds need a state.");
 			
-		auto condition = entry.ValueOf!(char[])("condition", null);
+		auto condition = entry.ValueOf!(cstring)("condition", null);
 		if(condition is null)
 			throw new Exception("All thresholds need a condition.");
 
@@ -266,10 +266,10 @@ CMechanism[char[]] LoadMechanisms(CConfigEntry root)
 		foreach(entry; entries[])
 		{ 
 			if((entry.Name in ret) !is null)
-				throw new Exception("Duplicate mechanism name: '" ~ entry.Name ~ "'.");
+				throw new Exception("Duplicate mechanism name: '" ~ entry.Name.idup ~ "'.");
 				
 			auto mech = new CMechanism(entry.Name);
-			ret[entry.Name.dup] = mech;
+			ret[entry.Name.idup] = mech;
 			
 			FillMechanism(mech, entry);
 			
@@ -331,10 +331,10 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 		foreach(entry; entries[])
 		{
 			if((entry.Name in ret) !is null)
-				throw new Exception("Duplicate synapse name: '" ~ entry.Name ~ "'.");
+				throw new Exception("Duplicate synapse name: '" ~ entry.Name.idup ~ "'.");
 			
 			auto syn = new CSynapse(entry.Name);
-			ret[entry.Name.dup] = syn;
+			ret[entry.Name.idup] = syn;
 			
 			//println("Synapse: {}", entry.Name);
 			
@@ -344,11 +344,11 @@ CSynapse[char[]] LoadSynapses(CConfigEntry root)
 			
 			foreach(thresh_entry; entry["syn_threshold"])
 			{
-				auto state = thresh_entry.ValueOf!(char[])("state", null);
+				auto state = thresh_entry.ValueOf!(cstring)("state", null);
 				if(state is null)
 					throw new Exception("All syn thresholds need a state.");
 					
-				auto condition = thresh_entry.ValueOf!(char[])("condition", null);
+				auto condition = thresh_entry.ValueOf!(cstring)("condition", null);
 				if(condition is null)
 					throw new Exception("All syn thresholds need a condition.");
 
@@ -414,10 +414,10 @@ CConnector[char[]] LoadConnectors(CConfigEntry root)
 		foreach(entry; entries[])
 		{
 			if((entry.Name in ret) !is null)
-				throw new Exception("Duplicate connector name: '" ~ entry.Name ~ "'.");
+				throw new Exception("Duplicate connector name: '" ~ entry.Name.idup ~ "'.");
 		
 			auto conn = new CConnector(entry.Name);
-			ret[entry.Name.dup] = conn;
+			ret[entry.Name.idup] = conn;
 			
 			//println("Connector: {}", entry.Name);
 			
@@ -477,7 +477,7 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
 		}
 	}
 	
-	void replace_value(char[] name, CValue delegate(char[] name) add_del)
+	void replace_value(cstring name, CValue delegate(cstring name) add_del)
 	{
 		auto old_val = mech[name];
 		mech.RemoveValue(name);
@@ -618,10 +618,10 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 		foreach(nrn_entry; nrn_entries[])
 		{
 			if((nrn_entry.Name in ret) !is null)
-				throw new Exception("Duplicate neuron type name: '" ~ nrn_entry.Name ~ "'.");
+				throw new Exception("Duplicate neuron type name: '" ~ nrn_entry.Name.idup ~ "'.");
 		
 			auto nrn_type = new CNeuronType(nrn_entry.Name);
-			ret[nrn_entry.Name.dup] = nrn_type;
+			ret[nrn_entry.Name.idup] = nrn_type;
 			
 			nrn_type.RecordLength = nrn_entry.ValueOf!(int)("record_length", 0);
 			nrn_type.RecordRate = nrn_entry.ValueOf!(int)("record_rate", 0);
@@ -639,13 +639,13 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 				{
 					auto ptr = entry.Name in mechanisms;
 					if(ptr is null)
-						throw new Exception("No mechanism named '" ~ entry.Name ~ "' exists.");
+						throw new Exception("No mechanism named '" ~ entry.Name.idup ~ "' exists.");
 					
 					auto mech = (*ptr).dup;
-					char[] prefix = "";
+					cstring prefix = "";
 					if(entry.IsAggregate)
 					{
-						prefix = entry.ValueOf!(char[])("prefix", "");
+						prefix = entry.ValueOf!(cstring)("prefix", "");
 						
 						ApplyMechVals(mech, entry);
 					}
@@ -660,14 +660,14 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 				{
 					auto ptr = entry.Name in synapses;
 					if(ptr is null)
-						throw new Exception("No synapse named '" ~ entry.Name ~ "' exists.");
+						throw new Exception("No synapse named '" ~ entry.Name.idup ~ "' exists.");
 					
 					auto syn = (*ptr).dup;
 	
 					if(!entry.IsAggregate)
 						throw new Exception("synapse instantiation must be an aggregate.");
 
-					auto prefix = entry.ValueOf!(char[])("prefix", "");
+					auto prefix = entry.ValueOf!(cstring)("prefix", "");
 					auto number = entry.ValueOf!(int)("number", 0);
 						
 					ApplyMechVals(syn, entry);
@@ -682,7 +682,7 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
 				{
 					auto ptr = entry.Name in connectors;
 					if(ptr is null)
-						throw new Exception("No connector named '" ~ entry.Name ~ "' exists.");
+						throw new Exception("No connector named '" ~ entry.Name.idup ~ "' exists.");
 					
 					//println("Added {}", entry.Name);
 					
@@ -707,7 +707,7 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(char[] file, char[][] include_directories, bool gpu = false, bool double_precision = false)
+IModel LoadModel(cstring file, cstring[] include_directories, bool gpu = false, bool double_precision = false)
 {
 	auto root = LoadConfig(file, include_directories);
 	auto mechanisms = LoadMechanisms(root);

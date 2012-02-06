@@ -23,6 +23,7 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.internal.integrator;
 
+import celeme.internal.util;
 import celeme.internal.iclneurongroup;
 import celeme.internal.frontend;
 import celeme.internal.clcore;
@@ -41,7 +42,7 @@ class CIntegrator(float_t) : CDisposable
 	 * Will set the arguments of the integrator (it assumes the StepKernel is used)
 	 * Returns the updated arg_id.
 	 */
-	int SetArgs(CCLKernel kernel, int arg_id)
+	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
 		return arg_id;
 	}
@@ -57,7 +58,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Returns the load code for the kernel.
 	 */
-	char[] GetLoadCode(CNeuronType type)
+	cstring GetLoadCode(CNeuronType type)
 	{
 		return "";
 	}
@@ -65,7 +66,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Returns the save code for the kernel.
 	 */
-	char[] GetSaveCode(CNeuronType type)
+	cstring GetSaveCode(CNeuronType type)
 	{
 		return "";
 	}
@@ -73,7 +74,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Returns the args code for the kernel.
 	 */
-	char[] GetArgsCode(CNeuronType type)
+	cstring GetArgsCode(CNeuronType type)
 	{
 		return "";
 	}
@@ -81,7 +82,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Returns the actual integration code for the kernel.
 	 */
-	char[] GetIntegrateCode(CNeuronType type)
+	cstring GetIntegrateCode(CNeuronType type)
 	{
 		return "";
 	}
@@ -89,7 +90,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Returns the code that should be called after a threshold is reached.
 	 */
-	char[] GetPostThreshCode(CNeuronType type)
+	cstring GetPostThreshCode(CNeuronType type)
 	{
 		return "";
 	}
@@ -105,6 +106,7 @@ class CIntegrator(float_t) : CDisposable
 	/*
 	 * Destroys any buffers associated with this integrator.
 	 */
+	override
 	void Dispose()
 	{
 		super.Dispose;
@@ -123,7 +125,7 @@ class CAdaptiveIntegrator(float_t) : CIntegrator!(float_t)
 	/*
 	 * Adaptive integrators have tolerances associated with states
 	 */
-	void SetTolerance(CCLKernel kernel, char[] state, double tolerance)
+	void SetTolerance(CCLKernel kernel, cstring state, double tolerance)
 	{
 		
 	}

@@ -19,15 +19,17 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module celeme.internal.iclneurongroup;
 
 import opencl.cl;
+
 import celeme.internal.clrand;
 import celeme.internal.clcore;
 import celeme.internal.clmiscbuffers;
+import celeme.internal.util;
 
 import celeme.ineurongroup;
 
 interface ICLNeuronGroup : INeuronGroup
 {
-	char[] Name();
+	cstring Name();
 	
 	int RandLen();
 	int NumEventSources();

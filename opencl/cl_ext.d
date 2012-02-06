@@ -111,7 +111,7 @@ cl_int clIcdGetPlatformIDsKHR(
 	cl_uint*			num_platforms
 );
 
-typedef cl_int function(cl_uint num_entries,
+alias cl_int function(cl_uint num_entries,
 								  cl_platform_id* platforms,
 								  cl_uint* num_platforms) clIcdGetPlatformIDsKHR_fn;
 
@@ -146,13 +146,13 @@ version(CL_VERSION_1_1)
 
 	cl_int clReleaseDeviceEXT(cl_device_id device); 
 
-	typedef extern(System) cl_int function(cl_device_id device) clReleaseDeviceEXT_fn;
+	alias extern(System) cl_int function(cl_device_id device) clReleaseDeviceEXT_fn;
 
 	cl_int clRetainDeviceEXT( cl_device_id device); 
 
-	typedef extern(System) cl_int function(cl_device_id device) clRetainDeviceEXT_fn;
+	alias extern(System) cl_int function(cl_device_id device) clRetainDeviceEXT_fn;
 
-	typedef cl_ulong cl_device_partition_property_ext;
+	alias cl_ulong cl_device_partition_property_ext;
 	
 	cl_int clCreateSubDevicesEXT(cl_device_id in_device,
 								 cl_device_partition_property_ext* properties,
@@ -160,11 +160,11 @@ version(CL_VERSION_1_1)
 								 cl_device_id* out_devices,
 								 cl_uint* num_devices);
 
-	typedef extern(System) cl_int function(cl_device_id in_device,
-										   cl_device_partition_property_ext* properties,
-										   cl_uint num_entries,
-										   cl_device_id* out_devices,
-										   cl_uint* num_devices) clCreateSubDevicesEXT_fn;
+	alias extern(System) cl_int function(cl_device_id in_device,
+										 cl_device_partition_property_ext* properties,
+										 cl_uint num_entries,
+										 cl_device_id* out_devices,
+										 cl_uint* num_devices) clCreateSubDevicesEXT_fn;
 
 	enum
 	{

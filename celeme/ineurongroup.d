@@ -18,6 +18,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.ineurongroup;
 
+import celeme.internal.util;
+
 import celeme.recorder;
 
 /**
@@ -28,12 +30,12 @@ interface INeuronGroup
 	/**
 	 * Get the value of a constant, or the default value of a global or a syn global.
 	 */
-	double opIndex(char[] name);
+	double opIndex(cstring name);
 	
 	/**
 	 * Set the value of a constant, or the default value of a global or a syn global.
 	 */
-	double opIndexAssign(double val, char[] name);
+	double opIndexAssign(double val, cstring name);
 	
 	/**
 	 * Get the value of a global value of a particular neuron.
@@ -41,7 +43,7 @@ interface INeuronGroup
 	 *     name = Name of the global.
 	 *     idx = Index of the neuron.
 	 */
-	double opIndex(char[] name, int idx);
+	double opIndex(cstring name, int idx);
 	
 	/**
 	 * Set the value of a global value of a particular neuron.
@@ -50,7 +52,7 @@ interface INeuronGroup
 	 *     name = Name of the global.
 	 *     idx = Index of the neuron.
 	 */
-	double opIndexAssign(double val, char[] name, int idx);
+	double opIndexAssign(double val, cstring name, int idx);
 	
 	/**
 	 * Get the value of a syn global value of a particular neuron.
@@ -59,7 +61,7 @@ interface INeuronGroup
 	 *     nrn_idx = Index of the neuron.
 	 *     syn_idx = Index of the synapse within the neuron.
 	 */
-	double opIndex(char[] name, int nrn_idx, int syn_idx);
+	double opIndex(cstring name, int nrn_idx, int syn_idx);
 	
 	/**
 	 * Set the value of a syn global value of a particular neuron.
@@ -69,7 +71,7 @@ interface INeuronGroup
 	 *     nrn_idx = Index of the neuron.
 	 *     syn_idx = Index of the synapse within the neuron.
 	 */
-	double opIndexAssign(double val, char[] name, int nrn_idx, int syn_idx);
+	double opIndexAssign(double val, cstring name, int nrn_idx, int syn_idx);
 	
 	/**
 	 * Set the recording flags of a single neuron.

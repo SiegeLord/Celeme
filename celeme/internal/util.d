@@ -25,14 +25,16 @@ import tango.io.Stdout;
 import tango.stdc.stringz;
 public import dutil.General;
 
+alias const(char)[] cstring;
+
 bool c_allowed_char(char c)
 {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 }
 
-size_t c_find(char[] text, char[] pattern)
+size_t c_find(cstring text, cstring pattern)
 {
-	char[] rem = text;
+	cstring rem = text;
 	size_t start;
 	auto L = pattern.length;
 	while((start = rem.find(pattern)) != rem.length)
@@ -52,7 +54,7 @@ size_t c_find(char[] text, char[] pattern)
 
 unittest
 {
-	char[] a = "abeta beta gamma zeta";
+	cstring a = "abeta beta gamma zeta";
 	
 	assert(a.c_find("beta") == 6);
 	assert(a.c_find("abeta") == 0);
@@ -62,10 +64,10 @@ unittest
 /*
  * Like substitute, but using proper delimeters
  */
-char[] c_substitute(char[] text, char[] pattern, char[] what)
+char[] c_substitute(cstring text, cstring pattern, cstring what)
 {
 	char[] ret;
-	char[] rem = text;
+	cstring rem = text;
 	size_t start;
 	auto L = pattern.length;
 	while((start = rem.find(pattern)) != rem.length)

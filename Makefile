@@ -1,6 +1,6 @@
 # General configuration
-DC                 := ldc
-D_FLAGS            := -unittest
+DC                 := ldc2
+D_FLAGS            := -unittest -w
 INSTALL_PREFIX     := /usr/local
 #PERF_STR          := -d-version=Perf
 PERF_STR           := 
@@ -11,6 +11,7 @@ DUTIL_PATH         := /usr/local/include/d
 DUTIL_FILES        := $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d
 DGNUPLOT_PATH      := /usr/local/include/d
 DGNUPLOT_FILES     := $(DGNUPLOT_PATH)/gnuplot.d
+TANGO_LDFLAGS      := -L-ltango-ldc
 
 # Components
 CELEME_FILES_NO_CL := $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
@@ -59,7 +60,7 @@ doc :
 	dil d doc/ --kandil -hl $(CELEME_FILES_NO_CL) -version=Doc
 
 $(D_EXAMPLE_NAME) : $(D_EXAMPLE_FILES)
-	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(PERF_STR))
+	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(PERF_STR) $(TANGO_LDFLAGS))
 
 $(LIBRARY_NAME) : $(CELEME_FILES)
 	$(DC) -c $(CELEME_FILES) $(DUTIL_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)

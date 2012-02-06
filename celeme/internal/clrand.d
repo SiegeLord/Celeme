@@ -31,7 +31,7 @@ import dutil.Disposable;
  * Taken from NVidia's GPU gems 3.37
  */
 
-const char[] RandComponents = 
+const cstring RandComponents = 
 `
 uint TausStep(uint* z, int S1, int S2, int S3, uint M)  
 {  
@@ -45,7 +45,7 @@ uint LCGStep(uint* z, uint A, uint C)
 }
 `;
 
-const char[][4] RandCode = 
+const cstring[4] RandCode = 
 [
 `
 $num_type$ rand1(uint* z)
@@ -72,22 +72,22 @@ $num_type$ rand2(uint2* zp)
 
 class CCLRand : CDisposable
 {
-	char[] GetLoadCode()
+	cstring GetLoadCode()
 	{
 		return "";
 	}
 	
-	char[] GetSaveCode()
+	cstring GetSaveCode()
 	{
 		return "";
 	}
 	
-	char[] GetArgsCode()
+	cstring GetArgsCode()
 	{
 		return "";
 	}
 	
-	int SetArgs(CCLKernel kernel, int arg_id)
+	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
 		return arg_id;
 	}
@@ -102,6 +102,7 @@ class CCLRand : CDisposable
 		
 	}
 	
+	override
 	void Dispose()
 	{
 		super.Dispose();
@@ -133,9 +134,9 @@ class CCLRandImpl(uint N) : CCLRand
 		State = new CCLBuffer!(state_t)(core, count);
 	}
 	
-	char[] GetTypeString()
+	cstring GetTypeString()
 	{
-		char[] ret = "uint";
+		cstring ret = "uint";
 		static if (N > 1)
 			ret ~= to!(char[])(N);
 		
@@ -143,27 +144,26 @@ class CCLRandImpl(uint N) : CCLRand
 	}
 	
 	override
-	char[] GetLoadCode()
+	cstring GetLoadCode()
 	{
 		return GetTypeString() ~ " _rand_state = _rand_state_buf[i];";
 	}
 	
 	override
-	char[] GetSaveCode()
+	cstring GetSaveCode()
 	{
 		return "_rand_state_buf[i] = _rand_state;";
 	}
 	
 	override
-	char[] GetArgsCode()
+	cstring GetArgsCode()
 	{
 		return "__global " ~ GetTypeString() ~ "* _rand_state_buf,";
 	}
 	
 	override
-	int SetArgs(CCLKernel kernel, int arg_id)
+	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
-		uint a;
 		kernel.SetGlobalArg(arg_id, State.Buffer);
 		return arg_id + 1;
 	}

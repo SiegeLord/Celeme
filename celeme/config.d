@@ -129,7 +129,7 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * Some example usage:
  * 
  * ---
- * char[] file = 
+ * cstring file = 
  * `
  * value 5;
  * value 7;
@@ -160,12 +160,14 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
  * {
  *    //Loop through all the contents of the container
  *    foreach(entry; container)
- *        Stdout(entry.Name, entry.Value!(char[])).nl; // Will print contents, Hello
+ *        Stdout(entry.Name, entry.Value!(cstring)).nl; // Will print contents, Hello
  * }
  * ---
  */
 
 module celeme.config;
+
+import celeme.internal.util;
 
 import TextUtil = tango.text.Util;
 import Array = tango.core.Array;
@@ -191,7 +193,7 @@ import tango.io.Stdout;
  * Returns:
  *     An entry representing the top-level entry of the configuration file.
  */
-CAggregate LoadConfig(char[] filename, char[][] include_dirs = null, char[] src = null)
+CAggregate LoadConfig(cstring filename, cstring[] include_dirs = null, cstring src = null)
 {
 	return LoadConfig(filename, include_dirs, src, null, null);
 }
@@ -204,7 +206,7 @@ CAggregate LoadConfig(char[] filename, char[][] include_dirs = null, char[] src 
  */
 class CConfigEntry
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		Name = name;
 	}
@@ -273,7 +275,7 @@ class CConfigEntry
 	 * 
 	 * See_Also: $(SYMLINK CConfigEntry.Value, Value)
 	 */
-	T ValueOf(T)(char[] name, T def = T.init, bool* is_def = null)
+	T ValueOf(T)(cstring name, T def = T.init, bool* is_def = null)
 	{
 		if(is_def !is null)
 			*is_def = false;
@@ -297,7 +299,7 @@ class CConfigEntry
 	 * 
 	 * Returns: Returns an iterable fruct of all the entries that match this name.
 	 */
-	SEntryFruct opIndex(char[] name)
+	SEntryFruct opIndex(cstring name)
 	{
 		return SEntryFruct(cast(CAggregate)this, name);
 	}
@@ -310,7 +312,7 @@ class CConfigEntry
 	 * 
 	 * Returns: The found entry. null otherwise.
 	 */
-	CConfigEntry opIndex(char[] name, bool last)
+	CConfigEntry opIndex(cstring name, bool last)
 	{
 		CConfigEntry ret;
 		foreach(entry; this[name])
@@ -321,7 +323,7 @@ class CConfigEntry
 	struct SEntryFruct
 	{
 		CAggregate Aggregate;
-		char[] NameFilter;
+		cstring NameFilter;
 		
 		int opApply(int delegate(ref CConfigEntry entry) dg)
 		{
@@ -348,7 +350,7 @@ class CConfigEntry
 		size_t length()
 		{
 			size_t ret = 0;
-			foreach(entry; *this)
+			foreach(entry; this)
 				ret++;
 			
 			return ret;
@@ -382,7 +384,7 @@ class CConfigEntry
 	/**
 	 * Name of this entry.
 	 */
-	char[] Name;
+	cstring Name;
 	
 	/**
 	 * Next entry in the single linked list of entries.
@@ -411,22 +413,22 @@ enum EToken
 
 struct SToken
 {
-	char[] String;
+	cstring String;
 	int Line;
 	EToken Type;
 }
 
 class CConfigException : Exception
 {
-	this(char[] msg, char[] filename, int line)
+	this(immutable(char)[] msg, cstring filename, int line)
 	{
-		super(Format("{}({}): {}", filename, line, msg));
+		super(Format("{}({}): {}", filename, line, msg).idup);
 	}
 }
 
 class CTokenizer
 {
-	this(char[] filename, char[] src)
+	this(cstring filename, cstring src)
 	{
 		FileName = filename;
 		Source = src;
@@ -456,7 +458,7 @@ class CTokenizer
 		return IsNameStart(c) || IsDigit(c);
 	}
 	
-	char[] ConsumeComment(char[] src)
+	cstring ConsumeComment(cstring src)
 	{
 		if(src.length < 2)
 			return src;
@@ -498,7 +500,7 @@ class CTokenizer
 					
 					//TODO: Windows type newlines
 					lines_passed += TextUtil.count(src[old_end..comment_end], "\n");
-				} while(comment_num > 0)
+				} while(comment_num > 0);
 				
 				CurLine += lines_passed;
 			
@@ -511,9 +513,9 @@ class CTokenizer
 	/*
 	 * Trims leading whitespace while counting newlines
 	 */
-	char[] Trim(char[] source)
+	cstring Trim(cstring source)
 	{
-		char* head = source.ptr,
+		auto head = source.ptr,
 		tail = head + source.length;
 
 		while(head < tail && TextUtil.isSpace(*head))
@@ -527,7 +529,7 @@ class CTokenizer
 		return head[0..tail - head];
 	}
 	
-	bool ConsumeString(char[] src, ref size_t end)
+	bool ConsumeString(cstring src, ref size_t end)
 	{
 		if(src[0] == '"' || src[0] == '`')
 		{
@@ -555,7 +557,7 @@ class CTokenizer
 		return false;
 	}
 	
-	bool ConsumeBoolean(char[] src, ref size_t end)
+	bool ConsumeBoolean(cstring src, ref size_t end)
 	{
 		end = Array.find(src, "true") + 4;
 		if(end == 4)
@@ -566,7 +568,7 @@ class CTokenizer
 		return false;
 	}
 	
-	bool ConsumeName(char[] src, ref size_t end)
+	bool ConsumeName(cstring src, ref size_t end)
 	{
 		if(IsNameStart(src[0]))
 		{
@@ -576,7 +578,7 @@ class CTokenizer
 		return false;
 	}
 	
-	bool ConsumeChar(char[] src, char c, ref size_t end)
+	bool ConsumeChar(cstring src, char c, ref size_t end)
 	{
 		if(src[0] == c)
 		{
@@ -586,7 +588,7 @@ class CTokenizer
 		return false;
 	}
 	
-	bool ConsumeInteger(char[] src, ref size_t end)
+	bool ConsumeInteger(cstring src, ref size_t end)
 	{
 		if(IsDigitStart(src[0]))
 		{
@@ -603,7 +605,7 @@ class CTokenizer
 		return false;
 	}
 	
-	bool ConsumeDouble(char[] src, ref size_t end)
+	bool ConsumeDouble(cstring src, ref size_t end)
 	{
 		if(IsDigitStart(src[0]))
 		{
@@ -621,6 +623,7 @@ class CTokenizer
 					cur_end += Array.findIf(src[cur_end + 1..$], (char c) {return !IsDigit(c);}) + 1;
 					if(src[cur_end] != 'e' && src[cur_end] != 'E')
 						break;
+					goto case;
 				}
 				case 'e':
 				case 'E':
@@ -707,9 +710,9 @@ class CTokenizer
 		return tok;
 	}
 	
-	char[] FileName;
+	cstring FileName;
 	int CurLine;
-	char[] Source;
+	cstring Source;
 }
 
 class CParser
@@ -744,7 +747,7 @@ class CParser
 		return NextToken.Type;
 	}
 	
-	char[] FileName()
+	cstring FileName()
 	{
 		return Tokenizer.FileName;
 	}
@@ -757,7 +760,7 @@ class CParser
 
 class CAggregate : CConfigEntry
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		super(name);
 	}
@@ -773,10 +776,13 @@ class CAggregate : CConfigEntry
 		Last.Next = null;
 	}
 	
+	override
 	CAggregate dup()
 	{
 		return copy(new CAggregate(Name));
 	}
+	
+	alias CConfigEntry.copy copy;
 	
 	CAggregate copy(CAggregate ret)
 	{
@@ -798,15 +804,18 @@ class CAggregate : CConfigEntry
 
 class CSingleValue : CConfigEntry
 {
-	this(char[] name)
+	this(cstring name)
 	{
 		super(name);
 	}
-	
+
+	override
 	CSingleValue dup()
 	{
 		return copy(new CSingleValue(Name));
 	}
+	
+	alias CConfigEntry.copy copy;
 	
 	CSingleValue copy(CSingleValue ret)
 	{
@@ -826,14 +835,14 @@ class CSingleValue : CConfigEntry
 }
 
 /* Aggregates are added to the parent before they are filled out, so that includes work */
-CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+CConfigEntry CreateEntry(CAggregate parent, CParser parser, cstring[] include_dirs, cstring[] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	void add(CConfigEntry entry)
 	{
 		parent.AddEntry(entry);
 	}
 	
-	CSingleValue create_single_value(char[] name, EToken token_type)
+	CSingleValue create_single_value(cstring name, EToken token_type)
 	{
 		auto sval = new CSingleValue(name);
 		add(sval);
@@ -847,7 +856,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 			}
 			case EToken.Integer:
 			{
-				uint len;
+				size_t len;
 				auto val = cast(int)Integer.parse(parser.CurToken.String, 0, &len);
 				
 				if(len)
@@ -857,7 +866,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 			}
 			case EToken.Double:
 			{
-				uint len;
+				size_t len;
 				auto val = cast(double)Float.parse(parser.CurToken.String, &len);
 				
 				if(len)
@@ -876,7 +885,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 				break;
 			}
 			default:
-				throw new CConfigException("Expected a value, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+				throw new CConfigException("Expected a value, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 		}
 		
 		return sval;
@@ -910,7 +919,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 				}
 				else
 				{
-					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 				}
 				
 				break;
@@ -920,7 +929,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 				auto aggr = new CAggregate(name);
 				add(aggr);
 				if(!CreateEntry(aggr, parser, include_dirs, include_list, included_files, root))
-					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					throw new CConfigException("Unexpected token: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 				
 				ret = aggr;
 				break;
@@ -936,7 +945,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 			{
 				ret = create_single_value(name, token_type);
 				if(parser.Advance() != EToken.SemiColon)
-					throw new CConfigException("Expected a semicolon, found: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					throw new CConfigException("Expected a semicolon, found: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 				
 				parser.Advance();
 				break;
@@ -947,7 +956,7 @@ CConfigEntry CreateEntry(CAggregate parent, CParser parser, char[][] include_dir
 	return null;
 }
 
-bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+bool HandleInclude(CAggregate ret, CParser parser, cstring[] include_dirs, cstring[] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	if(parser.Peek == EToken.Name)
 	{
@@ -968,7 +977,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 					{
 						auto include_seq = TextUtil.join(include_list[old_idx..$], " -> ");
 						include_seq ~= " -> " ~ path;
-						throw new CConfigException("Circular include detected:\n" ~ include_seq, parser.FileName, parser.CurToken.Line);
+						throw new CConfigException("Circular include detected:\n" ~ include_seq.idup, parser.FileName, parser.CurToken.Line);
 					}
 					
 					auto aggr_ptr = path in included_files;
@@ -984,7 +993,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 				}
 				case EToken.Name:
 				{
-					char[][] path;
+					cstring[] path;
 					
 					bool want_dot = false;
 					
@@ -995,12 +1004,12 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 						{
 							case EToken.Name:
 								if(want_dot)
-									throw new CConfigException("Expected a period, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+									throw new CConfigException("Expected a period, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 								path ~= parser.CurToken.String;
 								break;
 							case EToken.Dot:
 								if(!want_dot)
-									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 								break;
 							default:
 								done = true;
@@ -1037,18 +1046,18 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 					
 					if(aggr is null)
 					{
-						throw new CConfigException("Could not find an aggregate named: '" ~ TextUtil.join(path, ".") ~ "' in the current file.", parser.FileName, parser.CurToken.Line);
+						throw new CConfigException("Could not find an aggregate named: '" ~ TextUtil.join(path, ".").idup ~ "' in the current file.", parser.FileName, parser.CurToken.Line);
 					}
 					
 					break;
 				}
 				default:
 				{
-					throw new CConfigException("Expected a string or a name after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					throw new CConfigException("Expected a string or a name after the 'include' directive, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 				}
 			}
 			
-			char[][] symbol_filters;
+			cstring[] symbol_filters;
 			bool include = false;
 			
 			/* See if we need to filter */
@@ -1057,6 +1066,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 				case EToken.Plus:
 				{
 					include = true;
+					goto case;
 				}
 				case EToken.Minus:
 				{
@@ -1070,12 +1080,12 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 						{
 							case EToken.Name:
 								if(want_comma)
-									throw new CConfigException("Expected a comma, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+									throw new CConfigException("Expected a comma, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 								symbol_filters ~= parser.CurToken.String;
 								break;
 							case EToken.Comma:
 								if(!want_comma)
-									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+									throw new CConfigException("Expected a name, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 								break;
 							default:
 								done = true;
@@ -1092,7 +1102,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 					break;
 				}
 				default:
-					throw new CConfigException("Expected a semicolon after the 'include' directive, not: '" ~ parser.CurToken.String ~ "'", parser.FileName, parser.CurToken.Line);
+					throw new CConfigException("Expected a semicolon after the 'include' directive, not: '" ~ parser.CurToken.String.idup ~ "'", parser.FileName, parser.CurToken.Line);
 			}
 			parser.Advance;
 			
@@ -1117,7 +1127,7 @@ bool HandleInclude(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 	return false;
 }
 
-void FillAggregate(CAggregate ret, CParser parser, char[][] include_dirs, char[][] include_list, CAggregate[char[]] included_files, CAggregate root)
+void FillAggregate(CAggregate ret, CParser parser, cstring[] include_dirs, cstring[] include_list, CAggregate[char[]] included_files, CAggregate root)
 {
 	while(!parser.EOF)
 	{
@@ -1129,11 +1139,11 @@ void FillAggregate(CAggregate ret, CParser parser, char[][] include_dirs, char[]
 	}
 }
 
-CAggregate LoadConfig(char[] filename, char[][] include_dirs, char[] src, char[][] include_list, CAggregate[char[]] included_files)
+CAggregate LoadConfig(cstring filename, cstring[] include_dirs, cstring src, cstring[] include_list, CAggregate[char[]] included_files)
 {
 	if(src is null)
 	{
-		scope fp = new FilePath(filename);
+		scope fp = new FilePath(filename.dup);
 		size_t idx;
 		
 		while(!fp.exists && idx < include_dirs.length)
@@ -1142,7 +1152,7 @@ CAggregate LoadConfig(char[] filename, char[][] include_dirs, char[] src, char[]
 			fp.prepend(include_dirs[idx]);
 			idx++;
 		}
-		src = cast(char[])File.get(fp.toString);
+		src = cast(cstring)File.get(fp.toString);
 	}
 	
 	scope tok = new CTokenizer(filename, src);
@@ -1200,8 +1210,8 @@ unittest
 	assert(B.ValueOf!(int)("b") == 8);
 	assert(B["D"].length == 0);
 	assert(C["B", true].ValueOf!(int)("a") == 1);
-	assert(cfg.ValueOf!(char[])("a") == 
+	assert(cfg.ValueOf!(cstring)("a") == 
 `abc
 def"`);
-	assert(cfg.ValueOf!(char[])("b") == r"\`\n");
+	assert(cfg.ValueOf!(cstring)("b") == r"\`\n");
 }

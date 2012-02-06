@@ -135,7 +135,7 @@ class CCLConnector(float_t) : CDisposable
 		if(code.containsPattern("rand()"))
 		{
 			if(!Group.RandLen)
-				throw new Exception("Found rand() but neuron group '" ~ Group.Name ~ "' does not have random_state_len > 0.");
+				throw new Exception("Found rand() but neuron group '" ~ Group.Name.idup ~ "' does not have random_state_len > 0.");
 			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&_rand_state)");
 			
 			NeedRand = true;
@@ -183,7 +183,7 @@ class CCLConnector(float_t) : CDisposable
 		assert(src_nrn_range[1] > src_nrn_range[0]);
 		assert(num_cycles > 0);
 		
-		int arg_id = 0;
+		size_t arg_id = 0;
 		
 		with(ConnectKernel)
 		{
@@ -234,7 +234,7 @@ class CCLConnector(float_t) : CDisposable
 		ConnectKernel.Launch([src_nrn_range[1] - src_nrn_range[0]]);
 	}
 	
-	double opIndex(char[] name)
+	double opIndex(cstring name)
 	{
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
@@ -242,10 +242,10 @@ class CCLConnector(float_t) : CDisposable
 			return Constants[*idx_ptr];
 		}
 		
-		throw new Exception("Connector '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Connector '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
-	double opIndexAssign(double val, char[] name)
+	double opIndexAssign(double val, cstring name)
 	{	
 		auto idx_ptr = name in ConstantRegistry;
 		if(idx_ptr !is null)
@@ -254,10 +254,10 @@ class CCLConnector(float_t) : CDisposable
 			return val;
 		}
 		
-		throw new Exception("Connector '" ~ Name ~ "' does not have a '" ~ name ~ "' variable.");
+		throw new Exception("Connector '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
 	
-	int ArgStart()
+	size_t ArgStart()
 	{
 		auto ret = Constants.length;
 		if(Group.RandLen)
@@ -265,18 +265,19 @@ class CCLConnector(float_t) : CDisposable
 		return ret;
 	}
 	
+	override
 	void Dispose()
 	{
 		ConnectKernel.Dispose();
 		super.Dispose();
 	}
 	
-	char[] Name;
+	cstring Name;
 	double[] Constants;
-	int[char[]] ConstantRegistry;
+	size_t[char[]] ConstantRegistry;
 	bool NeedRand = false;
 	
-	char[] KernelCode;
+	cstring KernelCode;
 	ICLNeuronGroup Group;
 	
 	CCLKernel ConnectKernel;

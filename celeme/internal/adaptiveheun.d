@@ -57,7 +57,7 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 	}
 	
 	override
-	char[] GetLoadCode(CNeuronType type)
+	cstring GetLoadCode(CNeuronType type)
 	{
 		return 
 "$num_type$ _dt_residual = 0;
@@ -65,7 +65,7 @@ _dt = _dt_buf[i];";
 	}
 	
 	override
-	char[] GetSaveCode(CNeuronType type)
+	cstring GetSaveCode(CNeuronType type)
 	{
 		return 
 "if(_dt_residual > $min_dt$f)
@@ -77,7 +77,7 @@ _dt_buf[i] = _dt;";
 	}
 	
 	override
-	int SetArgs(CCLKernel kernel, int arg_id)
+	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
 		kernel.SetGlobalArg(arg_id++, DtBuffer);
 		foreach(tol; Tolerances)
@@ -90,9 +90,9 @@ _dt_buf[i] = _dt;";
 	}
 	
 	override
-	char[] GetArgsCode(CNeuronType type)
+	cstring GetArgsCode(CNeuronType type)
 	{
-		char[] ret = "__global $num_type$* _dt_buf,\n";
+		cstring ret = "__global $num_type$* _dt_buf,\n";
 		foreach(name, state; &type.AllStates)
 		{
 			ret ~= "const $num_type$ _" ~ name ~ "_tol," ~ "\n";
@@ -103,13 +103,13 @@ _dt_buf[i] = _dt;";
 	}
 	
 	override
-	char[] GetIntegrateCode(CNeuronType type)
+	cstring GetIntegrateCode(CNeuronType type)
 	{
 		scope source = new CSourceConstructor();
 
 		auto eval_source = type.GetEvalSource();
 		
-		char[] kernel_source = 
+		cstring kernel_source = 
 "
 /* Declare storage for first state estimate*/
 $declare_temp_states$
@@ -226,7 +226,7 @@ else
 	}
 	
 	override
-	void SetTolerance(CCLKernel kernel, char[] state, double tolerance)
+	void SetTolerance(CCLKernel kernel, cstring state, double tolerance)
 	{
 		assert(tolerance > 0);
 		
@@ -240,11 +240,11 @@ else
 			}
 		}
 		else
-			throw new Exception("Neuron group '" ~ Group.Name ~ "' does not have a '" ~ state ~ "' state.");
+			throw new Exception("Neuron group '" ~ Group.Name.idup ~ "' does not have a '" ~ state.idup ~ "' state.");
 	}
 	
 	override
-	char[] GetPostThreshCode(CNeuronType type)
+	cstring GetPostThreshCode(CNeuronType type)
 	{
 		return 
 "/* Clamp the _dt not too overshoot the timestep */
@@ -266,5 +266,5 @@ if(_cur_time < timestep && _cur_time + _dt >= timestep)
 	
 	CCLBuffer!(float_t) DtBuffer;
 	double[] Tolerances;
-	int[char[]] ToleranceRegistry;
+	size_t[char[]] ToleranceRegistry;
 }

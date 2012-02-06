@@ -45,7 +45,7 @@ import tango.stdc.stdlib : atexit;
 bool Inited = false;
 bool Registered = false;
 IModel[] Models;
-char[] ErrorText;
+cstring ErrorText;
 
 bool iser(T)(T a, T b)
 {
@@ -112,7 +112,7 @@ void celeme_shutdown()
  * const char* celeme_get_error(void);
  * ---
  */
-char* celeme_get_error()
+const(char)* celeme_get_error()
 {
 	if(ErrorText == "")
 		return null;
@@ -132,7 +132,7 @@ char* celeme_get_error()
  * void celeme_set_error(const char* error);
  * ---
  */
-void celeme_set_error(char* error)
+void celeme_set_error(const(char)* error)
 {
 	if(error is null)
 		ErrorText = null;
@@ -154,11 +154,11 @@ void celeme_set_error(char* error)
  * CELEME_MODEL* celeme_load_model(const char* file, int num_includes, const char** include_dirs, bool gpu, bool double_precision);
  * ---
  */
-IModel celeme_load_model(char* file, int num_includes, char** include_dirs, bool gpu, bool double_precision)
+IModel celeme_load_model(const(char)* file, int num_includes, const(char)** include_dirs, bool gpu, bool double_precision)
 {
 	try
 	{
-		auto include_arr = new char[][](num_includes);
+		auto include_arr = new cstring[](num_includes);
 		foreach(idx, ref include; include_arr)
 		{
 			include = fromStringz(include_dirs[idx]).dup;
@@ -275,7 +275,7 @@ void celeme_generate_model(IModel model, bool initialize);
  * void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt, bool parallel_delivery);
  * ---
  */
-void celeme_add_neuron_group(IModel model, in char* type_name, int number, in char* name, bool adaptive_dt, bool parallel_delivery);
+void celeme_add_neuron_group(IModel model, const(char)* type_name, int number, const(char)* name, bool adaptive_dt, bool parallel_delivery);
 
 /**
  * Returns a neuron group based on its name.
@@ -287,7 +287,7 @@ void celeme_add_neuron_group(IModel model, in char* type_name, int number, in ch
  * CELEME_NEURON_GROUP* celeme_get_neuron_group(CELEME_MODEL* model, const char* name);
  * ---
  */
-INeuronGroup celeme_get_neuron_group(IModel model, char* name);
+INeuronGroup celeme_get_neuron_group(IModel model, const(char)* name);
 
 /**
  * Run the model.
@@ -347,7 +347,7 @@ void celeme_run_until(IModel model, int num_timesteps);
  * void celeme_set_connection(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, int src_slot, const char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
  * ---
  */
-void celeme_set_connection(IModel model, char* src_group, int src_nrn_id, int src_event_source, int src_slot, char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
+void celeme_set_connection(IModel model, const(char)* src_group, int src_nrn_id, int src_event_source, int src_slot, const(char)* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
 
 /**
  * Connecto two neurons in a model.
@@ -359,7 +359,7 @@ void celeme_set_connection(IModel model, char* src_group, int src_nrn_id, int sr
  * CELEME_SLOTS celeme_connect(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, const char* dest_group, int dest_nrn_id, int dest_syn_type);
  * ---
  */
-IModel.SSlots celeme_connect(IModel model, char* src_group, int src_nrn_id, int src_event_source, char* dest_group, int dest_nrn_id, int dest_syn_type);
+IModel.SSlots celeme_connect(IModel model, const(char)* src_group, int src_nrn_id, int src_event_source, const(char)* dest_group, int dest_nrn_id, int dest_syn_type);
 
 /**
  * Apply a connector.
@@ -371,7 +371,7 @@ IModel.SSlots celeme_connect(IModel model, char* src_group, int src_nrn_id, int 
  * void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const char** arg_keys, double* arg_vals);
  * ---
  */
-void celeme_apply_connector(IModel model, char* connector_name, int multiplier, char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals);
+void celeme_apply_connector(IModel model, const(char)* connector_name, int multiplier, const(char)* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const(char)* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const(char)** arg_keys, double* arg_vals);
 
 /**
  * Return the timestep size.
@@ -408,7 +408,7 @@ void celeme_set_timestep_size(IModel model, double val);
  * double celeme_get_constant(CELEME_NEURON_GROUP* group, const char* name);
  * ---
  */
-double celeme_get_constant(INeuronGroup group, char* name);
+double celeme_get_constant(INeuronGroup group, const(char)* name);
 
 /**
  * Set the value of a constant, or the default value of a global or a syn global.
@@ -420,7 +420,7 @@ double celeme_get_constant(INeuronGroup group, char* name);
  * double celeme_set_constant(CELEME_NEURON_GROUP* group, const char* name, double val);
  * ---
  */
-double celeme_set_constant(INeuronGroup group, char* name, double val);
+double celeme_set_constant(INeuronGroup group, const(char)* name, double val);
 
 /**
  * Get the value of a global.
@@ -432,7 +432,7 @@ double celeme_set_constant(INeuronGroup group, char* name, double val);
  * double celeme_get_global(CELEME_NEURON_GROUP* group, const char* name, int idx);
  * ---
  */
-double celeme_get_global(INeuronGroup group, char* name, int idx);
+double celeme_get_global(INeuronGroup group, const(char)* name, int idx);
 
 /**
  * Set the value of a global.
@@ -444,7 +444,7 @@ double celeme_get_global(INeuronGroup group, char* name, int idx);
  * double celeme_set_global(CELEME_NEURON_GROUP* group, const char* name, int idx, double val);
  * ---
  */
-double celeme_set_global(INeuronGroup group, char* name, int idx, double val);
+double celeme_set_global(INeuronGroup group, const(char)* name, int idx, double val);
 
 /**
  * Get the value of a syn global.
@@ -456,7 +456,7 @@ double celeme_set_global(INeuronGroup group, char* name, int idx, double val);
  * double celeme_get_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx);
  * ---
  */
-double celeme_get_syn_global(INeuronGroup group, char* name, int nrn_idx, int syn_idx);
+double celeme_get_syn_global(INeuronGroup group, const(char)* name, int nrn_idx, int syn_idx);
 
 /**
  * Set the value of a syn global.
@@ -468,7 +468,7 @@ double celeme_get_syn_global(INeuronGroup group, char* name, int nrn_idx, int sy
  * double celeme_set_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx, double val);
  * ---
  */
-double celeme_set_syn_global(INeuronGroup group, char* name, int nrn_idx, int syn_idx, double val);
+double celeme_set_syn_global(INeuronGroup group, const(char)* name, int nrn_idx, int syn_idx, double val);
 
 /**
  * Set the recording flags of a single neuron.
@@ -581,9 +581,9 @@ int celeme_get_connection_slot(INeuronGroup group, int nrn_id, int event_source,
 else
 {
 
-char[] ModelFunc(char[] c_name, char[] ret, char[] d_name, char[] args, char[] call_args, char[] def_ret)()
+cstring ModelFunc(cstring c_name, cstring ret, cstring d_name, cstring args, cstring call_args, cstring def_ret)()
 {
-	char[] ret_str = 
+	cstring ret_str = 
 ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 {
 	try
@@ -612,14 +612,14 @@ ret ~ ` celeme_` ~ c_name ~ `(IModel model` ~ args ~ `)
 mixin(ModelFunc!("initialize_model", "void", "Initialize", "", "", ""));
 
 mixin(ModelFunc!("add_neuron_group", "void", "AddNeuronGroup", 
-	", char* type_name, int number, char* name, bool adaptive_dt, bool parallel_delivery", 
+	", const(char)* type_name, int number, const(char)* name, bool adaptive_dt, bool parallel_delivery", 
 	"fromStringz(type_name), number, fromStringz(name), adaptive_dt, parallel_delivery", ""));
 mixin(ModelFunc!("generate_model", "void", "Generate", 
 	", bool initialize", 
 	"initialize", ""));
 
 mixin(ModelFunc!("get_neuron_group", "INeuronGroup", "opIndex", 
-	", char* name", 
+	", const(char)* name", 
 	"fromStringz(name)", "null"));
 	
 mixin(ModelFunc!("run", "void", "Run", 
@@ -632,14 +632,14 @@ mixin(ModelFunc!("run_until", "void", "RunUntil",
 	"num_timesteps", ""));
 	
 mixin(ModelFunc!("set_connection", "void", "SetConnection", 
-	", char* src_group, int src_nrn_id, int src_event_source, int src_slot, char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot", 
+	", const(char)* src_group, int src_nrn_id, int src_event_source, int src_slot, const(char)* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot", 
 	"fromStringz(src_group), src_nrn_id, src_event_source, src_slot, fromStringz(dest_group), dest_nrn_id, dest_syn_type, dest_slot", ""));
 	
 mixin(ModelFunc!("connect", "IModel.SSlots", "Connect", 
-	", char* src_group, int src_nrn_id, int src_event_source, char* dest_group, int dest_nrn_id, int dest_syn_type", 
+	", const(char)* src_group, int src_nrn_id, int src_event_source, const(char)* dest_group, int dest_nrn_id, int dest_syn_type", 
 	"fromStringz(src_group), src_nrn_id, src_event_source, fromStringz(dest_group), dest_nrn_id, dest_syn_type", "IModel.SSlots(-1, -1)"));
 	
-void celeme_apply_connector(IModel model, char* connector_name, int multiplier, char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, char** arg_keys, double* arg_vals)
+void celeme_apply_connector(IModel model, const(char)* connector_name, int multiplier, const(char)* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const(char)* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const(char)** arg_keys, double* arg_vals)
 {
 	try
 	{
@@ -647,7 +647,7 @@ void celeme_apply_connector(IModel model, char* connector_name, int multiplier, 
 		double[char[]] d_args;
 		foreach(ii; range(argc))
 		{
-			d_args[fromStringz(arg_keys[ii]).dup] = arg_vals[ii];
+			d_args[fromStringz(arg_keys[ii]).idup] = arg_vals[ii];
 		}
 		model.ApplyConnector(fromStringz(connector_name), multiplier, fromStringz(src_group), [src_nrn_start, src_nrn_end], src_event_source, fromStringz(dest_group), [dest_nrn_start, dest_nrn_end], dest_syn_type, d_args);
 	}
@@ -669,9 +669,9 @@ mixin(ModelFunc!("set_timestep_size", "void", "TimeStepSize",
  * Neuron group bindings
  */
 
-char[] GroupFunc(char[] c_name, char[] ret, char[] d_name, char[] args, char[] call_args, char[] def_ret)()
+cstring GroupFunc(cstring c_name, cstring ret, cstring d_name, cstring args, cstring call_args, cstring def_ret)()
 {
-	char[] ret_str = 
+	cstring ret_str = 
 ret ~ ` celeme_` ~ c_name ~ `(INeuronGroup group` ~ args ~ `)
 {
 	try
@@ -697,27 +697,27 @@ ret ~ ` celeme_` ~ c_name ~ `(INeuronGroup group` ~ args ~ `)
 }
 
 mixin(GroupFunc!("get_constant", "double", "opIndex", 
-	", char* name", 
+	", const(char)* name", 
 	"fromStringz(name)", "-1.0"));
 	
 mixin(GroupFunc!("set_constant", "double", "opIndexAssign", 
-	", char* name, double val", 
+	", const(char)* name, double val", 
 	"val, fromStringz(name)", "-1.0"));
 	
 mixin(GroupFunc!("get_global", "double", "opIndex", 
-	", char* name, int idx", 
+	", const(char)* name, int idx", 
 	"fromStringz(name), idx", "-1.0"));
 	
 mixin(GroupFunc!("set_global", "double", "opIndexAssign", 
-	", char* name, int idx, double val", 
+	", const(char)* name, int idx, double val", 
 	"val, fromStringz(name), idx", "-1.0"));
 	
 mixin(GroupFunc!("get_syn_global", "double", "opIndex", 
-	", char* name, int nrn_idx, int syn_idx", 
+	", const(char)* name, int nrn_idx, int syn_idx", 
 	"fromStringz(name), nrn_idx, syn_idx", "-1.0"));
 	
 mixin(GroupFunc!("set_syn_global", "double", "opIndexAssign", 
-	", char* name, int nrn_idx, int syn_idx, double val", 
+	", const(char)* name, int nrn_idx, int syn_idx, double val", 
 	"val, fromStringz(name), nrn_idx, syn_idx", "-1.0"));
 	
 mixin(GroupFunc!("record", "CRecorder", "Record", 
@@ -771,7 +771,7 @@ mixin(GroupFunc!("get_connection_slot", "int", "GetConnectionSlot",
  * const char* celeme_get_recorder_name(CELEME_RECORDER* recorder);
  * ---
  */
-char* celeme_get_recorder_name(CRecorder recorder)
+const(char)* celeme_get_recorder_name(CRecorder recorder)
 {
 	try
 	{

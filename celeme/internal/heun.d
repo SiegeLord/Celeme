@@ -41,19 +41,19 @@ class CHeun(float_t) : CIntegrator!(float_t)
 	}
 	
 	override
-	char[] GetLoadCode(CNeuronType type)
+	cstring GetLoadCode(CNeuronType type)
 	{
 		return "_dt = _dt_const;";
 	}
 	
 	override
-	char[] GetSaveCode(CNeuronType type)
+	cstring GetSaveCode(CNeuronType type)
 	{
 		return "";
 	}
 	
 	override
-	int SetArgs(CCLKernel kernel, int arg_id)
+	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
 		SetDt(kernel, Group.MinDt);		
 		return arg_id + 1;
@@ -69,19 +69,19 @@ class CHeun(float_t) : CIntegrator!(float_t)
 	}
 	
 	override
-	char[] GetArgsCode(CNeuronType type)
+	cstring GetArgsCode(CNeuronType type)
 	{
 		return "const $num_type$ _dt_const,";
 	}
 	
 	override
-	char[] GetIntegrateCode(CNeuronType type)
+	cstring GetIntegrateCode(CNeuronType type)
 	{
 		scope source = new CSourceConstructor();
 
 		auto eval_source = type.GetEvalSource();
 		
-		char[] kernel_source = 
+		cstring kernel_source = 
 "
 /* Declare temporary storage for state*/
 $declare_temp_states$

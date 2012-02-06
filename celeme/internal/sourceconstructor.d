@@ -18,34 +18,36 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.internal.sourceconstructor;
 
+import celeme.internal.util;
+
 import tango.text.Util;
 import tango.util.Convert;
 
 class CCode
 {
-	this(char[] src = "")
+	this(cstring src = "")
 	{
 		Source = src.dup;
 	}
 	
-	void opAssign(char[] src)
+	void opAssign(cstring src)
 	{
 		Source = src.dup;
 	}
 	
-	char[] opSlice()
+	cstring opSlice()
 	{
 		return Source;
 	}
 	
-	void opIndexAssign(T)(T val, char[] what)
+	void opIndexAssign(T)(T val, cstring what)
 	{
 		Source = Source.substitute(what, to!(char[])(val));
 	}
 	
 	struct CAccess
 	{
-		void opIndexAssign(T)(T val, char[] what)
+		void opIndexAssign(T)(T val, cstring what)
 		{
 			Source = Source.c_substitute(what, to!(char[])(val));
 		}
@@ -63,12 +65,12 @@ class CCode
 
 class CSourceConstructor
 {
-	void Add(char[] text)
+	void Add(cstring text)
 	{
 		Source ~= text;
 	}
 	
-	void AddLine(char[] line)
+	void AddLine(cstring line)
 	{
 		auto tabs = "\t\t\t\t\t\t\t\t\t\t";
 		Source ~= tabs[0..TabLevel] ~ line ~ "\n";
@@ -79,7 +81,7 @@ class CSourceConstructor
 		AddLine(code[]);
 	}
 	
-	void AddBlock(char[] block)
+	void AddBlock(cstring block)
 	{
 		foreach(line; lines(block))
 		{
@@ -123,12 +125,13 @@ class CSourceConstructor
 		Source = Source[0..$-num];
 	}
 	
-	char[] toString()
+	override
+	immutable(char)[] toString()
 	{
-		return Source;
+		return Source.idup;
 	}
 	
-	void Inject(ref char[] dest_string, char[] label)
+	void Inject(ref cstring dest_string, cstring label)
 	{
 		/* Chomp the newline */
 		if(Source.length)
@@ -138,7 +141,7 @@ class CSourceConstructor
 		Clear();
 	}
 	
-	void Inject(CCode code, char[] label)
+	void Inject(CCode code, cstring label)
 	{
 		Inject(code.Source, label);
 	}

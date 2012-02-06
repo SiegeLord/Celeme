@@ -29,7 +29,7 @@ public import opencl.cl_platform;
 
 extern(C): // TODO: change back to System
 
-typedef void*
+alias void*
 	cl_platform_id,
 	cl_device_id,
 	cl_context,
@@ -506,7 +506,7 @@ cl_int clGetDeviceInfo(
 
 // Context APIs
 
-typedef void function(
+alias void function(
 	char*,
 	void*,
 	size_t,
@@ -660,7 +660,7 @@ cl_int clGetImageInfo(
 	size_t *          param_value_size_ret
 );
 
-typedef extern(System) void function(
+alias extern(System) void function(
 	cl_mem memobj,
 	void* user_data) mem_notify_fn;
 cl_int clSetMemObjectDestructorCallback(
@@ -720,7 +720,7 @@ cl_int clReleaseProgram(
 	cl_program  program
 );
 
-typedef extern(System) void function(
+alias extern(System) void function(
 	cl_program		  program,
 	void*			  user_data
 ) prg_notify_fn;
@@ -756,7 +756,7 @@ cl_int clGetProgramBuildInfo(
 // Kernel Object APIs
 cl_kernel clCreateKernel(
 	cl_program       program,
-	char*            kernel_name,
+	in char*         kernel_name,
 	cl_int*          errcode_ret
 );
 
@@ -829,7 +829,7 @@ cl_int clSetUserEventStatus(
 	cl_event	event,
 	cl_int		execution_status);
 
-typedef extern(System) void function(
+alias extern(System) void function(
 	cl_event,
 	cl_int,
 	void*) evt_notify_fn;

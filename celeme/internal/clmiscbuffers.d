@@ -31,13 +31,13 @@ import tango.text.Util;
 
 private struct SValueHolder(T)
 {
-	char[] Name;
+	cstring Name;
 	T DefaultValue;
 }
 
 class CMultiBuffer(T) : CDisposable
 {
-	this(char[] prefix, size_t n, size_t count, bool read = true, bool write = true)
+	this(cstring prefix, size_t n, size_t count, bool read = true, bool write = true)
 	{
 		assert(n == 1 || n == 2 || n == 4, "N must be 1, 2 or 4");
 		
@@ -48,10 +48,10 @@ class CMultiBuffer(T) : CDisposable
 		Write = write;
 	}
 	
-	void AddValue(CCLCore core, char[] name, T default_value)
+	void AddValue(CCLCore core, cstring name, T default_value)
 	{
 		if(HaveValue(name))
-			throw new Exception("'" ~ name ~ "' is already present in this multi buffer");
+			throw new Exception("'" ~ name.idup ~ "' is already present in this multi buffer");
 		
 		Registry[name] = Values.length;
 		Values ~= SValueHolder!(T)(name, default_value);
@@ -63,26 +63,26 @@ class CMultiBuffer(T) : CDisposable
 		}
 	}
 	
-	size_t* HaveValue(char[] name)
+	size_t* HaveValue(cstring name)
 	{
 		return name in Registry;
 	}
 	
-	T opIndexAssign(T val, char[] name)
+	T opIndexAssign(T val, cstring name)
 	{
 		auto idx_ptr = HaveValue(name);
 		assert(idx_ptr);
 		return Values[*idx_ptr].DefaultValue = val;
 	}
 	
-	T opIndex(char[] name)
+	T opIndex(cstring name)
 	{
 		auto idx_ptr = HaveValue(name);
 		assert(idx_ptr);
 		return Values[*idx_ptr].DefaultValue;
 	}
 	
-	T opIndexAssign(T val, char[] name, size_t idx)
+	T opIndexAssign(T val, cstring name, size_t idx)
 	{
 		auto idx_ptr = HaveValue(name);
 		assert(idx_ptr);
@@ -95,7 +95,7 @@ class CMultiBuffer(T) : CDisposable
 		return Buffers[buf_idx][val_idx] = val;
 	}
 	
-	T opIndex(char[] name, size_t idx)
+	T opIndex(cstring name, size_t idx)
 	{
 		auto idx_ptr = HaveValue(name);
 		assert(idx_ptr);
@@ -125,6 +125,7 @@ class CMultiBuffer(T) : CDisposable
 		}
 	}
 	
+	override
 	void Dispose()
 	{
 		foreach(buf; Buffers)
@@ -132,7 +133,7 @@ class CMultiBuffer(T) : CDisposable
 		super.Dispose();
 	}
 	
-	char[] ArgsCode()
+	cstring ArgsCode()
 	{
 		char[] ret;
 		foreach(buf_idx, buf; Buffers)
@@ -147,7 +148,7 @@ class CMultiBuffer(T) : CDisposable
 		return ret;
 	}
 	
-	char[] LoadCode()
+	cstring LoadCode()
 	{
 		char[] ret;
 		foreach(buf_idx, buf; Buffers)
@@ -169,7 +170,7 @@ class CMultiBuffer(T) : CDisposable
 		return ret;
 	}
 	
-	char[] SaveCode()
+	cstring SaveCode()
 	{
 		char[] ret;
 		
@@ -205,7 +206,7 @@ class CMultiBuffer(T) : CDisposable
 		return Buffers.length;
 	}
 private:
-	char[] Prefix;
+	cstring Prefix;
 	CCLBuffer!(T)[] Buffers;
 	SValueHolder!(T)[] Values;
 	size_t[char[]] Registry;
@@ -228,6 +229,7 @@ class CValueBuffer(T) : CDisposable
 		return DefaultValue = val;
 	}
 	
+	override
 	void Dispose()
 	{
 		Buffer.Dispose();
@@ -246,6 +248,7 @@ class CSynGlobalBuffer(T) : CDisposable
 		Buffer = core.CreateBuffer!(T)(num_syn, true, !val.ReadOnly);
 	}
 	
+	override
 	void Dispose()
 	{
 		Buffer.Dispose();
@@ -264,6 +267,7 @@ class CEventSourceBuffer : CDisposable
 		FreeIdx[] = 0;
 	}
 	
+	override
 	void Dispose()
 	{
 		FreeIdx.Dispose();
@@ -283,7 +287,8 @@ class CSynapseBuffer : CDisposable
 		SlotOffset = offset;
 		Count = count;
 	}
-	
+
+	override
 	void Dispose()
 	{
 		FreeIdx.Dispose();

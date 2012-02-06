@@ -18,6 +18,8 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.recorder;
 
+import celeme.internal.util;
+
 import tango.io.Stdout;
 import tango.stdc.stdlib;
 
@@ -92,7 +94,7 @@ unittest
  */
 class CRecorder
 {
-	this(char[] name = "", bool store_neuron_id = false)
+	this(cstring name = "", bool store_neuron_id = false)
 	{
 		Name = name;
 		StoreNeuronId = store_neuron_id;
@@ -169,7 +171,7 @@ class CRecorder
 	/**
 	 * Name of this recorder, specifying what it was recording.
 	 */
-	char[] Name;
+	cstring Name;
 	
 	/**
 	 * The length of the recorded data

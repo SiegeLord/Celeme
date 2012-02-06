@@ -35,10 +35,10 @@ import opencl.cl;
 
 extern(C):
 
-typedef cl_uint	 cl_gl_object_type;
-typedef cl_uint	 cl_gl_texture_info;
-typedef cl_uint	 cl_gl_platform_info;
-typedef void* cl_GLsync;
+alias cl_uint	 cl_gl_object_type;
+alias cl_uint	 cl_gl_texture_info;
+alias cl_uint	 cl_gl_platform_info;
+alias void* cl_GLsync;
 
 enum
 {
@@ -122,7 +122,7 @@ cl_int clEnqueueReleaseGLObjects(
 
 version = cl_khr_gl_sharing;
 
-typedef cl_uint cl_gl_context_info;
+alias cl_uint cl_gl_context_info;
 
 enum
 {
@@ -149,7 +149,7 @@ cl_int clGetGLContextInfoKHR(
 	size_t*							param_value_size_ret
 );
 
-typedef extern(System) cl_int function(
+alias extern(System) cl_int function(
 		cl_context_properties*	        properties,
 		cl_gl_context_info				param_name,
 		size_t							param_value_size,

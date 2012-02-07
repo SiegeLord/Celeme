@@ -42,24 +42,24 @@ void celeme_set_error(const char* error);
  */
 
 /*CELEME_MODEL* celeme_create_model(int type, bool gpu);*/
-CELEME_MODEL* celeme_load_model(const char* file, int num_includes, const char** include_dirs, bool gpu, bool double_precision);
+CELEME_MODEL* celeme_load_model(const char* file, size_t num_includes, const char** include_dirs, bool gpu, bool double_precision);
 void celeme_initialize_model(CELEME_MODEL* model);
 void celeme_destroy_model(CELEME_MODEL* model);
 
-/*void celeme_add_neuron_group(CELEME_MODEL* model, CELEME_NEURON_TYPE* type, int number, const char* name, bool adaptive_dt);*/
-void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, int number, const char* name, bool adaptive_dt, bool parallel_delivery);
+/*void celeme_add_neuron_group(CELEME_MODEL* model, CELEME_NEURON_TYPE* type, size_t number, const char* name, bool adaptive_dt);*/
+void celeme_add_neuron_group(CELEME_MODEL* model, const char* type_name, size_t number, const char* name, bool adaptive_dt, bool parallel_delivery);
 void celeme_generate_model(CELEME_MODEL* model, bool initialize);
 
 CELEME_NEURON_GROUP* celeme_get_neuron_group(CELEME_MODEL* model, const char* name);
 
-void celeme_run(CELEME_MODEL* model, int num_timesteps);
+void celeme_run(CELEME_MODEL* model, size_t num_timesteps);
 void celeme_reset_run(CELEME_MODEL* model);
 void celeme_init_run(CELEME_MODEL* model);
-void celeme_run_until(CELEME_MODEL* model, int num_timesteps);
+void celeme_run_until(CELEME_MODEL* model, size_t num_timesteps);
 
-void celeme_set_connection(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, int src_slot, const char* dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
-void celeme_connect(CELEME_MODEL* model, const char* src_group, int src_nrn_id, int src_event_source, const char* dest_group, int dest_nrn_id, int dest_syn_type);
-void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, int multiplier, const char* src_group, int src_nrn_start, int src_nrn_end, int src_event_source, const char* dest_group, int dest_nrn_start, int dest_nrn_end, int dest_syn_type, int argc, const char** arg_keys, double* arg_vals);
+void celeme_set_connection(CELEME_MODEL* model, const char* src_group, size_t src_nrn_id, size_t src_event_source, size_t src_slot, const char* dest_group, size_t dest_nrn_id, size_t dest_syn_type, size_t dest_slot);
+void celeme_connect(CELEME_MODEL* model, const char* src_group, size_t src_nrn_id, size_t src_event_source, const char* dest_group, size_t dest_nrn_id, size_t dest_syn_type);
+void celeme_apply_connector(CELEME_MODEL* model, const char* connector_name, size_t multiplier, const char* src_group, size_t src_nrn_start, size_t src_nrn_end, size_t src_event_source, const char* dest_group, size_t dest_nrn_start, size_t dest_nrn_end, size_t dest_syn_type, size_t argc, const char** arg_keys, double* arg_vals);
 
 double celeme_get_timestep_size(CELEME_MODEL* model);
 void celeme_set_timestep_size(CELEME_MODEL* model, double val);
@@ -71,23 +71,23 @@ void celeme_set_timestep_size(CELEME_MODEL* model, double val);
 double celeme_get_constant(CELEME_NEURON_GROUP* group, const char* name);
 double celeme_set_constant(CELEME_NEURON_GROUP* group, const char* name, double val);
 
-double celeme_get_global(CELEME_NEURON_GROUP* group, const char* name, int idx);
-double celeme_set_global(CELEME_NEURON_GROUP* group, const char* name, int idx, double val);
+double celeme_get_global(CELEME_NEURON_GROUP* group, const char* name, size_t idx);
+double celeme_set_global(CELEME_NEURON_GROUP* group, const char* name, size_t idx, double val);
 
-double celeme_get_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx);
-double celeme_set_syn_global(CELEME_NEURON_GROUP* group, const char* name, int nrn_idx, int syn_idx, double val);
+double celeme_get_syn_global(CELEME_NEURON_GROUP* group, const char* name, size_t nrn_idx, size_t syn_idx);
+double celeme_set_syn_global(CELEME_NEURON_GROUP* group, const char* name, size_t nrn_idx, size_t syn_idx, double val);
 
-CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, int nrn_idx, int flags);
+CELEME_RECORDER* celeme_record(CELEME_NEURON_GROUP* group, size_t nrn_idx, int flags);
 
-void celeme_stop_recording(CELEME_NEURON_GROUP* group, int neuron_id);
+void celeme_stop_recording(CELEME_NEURON_GROUP* group, size_t neuron_id);
 
 double celeme_get_min_dt(CELEME_NEURON_GROUP* group);
 void celeme_set_min_dt(CELEME_NEURON_GROUP* group, double min_dt);
-int celeme_get_count(CELEME_NEURON_GROUP* group);
-int celeme_get_nrn_offset(CELEME_NEURON_GROUP* group);
+size_t celeme_get_count(CELEME_NEURON_GROUP* group);
+size_t celeme_get_nrn_offset(CELEME_NEURON_GROUP* group);
 
-int celeme_get_connection_id(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
-int celeme_get_connection_slot(CELEME_NEURON_GROUP* group, int nrn_id, int event_source, int src_slot);
+int celeme_get_connection_id(CELEME_NEURON_GROUP* group, size_t nrn_id, size_t event_source, size_t src_slot);
+int celeme_get_connection_slot(CELEME_NEURON_GROUP* group, size_t nrn_id, size_t event_source, size_t src_slot);
 
 /*
  * Recorder
@@ -98,6 +98,6 @@ size_t celeme_get_recorder_length(CELEME_RECORDER* recorder);
 double* celeme_get_recorder_time(CELEME_RECORDER* recorder);
 double* celeme_get_recorder_data(CELEME_RECORDER* recorder);
 int* celeme_get_recorder_tags(CELEME_RECORDER* recorder);
-int* celeme_get_recorder_neuron_ids(CELEME_RECORDER* recorder);
+size_t* celeme_get_recorder_neuron_ids(CELEME_RECORDER* recorder);
 
 #endif

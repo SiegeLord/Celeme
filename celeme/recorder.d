@@ -113,7 +113,7 @@ class CRecorder
 		TArray.length = DataArray.length = TagArray.length = 0;
 	}
 	
-	void AddDatapoint(double t, double data, int tag, int neuron_id = 0)
+	void AddDatapoint(double t, double data, int tag, size_t neuron_id = 0)
 	{
 		if(Length >= TArray.length)
 		{
@@ -161,7 +161,7 @@ class CRecorder
 	 * Returns the neuron id array (if any).
 	 */
 	@property
-	int[] NeuronIds()
+	size_t[] NeuronIds()
 	{
 		if(StoreNeuronId)
 			return NeuronIdArray[0..Length];
@@ -171,7 +171,7 @@ class CRecorder
 	
 	SCArray!(double) TArray;
 	SCArray!(int) TagArray;
-	SCArray!(int) NeuronIdArray;
+	SCArray!(size_t) NeuronIdArray;
 	SCArray!(double) DataArray;
 	
 	/**

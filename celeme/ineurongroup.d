@@ -43,7 +43,7 @@ interface INeuronGroup
 	 *     name = Name of the global.
 	 *     idx = Index of the neuron.
 	 */
-	double opIndex(cstring name, int idx);
+	double opIndex(cstring name, size_t idx);
 	
 	/**
 	 * Set the value of a global value of a particular neuron.
@@ -52,7 +52,7 @@ interface INeuronGroup
 	 *     name = Name of the global.
 	 *     idx = Index of the neuron.
 	 */
-	double opIndexAssign(double val, cstring name, int idx);
+	double opIndexAssign(double val, cstring name, size_t idx);
 	
 	/**
 	 * Get the value of a syn global value of a particular neuron.
@@ -61,7 +61,7 @@ interface INeuronGroup
 	 *     nrn_idx = Index of the neuron.
 	 *     syn_idx = Index of the synapse within the neuron.
 	 */
-	double opIndex(cstring name, int nrn_idx, int syn_idx);
+	double opIndex(cstring name, size_t nrn_idx, size_t syn_idx);
 	
 	/**
 	 * Set the value of a syn global value of a particular neuron.
@@ -71,7 +71,7 @@ interface INeuronGroup
 	 *     nrn_idx = Index of the neuron.
 	 *     syn_idx = Index of the synapse within the neuron.
 	 */
-	double opIndexAssign(double val, cstring name, int nrn_idx, int syn_idx);
+	double opIndexAssign(double val, cstring name, size_t nrn_idx, size_t syn_idx);
 	
 	/**
 	 * Set the recording flags of a single neuron.
@@ -82,11 +82,11 @@ interface INeuronGroup
 	 * Returns:
 	 *     A common recorder that will hold data points consisting of the time, data and a tag as well as the neuron id.
 	 */
-	CRecorder Record(int neuron_id, int flags);
+	CRecorder Record(size_t neuron_id, int flags);
 	/**
 	 * Stop recording everything
 	 */
-	void StopRecording(int neuron_id);
+	void StopRecording(size_t neuron_id);
 	
 	/**
 	 * Sets the minimum dt for this neuron group. When adaptive integration is used, this is the
@@ -106,13 +106,13 @@ interface INeuronGroup
 	 * Returns the number of neurons in this group
 	 */
 	@property
-	int Count();
+	size_t Count();
 	
 	/**
 	 * Returns the global index of the first neuron in this neuron group.
 	 */
 	@property
-	int NrnOffset();
+	size_t NrnOffset();
 		
 	/**
 	 * Seeds the random number generator.
@@ -130,7 +130,7 @@ interface INeuronGroup
 	 * Returns:
 	 *     The global destination neuron id, or -1 if no connection is present.
 	 */
-	int GetConnectionId(int nrn_id, int event_source, int src_slot);
+	int GetConnectionId(size_t nrn_id, size_t event_source, size_t src_slot);
 	
 	/**
 	 * Returns the target slot that an event source is connected to at a specified source slot.
@@ -142,5 +142,5 @@ interface INeuronGroup
 	 * Returns:
 	 *     The destination slot, or -1 if no connection is present.
 	 */
-	int GetConnectionSlot(int src_nrn_id, int event_source, int src_slot);
+	int GetConnectionSlot(size_t src_nrn_id, size_t event_source, size_t src_slot);
 }

@@ -31,10 +31,10 @@ interface ICLNeuronGroup : INeuronGroup
 {
 	@property cstring Name();
 	
-	@property int RandLen();
-	@property int NumEventSources();
-	@property int NumSrcSynapses();
-	@property int NumSynThresholds();
+	@property size_t RandLen();
+	@property size_t NumEventSources();
+	@property size_t NumSrcSynapses();
+	@property size_t NumSynThresholds();
 	
 	@property CCLRand Rand();
 	@property CEventSourceBuffer[] EventSourceBuffers();

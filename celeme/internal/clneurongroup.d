@@ -266,7 +266,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, int count, cstring name, int sink_offset, int nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
+	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -442,7 +442,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 					SetLocalArg(arg_id++, int.sizeof * WorkgroupSize);
 				}
 			}
-			SetGlobalArg(arg_id++, Count);
+			SetGlobalArg(arg_id++, cast(int)Count);
 		}
 		
 		/* Init kernel */
@@ -458,7 +458,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			{
 				SetGlobalArg(arg_id++, DestSynBuffer);
 			}
-			SetGlobalArg(arg_id++, Count);
+			SetGlobalArg(arg_id++, cast(int)Count);
 		}
 		
 		/* Deliver kernel */
@@ -483,7 +483,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 				SetGlobalArg(arg_id++, Model.FiredSynIdxBuffer);
 				SetGlobalArg(arg_id++, Model.FiredSynBuffer);
 			}
-			SetGlobalArg(arg_id++, Count);
+			SetGlobalArg(arg_id++, cast(int)Count);
 		}
 		
 		Core.Finish();
@@ -1536,11 +1536,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	/* These two functions can be used to modify values after the model has been created.
 	 */
 	override
-	double opIndex(cstring name, int idx)
+	double opIndex(cstring name, size_t idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
-		assert(idx >= 0, "Invalid neuron index.");
 	
 		if(RWValues.HaveValue(name))
 			return RWValues[name, idx];
@@ -1552,11 +1551,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	double opIndexAssign(double val, cstring name, int idx)
+	double opIndexAssign(double val, cstring name, size_t idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(idx < Count, "Neuron index needs to be less than Count.");
-		assert(idx >= 0, "Invalid neuron index.");
 		
 		if(RWValues.HaveValue(name))
 			return RWValues[name, idx] = val;
@@ -1571,12 +1569,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	 * syn_idx refers to the synapse index in this type (i.e. each successive type has indices starting from 0)
 	 */
 	override
-	double opIndex(cstring name, int nrn_idx, int syn_idx)
+	double opIndex(cstring name, size_t nrn_idx, size_t syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
-		assert(nrn_idx >= 0, "Invalid neuron index.");
-		assert(syn_idx >= 0, "Invalid synapse index.");
 	
 		auto idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1594,12 +1590,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	double opIndexAssign(double val, cstring name, int nrn_idx, int syn_idx)
+	double opIndexAssign(double val, cstring name, size_t nrn_idx, size_t syn_idx)
 	{
 		assert(Model.Initialized, "Model needs to be Initialized before using this function.");
 		assert(nrn_idx < Count, "Neuron index needs to be less than Count.");
-		assert(nrn_idx >= 0, "Invalid neuron index.");
-		assert(syn_idx >= 0, "Invalid synapse index.");
 		
 		auto idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1685,7 +1679,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		}
 	}
 	
-	final void UpdateRecorders(int timestep, bool last = false)
+	final void UpdateRecorders(size_t timestep, bool last = false)
 	{
 		assert(Model.Initialized);
 		
@@ -1708,7 +1702,7 @@ for(int ii = 0; ii < num_fired; ii++)
 						{
 							int id = cast(int)quad[0];
 							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-							CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(int)quad[3]);
+							CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(size_t)quad[3]);
 						}
 					}
 				}
@@ -1727,10 +1721,9 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	CRecorder Record(int neuron_id, int flags)
+	CRecorder Record(size_t neuron_id, int flags)
 	{
 		assert(Model.Initialized);
-		assert(neuron_id >= 0);
 		assert(neuron_id < Count);
 		
 		/* Try finding a workgroup that contains this neuron */
@@ -1778,7 +1771,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	void StopRecording(int neuron_id)
+	void StopRecording(size_t neuron_id)
 	{
 		Record(neuron_id, 0);
 	}
@@ -1818,32 +1811,32 @@ for(int ii = 0; ii < num_fired; ii++)
 			throw new Exception("Found errors during model execution.");
 	}
 	
-	private int GetSrcSynId(int src_nrn_id, int event_source, int src_slot)
+	private size_t GetSrcSynId(size_t src_nrn_id, size_t event_source, size_t src_slot)
 	{
-		assert(src_nrn_id >= 0 && src_nrn_id < Count);
-		assert(event_source >= 0 && event_source < NumEventSources);
-		assert(src_slot >= 0 && src_slot < NumSrcSynapses);
+		assert(src_nrn_id < Count);
+		assert(event_source < NumEventSources);
+		assert(src_slot < NumSrcSynapses);
 		
 		return (src_nrn_id * NumEventSources + event_source) * NumSrcSynapses + src_slot;
 	}
 	
-	void SetConnection(int src_nrn_id, int event_source, int src_slot, int dest_neuron_id, int dest_slot)
+	void SetConnection(size_t src_nrn_id, size_t event_source, size_t src_slot, size_t dest_neuron_id, size_t dest_slot)
 	{
 		assert(Model.Initialized);
 		
-		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		auto src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
 		NeedUnMap = true;
 		
-		DestSynBuffer()[src_syn_id] = cl_int2(dest_neuron_id, dest_slot);
+		DestSynBuffer()[src_syn_id] = cl_int2(cast(int)dest_neuron_id, cast(int)dest_slot);
 	}
 	
 	override
-	int GetConnectionId(int src_nrn_id, int event_source, int src_slot)
+	int GetConnectionId(size_t src_nrn_id, size_t event_source, size_t src_slot)
 	{
 		assert(Model.Initialized);
 		
-		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		auto src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
 		NeedUnMap = true;
 		
@@ -1851,11 +1844,11 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	int GetConnectionSlot(int src_nrn_id, int event_source, int src_slot)
+	int GetConnectionSlot(size_t src_nrn_id, size_t event_source, size_t src_slot)
 	{
 		assert(Model.Initialized);
 		
-		int src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
+		auto src_syn_id = GetSrcSynId(src_nrn_id, event_source, src_slot);
 		
 		NeedUnMap = true;
 		
@@ -1865,10 +1858,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	/*
 	 * Reserves a slot in an event source, returns -1 if its full
 	 */
-	int GetSrcSlot(int src_nrn_id, int event_source)
+	int GetSrcSlot(size_t src_nrn_id, size_t event_source)
 	{
-		assert(src_nrn_id >= 0 && src_nrn_id < Count);
-		assert(event_source >= 0 && event_source < NumEventSources);
+		assert(src_nrn_id < Count);
+		assert(event_source < NumEventSources);
 		
 		auto idx = EventSourceBuffers[event_source].FreeIdx[src_nrn_id];
 		
@@ -1885,10 +1878,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	/*
 	 * Reserves a slot in a destination mechanism, returns -1 if its full
 	 */
-	int GetDestSlot(int dest_nrn_id, int dest_syn_type)
+	int GetDestSlot(size_t dest_nrn_id, size_t dest_syn_type)
 	{
-		assert(dest_nrn_id >= 0 && dest_nrn_id < Count);
-		assert(dest_syn_type >= 0 && dest_syn_type < SynapseBuffers.length);
+		assert(dest_nrn_id < Count);
+		assert(dest_syn_type < SynapseBuffers.length);
 		
 		auto idx = SynapseBuffers[dest_syn_type].FreeIdx[dest_nrn_id];
 		
@@ -1902,13 +1895,13 @@ for(int ii = 0; ii < num_fired; ii++)
 		return idx - 1;
 	}
 	
-	int GetSynapseTypeOffset(int type)
+	size_t GetSynapseTypeOffset(size_t type)
 	{
-		assert(type >= 0 && type < SynapseBuffers.length, "Invalid synapse type.");
+		assert(type < SynapseBuffers.length, "Invalid synapse type.");
 		return SynapseBuffers[type].SlotOffset;
 	}
 	
-	void Connect(cstring connector_name, int multiplier, int[2] src_nrn_range, int src_event_source, CNeuronGroup!(float_t) dest, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args)
+	void Connect(cstring connector_name, size_t multiplier, size_t[2] src_nrn_range, size_t src_event_source, CNeuronGroup!(float_t) dest, size_t[2] dest_nrn_range, size_t dest_syn_type, double[char[]] args)
 	{
 		auto conn_ptr = connector_name in Connectors;
 		if(conn_ptr is null)
@@ -1993,7 +1986,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	
 	override
 	@property
-	int Count()
+	size_t Count()
 	{
 		return CountVal;
 	}
@@ -2013,16 +2006,16 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	mixin(Prop!("cstring", "Name", "override", "private"));
-	mixin(Prop!("int", "NumEventSources", "override", "private"));
-	mixin(Prop!("int", "NumSynThresholds", "override", "private"));
-	mixin(Prop!("int", "NumSrcSynapses", "override", "private"));
+	mixin(Prop!("size_t", "NumEventSources", "override", "private"));
+	mixin(Prop!("size_t", "NumSynThresholds", "override", "private"));
+	mixin(Prop!("size_t", "NumSrcSynapses", "override", "private"));
 	mixin(Prop!("CEventSourceBuffer[]", "EventSourceBuffers", "override", "private"));
 	mixin(Prop!("CSynapseBuffer[]", "SynapseBuffers", "override", "private"));
 	mixin(Prop!("CCLBuffer!(cl_int2)", "DestSynBuffer", "override", "private"));
-	mixin(Prop!("int", "NrnOffset", "override", "private"));
+	mixin(Prop!("size_t", "NrnOffset", "override", "private"));
 	mixin(Prop!("CCLBuffer!(int)", "ErrorBuffer", "override", "private"));
 	mixin(Prop!("CCLRand", "Rand", "override", "private"));
-	mixin(Prop!("int", "RandLen", "override", "private"));
+	mixin(Prop!("size_t", "RandLen", "override", "private"));
 
 	CRecorder CommonRecorder;
 	
@@ -2059,7 +2052,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	size_t[char[]] SynGlobalBufferRegistry;
 	
 	cstring NameVal;
-	int CountVal = 0;
+	size_t CountVal = 0;
 	ICLModel Model;
 	
 	cstring StepKernelSource;
@@ -2081,25 +2074,26 @@ for(int ii = 0; ii < num_fired; ii++)
 	/* TODO: This is stupid. Make it so each event source has its own buffer, much much simpler that way. */
 	CCLBuffer!(cl_int2) DestSynBufferVal;
 	
+	/* These two must be integers */
 	int RecordLength;
 	int RecordRate;
-	int CircBufferSize = 20;
-	int NumEventSourcesVal = 0;
-	int NumThresholds = 0;
-	int NumSynThresholdsVal = 0;
+	size_t CircBufferSize = 20;
+	size_t NumEventSourcesVal = 0;
+	size_t NumThresholds = 0;
+	size_t NumSynThresholdsVal = 0;
 	
-	int NumSrcSynapsesVal; /* Number of pre-synaptic slots per event source */
-	int NumDestSynapses; /* Number of post-synaptic slots per neuron */
+	size_t NumSrcSynapsesVal; /* Number of pre-synaptic slots per event source */
+	size_t NumDestSynapses; /* Number of post-synaptic slots per neuron */
 	
 	/* The place we reset the fired syn idx to*/
-	int SynOffset;
+	size_t SynOffset;
 	/* Offset for indexing into the model global indices */
-	int NrnOffsetVal;
+	size_t NrnOffsetVal;
 	
 	CSynapseBuffer[] SynapseBuffersVal;
 	CEventSourceBuffer[] EventSourceBuffersVal;
 	
-	int RandLenVal = 0;
+	size_t RandLenVal = 0;
 	CCLRand RandVal;
 	bool NeedRandArgs = false;
 	

@@ -187,7 +187,7 @@ class CCLBuffer(T) : CCLBufferBase
 	
 	T[] Map(cl_map_flags mode, size_t start = 0, size_t end = 0)
 	{
-		assert(start >= 0 && end <= Length);
+		assert(end <= Length);
 		assert(end >= start);
 		
 		if(end <= 0)
@@ -265,7 +265,7 @@ class CCLBuffer(T) : CCLBufferBase
 	
 	T opIndex(size_t idx)
 	{
-		assert(idx >= 0 && idx < Length);
+		assert(idx < Length);
 		
 		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 			MapRead(idx, min(idx + CacheSize, Length));
@@ -280,7 +280,7 @@ class CCLBuffer(T) : CCLBufferBase
 	
 	T opIndexAssign(T val, size_t idx)
 	{
-		assert(idx >= 0 && idx < Length);
+		assert(idx < Length);
 		
 		/* Don't do cached writes, since they are dangerous */
 		MapWrite(idx, idx + 1);

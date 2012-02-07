@@ -54,7 +54,7 @@ interface IModel
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(cstring type_name, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
+	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
 	
 	/**
 	 * Adds a new neuron group.
@@ -67,7 +67,7 @@ interface IModel
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(CNeuronType type, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
+	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
 	
 	/**
 	 * Generates the model. You must generate it before you run it, or set any neuron-specific
@@ -92,7 +92,7 @@ interface IModel
 	 * model.RunUntil(num_timesteps);
 	 * ---
 	 */
-	void Run(int num_timesteps);
+	void Run(size_t num_timesteps);
 	
 	/**
 	 * Resets the buffers of the model, setting the internal time to 0. This clears the pending events, and resets all values to their
@@ -110,7 +110,7 @@ interface IModel
 	/**
 	 * Runs the model until the internal clock equals the passed number of timesteps.
 	 */
-	void RunUntil(int num_timesteps);
+	void RunUntil(size_t num_timesteps);
 	
 	/**
 	 * Sets a connection between two neurons in this model. This function ignores the used slots,
@@ -126,7 +126,7 @@ interface IModel
 	 *     dest_syn_type = Index of the synapse to use
 	 *     dest_slot = Destination slot to use
 	 */
-	void SetConnection(cstring src_group, int src_nrn_id, int src_event_source, int src_slot, cstring dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot);
+	void SetConnection(cstring src_group, size_t src_nrn_id, size_t src_event_source, size_t src_slot, cstring dest_group, size_t dest_nrn_id, size_t dest_syn_type, size_t dest_slot);
 	
 	/**
 	 * Utility structure to hold the slots used by a connection. Returned by the $(SYMLINK Connect, Connect) method.
@@ -153,7 +153,7 @@ interface IModel
 	 *     A $(SYMLINK SSlots, SSlots) structure. The connection might not be made
 	 *     because the maximum number of slots has been used.
 	 */
-	SSlots Connect(cstring src_group, int src_nrn_id, int src_event_source, cstring dest_group, int dest_nrn_id, int dest_syn_type);
+	SSlots Connect(cstring src_group, size_t src_nrn_id, size_t src_event_source, cstring dest_group, size_t dest_nrn_id, size_t dest_syn_type);
 	
 	/**
 	 * Apply a connector to interconnect two ranges of neurons. This is the fastest method to connect neurons,
@@ -170,7 +170,7 @@ interface IModel
 	 *     dest_syn_type = Index of the synapse to use
 	 *     args = An associative array of arguments to pass to the connector
 	 */
-	void ApplyConnector(cstring connector_name, int multiplier, cstring src_group, int[2] src_nrn_range, int src_event_source, cstring dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null);
+	void ApplyConnector(cstring connector_name, size_t multiplier, cstring src_group, size_t[2] src_nrn_range, size_t src_event_source, cstring dest_group, size_t[2] dest_nrn_range, size_t dest_syn_type, double[char[]] args = null);
 	
 	/**
 	 * Returns the timestep size of the model. The model is ran using fixed timesteps, although

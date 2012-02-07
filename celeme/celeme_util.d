@@ -71,15 +71,15 @@ struct SData
  * Returns:
  *     A double assosiative array of SData structures. First key is the neuron id, second key is tag.
  */
-SData[int][int] ExtractData(CRecorder recorder)
+SData[int][size_t] ExtractData(CRecorder recorder)
 {
-	SData[int][int] ret;
+	SData[int][size_t] ret;
 	
 	foreach(ii, time; recorder.T)
 	{
 		double data = recorder.Data[ii];
 		int tag = recorder.Tags[ii];
-		int neuron_id = recorder.NeuronIds is null ? 0 : recorder.NeuronIds[ii];
+		size_t neuron_id = recorder.NeuronIds is null ? 0 : recorder.NeuronIds[ii];
 		
 		auto tag_array_ptr = neuron_id in ret;
 		if(tag_array_ptr is null)

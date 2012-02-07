@@ -117,22 +117,26 @@ class CCLRand : CDisposable
 	}
 }
 
-class CCLRandImpl(uint N) : CCLRand
+class CCLRandImpl(size_t N) : CCLRand
 {
 	static if(N == 1)
 	{
 		alias uint state_t;
 	}
-	static if(N == 2)
+	else static if(N == 2)
 	{
 		alias cl_uint2 state_t;
 	}
-	static if(N == 4)
+	else static if(N == 4)
 	{
 		alias cl_uint4 state_t;
 	}
+	else
+	{
+		static assert("Unsupported random state length.");
+	}
 	
-	this(CCLCore core, int count)
+	this(CCLCore core, size_t count)
 	{
 		State = new CCLBuffer!(state_t)(core, count);
 	}

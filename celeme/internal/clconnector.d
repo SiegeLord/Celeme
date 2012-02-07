@@ -178,7 +178,7 @@ class CCLConnector(float_t) : CDisposable
 		KernelCode = kernel_source;
 	}
 	
-	void Connect(int num_cycles, int[2] src_nrn_range, int src_event_source, ICLNeuronGroup dest, int[2] dest_nrn_range, int dest_syn_type)
+	void Connect(size_t num_cycles, size_t[2] src_nrn_range, size_t src_event_source, ICLNeuronGroup dest, size_t[2] dest_nrn_range, size_t dest_syn_type)
 	{
 		assert(src_nrn_range[1] > src_nrn_range[0]);
 		assert(num_cycles > 0);
@@ -200,32 +200,32 @@ class CCLConnector(float_t) : CDisposable
 				arg_id = Group.Rand.SetArgs(ConnectKernel, arg_id);
 			}
 			//const int num_cycles,
-			SetGlobalArg(arg_id++, num_cycles);
+			SetGlobalArg(arg_id++, cast(int)num_cycles);
 			//const int src_start,
-			SetGlobalArg(arg_id++, src_nrn_range[0]);
+			SetGlobalArg(arg_id++, cast(int)src_nrn_range[0]);
 			//const int src_end,
-			SetGlobalArg(arg_id++, src_nrn_range[1]);
+			SetGlobalArg(arg_id++, cast(int)src_nrn_range[1]);
 			//const int _src_event_source,
-			SetGlobalArg(arg_id++, src_event_source);
+			SetGlobalArg(arg_id++, cast(int)src_event_source);
 			//const int _src_slot_max,
 			auto num_src_synapses = Group.NumSrcSynapses;
-			SetGlobalArg(arg_id++, num_src_synapses);
+			SetGlobalArg(arg_id++, cast(int)num_src_synapses);
 			//__global int* _event_source_idxs,
 			SetGlobalArg(arg_id++, Group.EventSourceBuffers[src_event_source].FreeIdx.Buffer);
 			//const int dest_start,
-			SetGlobalArg(arg_id++, dest_nrn_range[0]);
+			SetGlobalArg(arg_id++, cast(int)dest_nrn_range[0]);
 			//const int dest_end,
-			SetGlobalArg(arg_id++, dest_nrn_range[1]);
+			SetGlobalArg(arg_id++, cast(int)dest_nrn_range[1]);
 			//const int _dest_slot_max,
-			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].Count);
+			SetGlobalArg(arg_id++, cast(int)dest.SynapseBuffers[dest_syn_type].Count);
 			//__global int* _dest_syn_idxs,
 			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].FreeIdx.Buffer);
 			//__global int2* _dest_syn_buffer,
 			SetGlobalArg(arg_id++, Group.DestSynBuffer.Buffer);
 			//int _dest_nrn_offset,
-			SetGlobalArg(arg_id++, dest.NrnOffset);
+			SetGlobalArg(arg_id++, cast(int)dest.NrnOffset);
 			//int _dest_slot_offset,
-			SetGlobalArg(arg_id++, dest.SynapseBuffers[dest_syn_type].SlotOffset);
+			SetGlobalArg(arg_id++, cast(int)dest.SynapseBuffers[dest_syn_type].SlotOffset);
 			//__global int* _error_buffer
 			auto error_buffer = Group.ErrorBuffer;
 			SetGlobalArg(arg_id++, error_buffer);

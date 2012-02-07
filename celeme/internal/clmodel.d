@@ -57,7 +57,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(cstring type_name, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(Registry !is null, "No neuron types available.");
 		
@@ -69,7 +69,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(CNeuronType type, int number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
@@ -202,7 +202,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void Run(int num_timesteps)
+	void Run(size_t num_timesteps)
 	{
 		ResetRun();
 		InitRun();
@@ -234,9 +234,10 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void RunUntil(int num_timesteps)
+	void RunUntil(size_t num_timesteps)
 	{
 		assert(Initialized);
+		assert(num_timesteps > 1);
 		
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
@@ -255,7 +256,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			cl_event deliver_event = null;
 		}
 		
-		int t = CurStep;
+		size_t t = CurStep;
 		/* Run the model */
 		while(t < num_timesteps)
 		{
@@ -376,27 +377,27 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	 * to a neuron at index dest_nrn_id from dest_group.
 	 */
 	override
-	void SetConnection(cstring src_group, int src_nrn_id, int src_event_source, int src_slot, cstring dest_group, int dest_nrn_id, int dest_syn_type, int dest_slot)
+	void SetConnection(cstring src_group, size_t src_nrn_id, size_t src_event_source, size_t src_slot, cstring dest_group, size_t dest_nrn_id, size_t dest_syn_type, size_t dest_slot)
 	{
 		assert(Initialized);
 		
 		auto src = GetGroup(src_group);
 		auto dest = GetGroup(dest_group);
 		
-		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
-		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
+		assert(src_nrn_id < src.Count, "Invalid source index.");
+		assert(dest_nrn_id < dest.Count, "Invalid destination index.");
 		
-		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
-		assert(src_slot >= 0 && src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
+		assert(src_event_source < src.NumEventSources, "Invalid event source index.");
+		assert(src_slot < src.NumSrcSynapses, "Invalid event source slot index.");
 		
-		assert(dest_syn_type >= 0 && dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
-		assert(dest_slot >= 0 && dest_slot < dest.SynapseBuffers[dest_syn_type].Count, "Invalid destination synapse index.");
+		assert(dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
+		assert(dest_slot < dest.SynapseBuffers[dest_syn_type].Count, "Invalid destination synapse index.");
 		
 		src.SetConnection(src_nrn_id, src_event_source, src_slot, dest.NrnOffset + dest_nrn_id, dest.GetSynapseTypeOffset(dest_syn_type) + dest_slot);
 	}
 	
 	override
-	SSlots Connect(cstring src_group, int src_nrn_id, int src_event_source, cstring dest_group, int dest_nrn_id, int dest_syn_type)
+	SSlots Connect(cstring src_group, size_t src_nrn_id, size_t src_event_source, cstring dest_group, size_t dest_nrn_id, size_t dest_syn_type)
 	{
 		assert(Initialized);
 		
@@ -407,12 +408,12 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		auto src = GetGroup(src_group);
 		auto dest = GetGroup(dest_group);
 		
-		assert(src_nrn_id >= 0 && src_nrn_id < src.Count, "Invalid source index.");
-		assert(dest_nrn_id >= 0 && dest_nrn_id < dest.Count, "Invalid destination index.");
+		assert(src_nrn_id < src.Count, "Invalid source index.");
+		assert(dest_nrn_id < dest.Count, "Invalid destination index.");
 		
-		assert(src_event_source >= 0 && src_event_source < src.NumEventSources, "Invalid event source index.");
+		assert(src_event_source < src.NumEventSources, "Invalid event source index.");
 		
-		assert(dest_syn_type >= 0 && dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
+		assert(dest_syn_type < dest.SynapseBuffers.length, "Invalid destination synapse type.");
 		
 		auto src_slot = src.GetSrcSlot(src_nrn_id, src_event_source);
 		auto dest_slot = dest.GetDestSlot(dest_nrn_id, dest_syn_type);
@@ -427,7 +428,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void ApplyConnector(cstring connector_name, int multiplier, cstring src_group, int[2] src_nrn_range, int src_event_source, cstring dest_group, int[2] dest_nrn_range, int dest_syn_type, double[char[]] args = null)
+	void ApplyConnector(cstring connector_name, size_t multiplier, cstring src_group, size_t[2] src_nrn_range, size_t src_event_source, cstring dest_group, size_t[2] dest_nrn_range, size_t dest_syn_type, double[char[]] args = null)
 	{
 		assert(Initialized);
 		
@@ -435,12 +436,12 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		auto dest = GetGroup(dest_group);
 		
 		assert(multiplier > 0, "Multiplier must be positive.");
-		assert(src_nrn_range[0] >= 0 && src_nrn_range[0] < src.Count, "Invalid source range.");
-		assert(src_nrn_range[1] > 0 && src_nrn_range[1] <= src.Count, "Invalid source range.");
-		assert(dest_nrn_range[0] >= 0 && dest_nrn_range[0] < dest.Count, "Invalid destination range.");
-		assert(dest_nrn_range[1] > 0 && dest_nrn_range[1] <= dest.Count, "Invalid destination range.");
+		assert(src_nrn_range[0] < src.Count, "Invalid source range.");
+		assert(src_nrn_range[1] <= src.Count, "Invalid source range.");
+		assert(dest_nrn_range[0] < dest.Count, "Invalid destination range.");
+		assert(dest_nrn_range[1] <= dest.Count, "Invalid destination range.");
 		assert(src_nrn_range[1] > src_nrn_range[0], "Invalid source range.");
-		assert(dest_nrn_range[1] > dest_nrn_range[0], "Invalid source range.");
+		assert(dest_nrn_range[1] > dest_nrn_range[0], "Invalid destination range.");
 		
 		src.Connect(connector_name, multiplier, src_nrn_range, src_event_source, dest, dest_nrn_range, dest_syn_type, args);
 	}
@@ -463,7 +464,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	int NumDestSynapses = 0;
 	int NumNeurons = 0;
 	
-	int CurStep = 0;
+	size_t CurStep = 0;
 	
 	double TimeStepSizeVal = 1.0;
 	

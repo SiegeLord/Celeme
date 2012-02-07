@@ -13,6 +13,7 @@ DUTIL_FILES        := $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposab
 DGNUPLOT_PATH      := /usr/local/include/d
 DGNUPLOT_FILES     := $(DGNUPLOT_PATH)/gnuplot.d
 TANGO_LDFLAGS      := -L-ltango-$(DC_NAME)
+LD_FLAGS           := -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) 
 
 # Components
 CELEME_FILES_NO_CL := $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
@@ -61,7 +62,7 @@ doc :
 	dil d doc/ --kandil -hl $(CELEME_FILES_NO_CL) -version=Doc
 
 $(D_EXAMPLE_NAME) : $(D_EXAMPLE_FILES)
-	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(PERF_STR) $(TANGO_LDFLAGS))
+	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), $(LD_FLAGS))
 
 $(LIBRARY_NAME) : $(CELEME_FILES)
 	$(DC) -c $(CELEME_FILES) $(DUTIL_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)
@@ -71,7 +72,7 @@ $(C_EXAMPLE_NAME) : $(C_EXAMPLE_FILES) $(LIBRARY_NAME)
 	gcc $(C_EXAMPLE_FILES) -o $(C_EXAMPLE_NAME) -L. -lceleme -ltango-ldc -ldruntime-ldc -lrt -lm -ldl -lpthread -L$(OPENCL_PATH) -lOpenCL -std=c99
 
 $(PYCELEME_NAME) : $(PYCELEME_FILES) $(CELEME_FILES)
-	$(call d_build,$(PYCELEME_NAME),$(PYCELEME_FILES) $(CELEME_FILES) $(DUTIL_FILES) $(PYTHON_FILES), -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl -L-lpython2.6 $(PERF_STR))
+	$(call d_build,$(PYCELEME_NAME),$(PYCELEME_FILES) $(CELEME_FILES) $(DUTIL_FILES) $(PYTHON_FILES), $(LD_FLAGS) -L-lpython2.6 $(PERF_STR))
 
 .PHONY : clean
 clean :

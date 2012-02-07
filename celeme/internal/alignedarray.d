@@ -53,7 +53,7 @@ struct SAlignedArray(T, int N)
 		return Length;
 	}
 	
-	int opApply(int delegate(ref T value) dg)
+	int opApply(scope int delegate(ref T value) dg)
 	{
 		foreach(val; ptr[0..Length])
 		{

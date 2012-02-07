@@ -326,7 +326,7 @@ class CConfigEntry
 		CAggregate Aggregate;
 		cstring NameFilter;
 		
-		int opApply(int delegate(ref CConfigEntry entry) dg)
+		int opApply(scope int delegate(ref CConfigEntry entry) dg)
 		{
 			if(Aggregate is null)
 				return 0;

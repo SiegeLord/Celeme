@@ -477,7 +477,7 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
 		}
 	}
 	
-	void replace_value(cstring name, CValue delegate(cstring name) add_del)
+	void replace_value(cstring name, scope CValue delegate(cstring name) add_del)
 	{
 		auto old_val = mech[name];
 		mech.RemoveValue(name);

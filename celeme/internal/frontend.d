@@ -172,7 +172,7 @@ class CMechanism
 		return false;
 	}
 	
-	int AllValues(int delegate(ref CValue value) dg)
+	int AllValues(scope int delegate(ref CValue value) dg)
 	{
 		foreach(val; States)
 		{
@@ -202,7 +202,7 @@ class CMechanism
 		return 0;
 	}
 	
-	int AllImmutables(int delegate(ref CValue value) dg)
+	int AllImmutables(scope int delegate(ref CValue value) dg)
 	{
 		foreach(val; Immutables)
 		{
@@ -212,7 +212,7 @@ class CMechanism
 		return 0;
 	}
 	
-	int AllStates(int delegate(ref CValue value) dg)
+	int AllStates(scope int delegate(ref CValue value) dg)
 	{
 		foreach(val; States)
 		{
@@ -422,7 +422,7 @@ class CSynapse : CMechanism
 		SynThresholds ~= thresh;
 	}
 	
-	int AllSynGlobals(int delegate(ref CValue value) dg)
+	int AllSynGlobals(scope int delegate(ref CValue value) dg)
 	{
 		foreach(val; SynGlobals)
 		{
@@ -592,7 +592,7 @@ class CNeuronType
 			throw new Exception("Unreasolved externals in '" ~ Name.idup ~ "' neuron type." ~ error.idup);
 	}
 	
-	int AllSynGlobals(int delegate(ref cstring name, ref CValue value) dg)
+	int AllSynGlobals(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(syn_type; SynapseTypes)
 		{
@@ -606,7 +606,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllImmutables(int delegate(ref cstring name, ref CValue value) dg)
+	int AllImmutables(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -620,7 +620,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllStates(int delegate(ref cstring name, ref CValue value) dg)
+	int AllStates(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -635,7 +635,7 @@ class CNeuronType
 	}
 	
 	/* I.e. all globals */
-	int AllNonLocals(int delegate(ref cstring name, ref CValue value) dg)
+	int AllNonLocals(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -655,7 +655,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllConstants(int delegate(ref cstring name, ref CValue value) dg)
+	int AllConstants(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -669,7 +669,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllLocals(int delegate(ref cstring name, ref CValue value) dg)
+	int AllLocals(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -684,7 +684,7 @@ class CNeuronType
 	}
 	
 	/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */
-	int AllThresholds(int delegate(ref SThreshold thresh) dg)
+	int AllThresholds(scope int delegate(ref SThreshold thresh) dg)
 	{
 		foreach(ii, mech; Mechanisms)
 		{
@@ -726,7 +726,7 @@ class CNeuronType
 	}
 	
 	/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */
-	int AllSynThresholdsEx(int delegate(ref SSynType type, ref SSynThreshold thresh) dg)
+	int AllSynThresholdsEx(scope int delegate(ref SSynType type, ref SSynThreshold thresh) dg)
 	{
 		foreach(ii, syn_type; SynapseTypes)
 		{
@@ -775,14 +775,14 @@ class CNeuronType
 		return 0;
 	}
 	
-	int AllSynThresholds(int delegate(ref SSynThreshold thresh) dg)
+	int AllSynThresholds(scope int delegate(ref SSynThreshold thresh) dg)
 	{
 		return AllSynThresholdsEx((ref SSynType type, ref SSynThreshold thresh) {return dg(thresh);});
 	}
 	
 	/* This one, unlike AllThresholds returns the raw thresholds 
 	 * TODO: Is this okay? */
-	int AllEventSources(int delegate(ref SThreshold thresh) dg)
+	int AllEventSources(scope int delegate(ref SThreshold thresh) dg)
 	{
 		foreach(mech; Mechanisms)
 		{
@@ -839,7 +839,7 @@ class CNeuronType
 		return ret;
 	}
 	
-	private cstring GetFixedCode(cstring code, cstring delegate(CMechanism mech) mech_code_extractor)
+	private cstring GetFixedCode(cstring code, scope cstring delegate(CMechanism mech) mech_code_extractor)
 	{
 		cstring ret;
 		if(code.length)

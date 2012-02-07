@@ -1,7 +1,7 @@
 # General configuration
 DC                 := ldc2
 DC_NAME            := ldc
-D_FLAGS            := -unittest -w -wi -property
+D_FLAGS            := -unittest -w -wi -property -d-version=Tango
 INSTALL_PREFIX     := /usr/local
 #PERF_STR          := -d-version=Perf
 PERF_STR           := 

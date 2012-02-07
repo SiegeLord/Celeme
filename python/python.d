@@ -52,7 +52,7 @@ version (D_Version2) {
     alias char* c_str;
 }
 
-alias char[] string;
+alias const(char)[] cstring;
 
 /*
  * Py_ssize_t is defined as a signed type which is 8 bytes on X86_64 and 4
@@ -110,36 +110,36 @@ extern (C) {
     mixin PyObject_VAR_HEAD;
   }
 
-  alias PyObject * (*unaryfunc)(PyObject *);
-  alias PyObject * (*binaryfunc)(PyObject *, PyObject *);
-  alias PyObject * (*ternaryfunc)(PyObject *, PyObject *, PyObject *);
-  alias int (*inquiry)(PyObject *);
-  alias Py_ssize_t (*lenfunc)(PyObject *);
-  alias int (*coercion)(PyObject **, PyObject **);
-  alias PyObject *(*intargfunc)(PyObject *, int);
-  alias PyObject *(*intintargfunc)(PyObject *, int, int);
-  alias PyObject *(*ssizeargfunc)(PyObject *, Py_ssize_t);
-  alias PyObject *(*ssizessizeargfunc)(PyObject *, Py_ssize_t, Py_ssize_t);
-  alias int(*intobjargproc)(PyObject *, int, PyObject *);
-  alias int(*intintobjargproc)(PyObject *, int, int, PyObject *);
-  alias int(*ssizeobjargproc)(PyObject *, Py_ssize_t, PyObject *);
-  alias int(*ssizessizeobjargproc)(PyObject *, Py_ssize_t, Py_ssize_t, PyObject *);
-  alias int(*objobjargproc)(PyObject *, PyObject *, PyObject *);
+  alias PyObject * function(PyObject *) unaryfunc;
+  alias PyObject * function(PyObject *, PyObject *) binaryfunc;
+  alias PyObject * function(PyObject *, PyObject *, PyObject *) ternaryfunc;
+  alias int function(PyObject *) inquiry;
+  alias Py_ssize_t function(PyObject *) lenfunc;
+  alias int function(PyObject **, PyObject **) coercion;
+  alias PyObject *function(PyObject *, int) intargfunc;
+  alias PyObject *function(PyObject *, int, int) intintargfunc;
+  alias PyObject *function(PyObject *, Py_ssize_t) ssizeargfunc;
+  alias PyObject *function(PyObject *, Py_ssize_t, Py_ssize_t) ssizessizeargfunc;
+  alias int function(PyObject *, int, PyObject *) intobjargproc;
+  alias int function(PyObject *, int, int, PyObject *) intintobjargproc;
+  alias int function(PyObject *, Py_ssize_t, PyObject *) ssizeobjargproc;
+  alias int function(PyObject *, Py_ssize_t, Py_ssize_t, PyObject *) ssizessizeobjargproc;
+  alias int function(PyObject *, PyObject *, PyObject *) objobjargproc;
 
   // int-based buffer interface
-  alias int (*getreadbufferproc)(PyObject *, int, void **);
-  alias int (*getwritebufferproc)(PyObject *, int, void **);
-  alias int (*getsegcountproc)(PyObject *, int *);
-  alias int (*getcharbufferproc)(PyObject *, int, c_str*);
+  alias int function(PyObject *, int, void **) getreadbufferproc;
+  alias int function(PyObject *, int, void **) getwritebufferproc;
+  alias int function(PyObject *, int *) getsegcountproc;
+  alias int function(PyObject *, int, c_str*) getcharbufferproc;
   // ssize_t-based buffer interface
-  alias Py_ssize_t (*readbufferproc)(PyObject *, Py_ssize_t, void **);
-  alias Py_ssize_t (*writebufferproc)(PyObject *, Py_ssize_t, void **);
-  alias Py_ssize_t (*segcountproc)(PyObject *, Py_ssize_t *);
-  alias Py_ssize_t (*charbufferproc)(PyObject *, Py_ssize_t, c_str*);
+  alias Py_ssize_t function(PyObject *, Py_ssize_t, void **) readbufferproc;
+  alias Py_ssize_t function(PyObject *, Py_ssize_t, void **) writebufferproc;
+  alias Py_ssize_t function(PyObject *, Py_ssize_t *) segcountproc;
+  alias Py_ssize_t function(PyObject *, Py_ssize_t, c_str*) charbufferproc;
 
-  alias int (*objobjproc)(PyObject *, PyObject *);
-  alias int (*visitproc)(PyObject *, void *);
-  alias int (*traverseproc)(PyObject *, visitproc, void *);
+  alias int function(PyObject *, PyObject *) objobjproc;
+  alias int function(PyObject *, void *) visitproc;
+  alias int function(PyObject *, visitproc, void *) traverseproc;
 
   // Python-header-file: Include/object.h:
   struct PyNumberMethods {
@@ -216,24 +216,24 @@ extern (C) {
   }
 
 
-  alias void (*freefunc)(void *);
-  alias void (*destructor)(PyObject *);
-  alias int (*printfunc)(PyObject *, FILE *, int);
-  alias PyObject *(*getattrfunc)(PyObject *, c_str);
-  alias PyObject *(*getattrofunc)(PyObject *, PyObject *);
-  alias int (*setattrfunc)(PyObject *, c_str, PyObject *);
-  alias int (*setattrofunc)(PyObject *, PyObject *, PyObject *);
-  alias int (*cmpfunc)(PyObject *, PyObject *);
-  alias PyObject *(*reprfunc)(PyObject *);
-  alias C_long (*hashfunc)(PyObject *);
-  alias PyObject *(*richcmpfunc) (PyObject *, PyObject *, int);
-  alias PyObject *(*getiterfunc) (PyObject *);
-  alias PyObject *(*iternextfunc) (PyObject *);
-  alias PyObject *(*descrgetfunc) (PyObject *, PyObject *, PyObject *);
-  alias int (*descrsetfunc) (PyObject *, PyObject *, PyObject *);
-  alias int (*initproc)(PyObject *, PyObject *, PyObject *);
-  alias PyObject *(*newfunc)(PyTypeObject *, PyObject *, PyObject *);
-  alias PyObject *(*allocfunc)(PyTypeObject *, Py_ssize_t);
+  alias void function(void *) freefunc;
+  alias void function(PyObject *) destructor;
+  alias int function(PyObject *, FILE *, int) printfunc;
+  alias PyObject *function(PyObject *, c_str) getattrfunc;
+  alias PyObject *function(PyObject *, PyObject *) getattrofunc;
+  alias int function(PyObject *, c_str, PyObject *) setattrfunc;
+  alias int function(PyObject *, PyObject *, PyObject *) setattrofunc;
+  alias int function(PyObject *, PyObject *) cmpfunc;
+  alias PyObject *function(PyObject *) reprfunc;
+  alias C_long function(PyObject *) hashfunc;
+  alias PyObject *function(PyObject *, PyObject *, int) richcmpfunc;
+  alias PyObject *function(PyObject *) getiterfunc;
+  alias PyObject *function(PyObject *) iternextfunc;
+  alias PyObject *function(PyObject *, PyObject *, PyObject *) descrgetfunc;
+  alias int function(PyObject *, PyObject *, PyObject *) descrsetfunc;
+  alias int function(PyObject *, PyObject *, PyObject *) initproc;
+  alias PyObject *function(PyTypeObject *, PyObject *, PyObject *) newfunc;
+  alias PyObject *function(PyTypeObject *, Py_ssize_t) allocfunc;
 
   struct PyTypeObject {
     mixin PyObject_VAR_HEAD;
@@ -511,10 +511,10 @@ extern (C) {
     return op.ob_type == PyUnicode_Type_p;
   }
 
-  int PyUnicode_GET_SIZE(PyUnicodeObject *op) {
+  Py_ssize_t PyUnicode_GET_SIZE(PyUnicodeObject *op) {
     return op.length;
   }
-  int PyUnicode_GET_DATA_SIZE(PyUnicodeObject *op) {
+  Py_ssize_t PyUnicode_GET_DATA_SIZE(PyUnicodeObject *op) {
     return op.length * Py_UNICODE.sizeof;
   }
   Py_UNICODE *PyUnicode_AS_UNICODE(PyUnicodeObject *op) {
@@ -1192,6 +1192,7 @@ extern (C) {
     // Will the D layout for a 1-char array be the same as the C layout?  I
     // think the D array will be larger.
     char _ob_sval[1];
+    @property
     char* ob_sval() {
         return _ob_sval.ptr;
     }
@@ -1287,6 +1288,7 @@ extern (C) {
     // Will the D layout for a 1-PyObject* array be the same as the C layout?
     // I think the D array will be larger.
     PyObject *_ob_item[1];
+    @property
     PyObject** ob_item() {
       return _ob_item.ptr;
     }
@@ -1316,7 +1318,7 @@ extern (C) {
   PyObject *PyTuple_GET_ITEM(PyObject *op, Py_ssize_t i) {
     return (cast(PyTupleObject *) op).ob_item[i];
   }
-  int PyTuple_GET_SIZE(PyObject *op) {
+  Py_ssize_t PyTuple_GET_SIZE(PyObject *op) {
     return (cast(PyTupleObject *) op).ob_size;
   }
   PyObject *PyTuple_SET_ITEM(PyObject *op, Py_ssize_t i, PyObject *v) {
@@ -1369,7 +1371,7 @@ extern (C) {
   void PyList_SET_ITEM(PyObject *op, Py_ssize_t i, PyObject *v) {
     (cast(PyListObject*)op).ob_item[i] = v;
   }
-  int PyList_GET_SIZE(PyObject *op) {
+  Py_ssize_t PyList_GET_SIZE(PyObject *op) {
     return (cast(PyListObject *) op).ob_size;
   }
 
@@ -1394,7 +1396,7 @@ extern (C) {
     Py_ssize_t ma_used;
     Py_ssize_t ma_mask;
     PyDictEntry *ma_table;
-    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, C_long hash);
+    PyDictEntry *function(PyDictObject *mp, PyObject *key, C_long hash) ma_lookup;
     PyDictEntry ma_smalltable[PyDict_MINSIZE];
   }
   alias _dictobject PyDictObject;
@@ -1444,9 +1446,9 @@ extern (C) {
     return op.ob_type == PyCFunction_Type_p;
   }
 
-  alias PyObject *(*PyCFunction)(PyObject *, PyObject *);
-  alias PyObject *(*PyCFunctionWithKeywords)(PyObject *, PyObject *,PyObject *);
-  alias PyObject *(*PyNoArgsFunction)(PyObject *);
+  alias PyObject *function(PyObject *, PyObject *) PyCFunction;
+  alias PyObject *function(PyObject *, PyObject *,PyObject *) PyCFunctionWithKeywords;
+  alias PyObject *function(PyObject *) PyNoArgsFunction;
 
   PyCFunction PyCFunction_GetFunction(PyObject *);
   PyObject * PyCFunction_GetSelf(PyObject *);
@@ -1529,7 +1531,7 @@ extern (C) {
   int PyArg_Parse(PyObject *, c_str, ...);
   int PyArg_ParseTuple(PyObject *, c_str, ...);
   int PyArg_ParseTupleAndKeywords(PyObject *, PyObject *,
-                            c_str, char **, ...);
+                            c_str, c_str*, ...);
   int PyArg_UnpackTuple(PyObject *, c_str, Py_ssize_t, Py_ssize_t, ...);
   PyObject * Py_BuildValue(c_str, ...);
 
@@ -1709,7 +1711,7 @@ extern (C) {
     FILE *f_fp;
     PyObject *f_name;
     PyObject *f_mode;
-    int (*f_close)(FILE *);
+    int function(FILE *) f_close;
     int f_softspace;
     int f_binary;
     char* f_buf;
@@ -1737,7 +1739,7 @@ extern (C) {
   void PyFile_SetBufSize(PyObject *, int);
   int PyFile_SetEncoding(PyObject *,  c_str);
   PyObject * PyFile_FromFile(FILE *, char *, char *,
-                         int (*)(FILE *));
+                         int function(FILE *) );
   FILE * PyFile_AsFile(PyObject *);
   PyObject * PyFile_Name(PyObject *);
   PyObject * PyFile_GetLine(PyObject *, int);
@@ -1769,9 +1771,9 @@ extern (C) {
     return op.ob_type == PyCObject_Type_p;
   }
 
-  PyObject * PyCObject_FromVoidPtr(void *cobj, void (*destruct)(void*));
+  PyObject * PyCObject_FromVoidPtr(void *cobj, void function(void*) destruct);
   PyObject * PyCObject_FromVoidPtrAndDesc(void *cobj, void *desc,
-    void (*destruct)(void*,void*));
+    void function(void*,void*) destruct);
   void * PyCObject_AsVoidPtr(PyObject *);
   void * PyCObject_GetDesc(PyObject *);
   void * PyCObject_Import(c_str module_name, c_str cobject_name);
@@ -1881,26 +1883,26 @@ extern (C) {
 ///////////////////////////////////////////////////////////////////////////////
   // Python-header-file: Include/descrobject.h:
 
-  alias PyObject *(*getter)(PyObject *, void *);
-  alias int (*setter)(PyObject *, PyObject *, void *);
+  alias PyObject *function(PyObject *, void *) getter;
+  alias int function(PyObject *, PyObject *, void *) setter;
 
   struct PyGetSetDef {
-    char *name;
+    c_str name;
     getter get;
     setter set;
-    char *doc;
+    c_str doc;
     void *closure;
   }
 
-  alias PyObject *(*wrapperfunc)(PyObject *, PyObject *, void *);
-  alias PyObject *(*wrapperfunc_kwds)(PyObject *, PyObject *, void *, PyObject *);
+  alias PyObject *function(PyObject *, PyObject *, void *) wrapperfunc;
+  alias PyObject *function(PyObject *, PyObject *, void *, PyObject *) wrapperfunc_kwds;
 
   struct wrapperbase {
-    char *name;
+    c_str name;
     int offset;
     void *function_;
     wrapperfunc wrapper;
-    char *doc;
+    c_str doc;
     int flags;
     PyObject *name_strobj;
   }
@@ -2132,13 +2134,13 @@ extern (C) {
 
   // PyErr_BadInternalCall and friends purposely omitted.
 
-  PyObject * PyErr_NewException(char *name, PyObject *base, PyObject *dict);
+  PyObject * PyErr_NewException(c_str name, PyObject *base, PyObject *dict);
   void PyErr_WriteUnraisable(PyObject *);
 
   version (Python_2_5_Or_Later) {
       int PyErr_WarnEx(PyObject*, c_str, Py_ssize_t);
   } else {
-      int PyErr_Warn(PyObject *, char *);
+      int PyErr_Warn(PyObject *, c_str);
   }
   int PyErr_WarnExplicit(PyObject *, c_str, c_str, int, c_str, PyObject *);
 
@@ -2243,7 +2245,7 @@ extern (C) {
   int PyCode_Check(PyObject *op) {
     return op.ob_type == PyCode_Type_p;
   }
-  int PyCode_GetNumFree(PyObject *op) {
+  Py_ssize_t PyCode_GetNumFree(PyObject *op) {
     return PyObject_Length((cast(PyCodeObject *) op).co_freevars);
   }
 
@@ -2425,7 +2427,7 @@ extern (C) {
   void PyErr_PrintEx(int);
   void PyErr_Display(PyObject *, PyObject *, PyObject *);
 
-  int Py_AtExit(void (*func)());
+  int Py_AtExit(void function() func);
 
   void Py_Exit(int);
 
@@ -2485,8 +2487,8 @@ extern (C) {
   // VARIOUS (API members documented as having "no proper home")
   /////////////////////////////////////////////////////////////////////////////
   char *PyOS_Readline(FILE *, FILE *, char *);
-  int (*PyOS_InputHook)();
-  char *(*PyOS_ReadlineFunctionPointer)(FILE *, FILE *, char *);
+  __gshared int function() PyOS_InputHook;
+  __gshared char *function(FILE *, FILE *, char *) PyOS_ReadlineFunctionPointer;
   // _PyOS_ReadlineTState omitted.
   const int PYOS_STACK_MARGIN = 2048;
   // PyOS_CheckStack omitted.
@@ -2495,7 +2497,7 @@ extern (C) {
   // SIGNALS
   /////////////////////////////////////////////////////////////////////////////
 
-  alias void (*PyOS_sighandler_t)(int);
+  alias void function(int) PyOS_sighandler_t;
   PyOS_sighandler_t PyOS_getsig(int);
   PyOS_sighandler_t PyOS_setsig(int, PyOS_sighandler_t);
 
@@ -2522,7 +2524,7 @@ extern (C) {
 
   int PyEval_MergeCompilerFlags(PyCompilerFlags *cf);
   int Py_FlushLine();
-  int Py_AddPendingCall(int (*func)(void *), void *arg);
+  int Py_AddPendingCall(int function(void *) func, void *arg);
   int Py_MakePendingCalls();
 
   void Py_SetRecursionLimit(int);
@@ -2664,7 +2666,7 @@ extern (C) {
     //#endif
   }
 
-  alias int (*Py_tracefunc)(PyObject *, PyFrameObject *, int, PyObject *);
+  alias int function(PyObject *, PyFrameObject *, int, PyObject *) Py_tracefunc;
 
   const int PyTrace_CALL   	= 0;
   const int PyTrace_EXCEPTION = 1;
@@ -2729,7 +2731,7 @@ extern (C) {
   PyThreadState *PyInterpreterState_ThreadHead(PyInterpreterState *);
   PyThreadState *PyThreadState_Next(PyThreadState *);
 
-  alias PyFrameObject *(*PyThreadFrameGetter)(PyThreadState *self_);
+  alias PyFrameObject *function(PyThreadState *self_) PyThreadFrameGetter;
 
   // Python-header-file: Include/ceval.h:
   PyThreadState *PyEval_SaveThread();
@@ -2786,10 +2788,10 @@ extern (C) {
 
   struct _inittab {
     char *name;
-    void (*initfunc)();
+    void function() initfunc;
   }
 
-  int PyImport_AppendInittab(char *name, void (*initfunc)());
+  int PyImport_AppendInittab(char *name, void function() initfunc);
   int PyImport_ExtendInittab(_inittab *newtab);
 
   struct _frozen {
@@ -3129,12 +3131,12 @@ PycStringIO_CAPI *PycString_IMPORT() {
 }
 
 struct PycStringIO_CAPI {
-  int(*cread)(PyObject *, char **, Py_ssize_t);
-  int(*creadline)(PyObject *, char **);
-  int(*cwrite)(PyObject *, c_str, Py_ssize_t);
-  PyObject *(*cgetvalue)(PyObject *);
-  PyObject *(*NewOutput)(int);
-  PyObject *(*NewInput)(PyObject *);
+  int function(PyObject *, char **, Py_ssize_t) cread;
+  int function(PyObject *, char **) creadline;
+  int function(PyObject *, c_str, Py_ssize_t) cwrite;
+  PyObject *function(PyObject *) cgetvalue;
+  PyObject *function(int) NewOutput;
+  PyObject *function(PyObject *) NewInput;
   PyTypeObject *InputType;
   PyTypeObject *OutputType;
 }
@@ -3268,14 +3270,13 @@ struct PyDateTime_CAPI {
   PyTypeObject *DeltaType;
   PyTypeObject *TZInfoType;
 
-  PyObject *(*Date_FromDate)(int, int, int, PyTypeObject*);
-  PyObject *(*DateTime_FromDateAndTime)(int, int, int, int, int, int, int,
-          PyObject*, PyTypeObject*);
-  PyObject *(*Time_FromTime)(int, int, int, int, PyObject*, PyTypeObject*);
-  PyObject *(*Delta_FromDelta)(int, int, int, int, PyTypeObject*);
+  PyObject *function(int, int, int, PyTypeObject*) Date_FromDate;
+  PyObject *function(int, int, int, int, int, int, int, PyObject*, PyTypeObject*) DateTime_FromDateAndTime;
+  PyObject *function(int, int, int, int, PyObject*, PyTypeObject*) Time_FromTime;
+  PyObject *function(int, int, int, int, PyTypeObject*) Delta_FromDelta;
 
-  PyObject *(*DateTime_FromTimestamp)(PyObject*, PyObject*, PyObject*);
-  PyObject *(*Date_FromTimestamp)(PyObject*, PyObject*);
+  PyObject *function(PyObject*, PyObject*, PyObject*) DateTime_FromTimestamp;
+  PyObject *function(PyObject*, PyObject*) Date_FromTimestamp;
 }
 
 const int DATETIME_API_MAGIC = 0x414548d5;
@@ -3430,7 +3431,7 @@ alias void * PyThread_type_lock;
 alias void * PyThread_type_sema;
 
 void PyThread_init_thread();
-C_long PyThread_start_new_thread(void (*)(void *), void *);
+C_long PyThread_start_new_thread(void function(void *) , void *);
 void PyThread_exit_thread();
 void PyThread__PyThread_exit_thread();
 C_long PyThread_get_thread_ident();
@@ -3481,7 +3482,7 @@ struct PySetObject {
         Py_ssize_t mask;
 
         setentry *table;
-        setentry *(*lookup)(PySetObject *so, PyObject *key, C_long hash);
+        setentry *function(PySetObject *so, PyObject *key, C_long hash) lookup;
         setentry smalltable[PySet_MINSIZE];
     } else {
         PyObject* data;
@@ -3598,6 +3599,7 @@ struct PyStructSequence {
   // Will the D layout for a 1-obj array be the same as the C layout?  I
   // think the D array will be larger.
   PyObject *_ob_item[1];
+  @property
   PyObject** ob_item() {
     return _ob_item.ptr;
   }
@@ -3751,9 +3753,9 @@ PyObject* m_PyExc_SyntaxWarning;
 PyObject* m_PyExc_RuntimeWarning;
 PyObject* m_PyExc_FutureWarning;
 
-PyObject *eval(string code) {
+PyObject *eval(cstring code) {
     PyObject *pyGlobals = PyEval_GetGlobals(); /* borrowed ref */
-    PyObject *res = PyRun_String((code ~ \0).ptr, Py_eval_input,
+    PyObject *res = PyRun_String((code ~ "\0").ptr, Py_eval_input,
         pyGlobals, pyGlobals
     ); /* New ref, or NULL on error. */
     if (res == null) {
@@ -3771,7 +3773,7 @@ PyObject* m_builtins, m_types, m_weakref;
 typeof(Ptr) lazy_sys(alias Ptr, string name) () {
     if (Ptr is null) {
         PyObject* sys_modules = PyImport_GetModuleDict();
-        Ptr = PyDict_GetItemString(sys_modules, (name ~ \0).ptr);
+        Ptr = PyDict_GetItemString(sys_modules, (name ~ "\0").ptr);
     }
     assert (Ptr !is null, "python.d couldn't load " ~ name ~ " attribute!");
     return Ptr;
@@ -3781,14 +3783,16 @@ alias lazy_sys!(m_builtins, "__builtin__") builtins;
 alias lazy_sys!(m_types, "types") types;
 alias lazy_sys!(m_weakref, "weakref") weakref;
 
+@property
 typeof(Ptr) lazy_load(alias from, alias Ptr, string name) () {
     if (Ptr is null) {
-        Ptr = cast(typeof(Ptr)) PyObject_GetAttrString(from(), (name ~ \0).ptr);
+        Ptr = cast(typeof(Ptr)) PyObject_GetAttrString(from(), (name ~ "\0").ptr);
     }
     assert (Ptr !is null, "python.d couldn't load " ~ name ~ " attribute!");
     return Ptr;
 }
 
+@property
 typeof(Ptr) lazy_eval(alias Ptr, string code) () {
     if (Ptr is null) {
         Ptr = cast(typeof(Ptr)) eval(code);
@@ -3871,6 +3875,7 @@ c_str Py_FileSystemDefaultEncoding() {
 
   /* Python's "CObject" type is intended to serve as an opaque handle for
    * passing a C void pointer from C code to Python code and back. */
+@property
 PyTypeObject* PyCObject_Type_p() {
     if (m_PyCObject_Type_p is null) {
         PyObject *aCObject = PyCObject_FromVoidPtr(null, null);
@@ -3883,6 +3888,7 @@ PyTypeObject* PyCObject_Type_p() {
 alias lazy_load!(types, m_PyTraceBack_Type_p, "TracebackType") PyTraceBack_Type_p;
 alias lazy_load!(types, m_PySlice_Type_p, "SliceType") PySlice_Type_p;
 
+@property
 PyTypeObject* PyCell_Type_p() {
     if (m_PyCell_Type_p is null) {
         PyObject *cell = PyCell_New(null);

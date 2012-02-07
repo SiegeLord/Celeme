@@ -27,22 +27,23 @@ import pyceleme.array;
 
 import tango.stdc.stringz;
 
-char[] ErrorCheck(char[] ret = "-1")
+@property
+const(char)[] ErrorCheck(const(char)[] ret = "-1")
 {
 	return
 `
 	if(celeme_get_error() !is null)
 	{
-		PyErr_SetString(Error, celeme_get_error());
+		PyErr_SetString(PythonError, celeme_get_error());
 		celeme_set_error(null);
 		return ` ~ ret ~ `;
 	}
 `;
 }
 
-char** ToCharPP(char[][] args)
+inout(char)** ToCharPP(inout(char)[][] args)
 {
-	char*[] ret;
+	inout(char)*[] ret;
 	ret.length = args.length;
 	
 	foreach(ii, arg; args)
@@ -53,20 +54,20 @@ char** ToCharPP(char[][] args)
 	return ret.ptr;
 }
 
-bool DParseTupleAndKeywords(T...)(PyObject* args, PyObject* keywds, char[] arg_types, char[][] kw_list, T t)
+bool DParseTupleAndKeywords(T...)(PyObject* args, PyObject* keywds, const(char)[] arg_types, const(char)[][] kw_list, T t)
 {
 	auto c_arg_types = toStringz(arg_types);
 	auto c_kw_list = ToCharPP(kw_list);
 	return 0 != PyArg_ParseTupleAndKeywords(args, keywds, c_arg_types, c_kw_list, t);
 }
 
-PyMethodDef CelemeMethods[] = 
+__gshared PyMethodDef CelemeMethods[] = 
 [
 	{null, null, 0, null}
 ];
 
-PyObject* Module;
-PyObject* Error;
+__gshared PyObject* Module;
+__gshared PyObject* PythonError;
 
 void InitModule()
 {
@@ -79,9 +80,9 @@ void InitModule()
 	if(Module is null)
 		return;
 
-	Error = PyErr_NewException("test.error", null, null);
-	Py_INCREF(Error);
-	PyModule_AddObject(Module, "error", Error);
+	PythonError = PyErr_NewException("test.error", null, null);
+	Py_INCREF(PythonError);
+	PyModule_AddObject(Module, "error", PythonError);
 	
 	AddModel();
 	AddNeuronGroup();
@@ -96,5 +97,5 @@ void main(char[][] args)
 	
 	InitModule();
 
-	Py_Main(args.length, ToCharPP(args));
+	Py_Main(cast(int)args.length, ToCharPP(args));
 }

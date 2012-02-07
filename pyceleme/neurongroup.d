@@ -55,11 +55,11 @@ PyObject* SNeuronGroup_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SNeuronGroup_init(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	PyErr_SetString(Error, "Cannot create a neuron group explicitly (get it from the model).");
+	PyErr_SetString(PythonError, "Cannot create a neuron group explicitly (get it from the model).");
 	return -1;
 }
 
-PyMemberDef[] SNeuronGroup_members = 
+__gshared PyMemberDef[] SNeuronGroup_members = 
 [
     {null}
 ];
@@ -77,7 +77,7 @@ int SNeuronGroup_set_min_dt(SNeuronGroup *self, PyObject *value, void *closure)
 {
 	if(value is null)
 	{
-		PyErr_SetString(Error, "Cannot delete the MinDt attribute");
+		PyErr_SetString(PythonError, "Cannot delete the MinDt attribute");
 		return -1;
 	}
 
@@ -87,7 +87,7 @@ int SNeuronGroup_set_min_dt(SNeuronGroup *self, PyObject *value, void *closure)
 		celeme_set_min_dt(self.Group, val);
 	else
 	{
-		PyErr_SetString(Error, "Expected a double");
+		PyErr_SetString(PythonError, "Expected a double");
 		return -1;
 	}
 	
@@ -112,7 +112,7 @@ PyObject* SNeuronGroup_get_nrn_offset(SNeuronGroup *self, void *closure)
 }
 
 
-PyGetSetDef[] SNeuronGroup_getseters = 
+__gshared PyGetSetDef[] SNeuronGroup_getseters = 
 [
 	{"MinDt", cast(getter)&SNeuronGroup_get_min_dt, cast(setter)&SNeuronGroup_set_min_dt, "TimeStepSize", null},
 	{"Count", cast(getter)&SNeuronGroup_get_count, null, "Count", null},
@@ -123,7 +123,7 @@ PyGetSetDef[] SNeuronGroup_getseters =
 extern (C)
 PyObject* SNeuronGroup_stop_recording(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["neuron_id", null];
+	const(char)[][] kwlist = ["neuron_id", null];
 	int neuron_id;
 
 	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &neuron_id))
@@ -139,7 +139,7 @@ PyObject* SNeuronGroup_stop_recording(SNeuronGroup *self, PyObject* args, PyObje
 extern (C)
 PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["neuron_id", "flags", null];
+	const(char)[][] kwlist = ["neuron_id", "flags", null];
 	int neuron_id;
 	int flags;
 
@@ -158,7 +158,7 @@ PyObject* SNeuronGroup_record(SNeuronGroup *self, PyObject* args, PyObject* kwds
 extern (C)
 PyObject* SNeuronGroup_get_connection_id(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["neuron_id", "event_source", "slot", null];
+	const(char)[][] kwlist = ["neuron_id", "event_source", "slot", null];
 	int neuron_id;
 	int event_source;
 	int slot;
@@ -177,7 +177,7 @@ PyObject* SNeuronGroup_get_connection_id(SNeuronGroup *self, PyObject* args, PyO
 extern (C)
 PyObject* SNeuronGroup_get_connection_slot(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["neuron_id", "event_source", "slot", null];
+	const(char)[][] kwlist = ["neuron_id", "event_source", "slot", null];
 	int neuron_id;
 	int event_source;
 	int slot;
@@ -196,7 +196,7 @@ PyObject* SNeuronGroup_get_connection_slot(SNeuronGroup *self, PyObject* args, P
 extern (C)
 PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["seed", null];
+	const(char)[][] kwlist = ["seed", null];
 	int seed;
 
 	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &seed))
@@ -209,7 +209,7 @@ PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 	return Py_None;
 }
 
-PyMethodDef[] SNeuronGroup_methods = 
+__gshared PyMethodDef[] SNeuronGroup_methods = 
 [
     {"StopRecording", cast(PyCFunction)&SNeuronGroup_stop_recording, METH_VARARGS | METH_KEYWORDS, "Stop recording from a particular neuron."},
     {"Record", cast(PyCFunction)&SNeuronGroup_record, METH_VARARGS | METH_KEYWORDS, "Set the record flags of a particular neuron."},
@@ -267,7 +267,7 @@ int SNeuronGroup_setitem(SNeuronGroup* self, PyObject* args, PyObject* val)
 	
 	if(!PyFloat_Check(val) && !PyInt_Check(val))
 	{
-		PyErr_SetString(Error, "must assign a number");
+		PyErr_SetString(PythonError, "must assign a number");
 		return -1;
 	}
 	
@@ -313,7 +313,7 @@ PyMappingMethods SNeuronGroupMapping =
 	cast(objobjargproc)&SNeuronGroup_setitem
 };
 
-PyTypeObject SNeuronGroupType = 
+__gshared PyTypeObject SNeuronGroupType = 
 {
     0,                         /*ob_refcnt*/
     null,                      /*ob_type*/

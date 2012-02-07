@@ -54,7 +54,7 @@ PyObject* SModel_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["file", "include_dirs", "gpu", "double_precision", null];
+	const(char)[][] kwlist = ["file", "include_dirs", "gpu", "double_precision", null];
 	char* str;
 	int gpu = 0;
 	int double_precision = 0;
@@ -77,7 +77,7 @@ int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 			
 			if(!PyArg_Parse(item, "s", &include))
 			{
-				PyErr_SetString(Error, "include directory is supposed to be a string");
+				PyErr_SetString(PythonError, "include directory is supposed to be a string");
 				return -1;
 			}
 		}
@@ -85,7 +85,7 @@ int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 	}
 	else
 	{
-		PyErr_SetString(Error, "args is supposed to be string list");
+		PyErr_SetString(PythonError, "args is supposed to be string list");
 		return -1;
 	}
 	
@@ -95,7 +95,7 @@ int SModel_init(SModel *self, PyObject* args, PyObject* kwds)
 	return 0;
 }
 
-PyMemberDef[] SModel_members = 
+__gshared PyMemberDef[] SModel_members = 
 [
     {null}
 ];
@@ -113,7 +113,7 @@ int SModel_set_timestep_size(SModel *self, PyObject *value, void *closure)
 {
 	if(value is null)
 	{
-		PyErr_SetString(Error, "Cannot delete the TimeStepSize attribute");
+		PyErr_SetString(PythonError, "Cannot delete the TimeStepSize attribute");
 		return -1;
 	}
 
@@ -123,7 +123,7 @@ int SModel_set_timestep_size(SModel *self, PyObject *value, void *closure)
 		celeme_set_timestep_size(self.Model, val);
 	else
 	{
-		PyErr_SetString(Error, "Expected a double");
+		PyErr_SetString(PythonError, "Expected a double");
 		return -1;
 	}
 	
@@ -140,7 +140,7 @@ PyGetSetDef[] SModel_getseters =
 extern (C)
 PyObject* SModel_generate(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["initialize", null];
+	const(char)[][] kwlist = ["initialize", null];
 	int initialize = 1;
 
 	if(!DParseTupleAndKeywords(args, kwds, "|i", kwlist, &initialize))
@@ -166,7 +166,7 @@ PyObject* SModel_initialize(SModel *self)
 extern (C)
 PyObject* SModel_run(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["timesteps", null];
+	const(char)[][] kwlist = ["timesteps", null];
 	int timesteps;
 
 	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &timesteps))
@@ -202,7 +202,7 @@ PyObject* SModel_init_run(SModel *self)
 extern (C)
 PyObject* SModel_run_until(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["timesteps", null];
+	const(char)[][] kwlist = ["timesteps", null];
 	int timesteps;
 
 	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &timesteps))
@@ -218,7 +218,7 @@ PyObject* SModel_run_until(SModel *self, PyObject* args, PyObject* kwds)
 extern (C)
 PyObject* SModel_add_neuron_group(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["type_name", "number", "name", "adaptive_dt", "parallel_delivery", null];
+	const(char)[][] kwlist = ["type_name", "number", "name", "adaptive_dt", "parallel_delivery", null];
 	
 	char* type_name;
 	int number;
@@ -239,7 +239,7 @@ PyObject* SModel_add_neuron_group(SModel *self, PyObject* args, PyObject* kwds)
 extern (C)
 PyObject* SModel_set_connection(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
+	const(char)[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
 		"src_slot", "dest_group", "dest_nrn_id", "dest_syn_type", "dest_slot", null];
 	
 	char* src_group;
@@ -266,7 +266,7 @@ PyObject* SModel_set_connection(SModel *self, PyObject* args, PyObject* kwds)
 extern (C)
 PyObject* SModel_connect(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
+	const(char)[][] kwlist = ["src_group", "src_nrn_id", "src_event_source", 
 		"dest_group", "dest_nrn_id", "dest_syn_type", null];
 	
 	char* src_group;
@@ -290,7 +290,7 @@ PyObject* SModel_connect(SModel *self, PyObject* args, PyObject* kwds)
 extern (C)
 PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 {
-	char[][] kwlist = ["connector_name", "multiplier", "src_group", 
+	const(char)[][] kwlist = ["connector_name", "multiplier", "src_group", 
 		"src_nrn_range", "src_event_source", "dest_group", "dest_syn_range", "dest_syn_type", "args", null];
 	
 	char* connector_name;
@@ -309,7 +309,7 @@ PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 		&src_nrn_start, &src_nrn_end, &src_event_source, &dest_group, &dest_nrn_start, &dest_nrn_end, &dest_syn_type, &conn_args))
 		return null;
 	
-	int argc;
+	long argc;
 	char*[] arg_keys;
 	double[] arg_vals;
 		
@@ -333,7 +333,7 @@ PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 			
 			if(!PyArg_ParseTuple(item, "sd", &param, &val))
 			{
-				PyErr_SetString(Error, "args is supposed to be a string->double dictionary");
+				PyErr_SetString(PythonError, "args is supposed to be a string->double dictionary");
 				return null;
 			}
 			
@@ -344,7 +344,7 @@ PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 	}
 	else
 	{
-		PyErr_SetString(Error, "args is supposed to be a string->double dictionary");
+		PyErr_SetString(PythonError, "args is supposed to be a string->double dictionary");
 		return null;
 	}
 	
@@ -357,7 +357,7 @@ PyObject* SModel_apply_connector(SModel *self, PyObject* args, PyObject* kwds)
 	return Py_None;
 }
 
-PyMethodDef[] SModel_methods = 
+__gshared PyMethodDef[] SModel_methods = 
 [
     {"AddNeuronGroup", cast(PyCFunction)&SModel_add_neuron_group, METH_VARARGS | METH_KEYWORDS, "Adds a new neuron group from an internal registry"},
     {"Generate", cast(PyCFunction)&SModel_generate, METH_VARARGS | METH_KEYWORDS, "Generate the model"},
@@ -406,7 +406,7 @@ PyObject* SModel_getitem(SModel* self, PyObject* args)
 	return ret;
 }
 
-PyMappingMethods SModelMapping = 
+__gshared PyMappingMethods SModelMapping = 
 {
 	null,
 	cast(binaryfunc)&SModel_getitem,
@@ -414,7 +414,7 @@ PyMappingMethods SModelMapping =
 };
 
 
-PyTypeObject SModelType = 
+__gshared PyTypeObject SModelType = 
 {
     0,                         /*ob_refcnt*/
     null,                      /*ob_type*/

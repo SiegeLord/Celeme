@@ -53,11 +53,11 @@ PyObject* SRecorder_new(PyTypeObject *type, PyObject* args, PyObject* kwds)
 extern (C)
 int SRecorder_init(SRecorder *self, PyObject* args, PyObject* kwds)
 {
-	PyErr_SetString(Error, "Cannot create a Recorder explicitly (get it from the neuron group).");
+	PyErr_SetString(PythonError, "Cannot create a Recorder explicitly (get it from the neuron group).");
 	return -1;
 }
 
-PyMemberDef[] SRecorder_members = 
+__gshared PyMemberDef[] SRecorder_members = 
 [
     {null}
 ];
@@ -130,7 +130,7 @@ PyObject* SRecorder_get_neuron_ids(SRecorder *self, void *closure)
     return ret;
 }
 
-PyGetSetDef[] SRecorder_getseters = 
+__gshared PyGetSetDef[] SRecorder_getseters = 
 [
 	{"Length", cast(getter)&SRecorder_get_length, null, "Length", null},
 	{"Name", cast(getter)&SRecorder_get_name, null, "Name", null},
@@ -141,12 +141,12 @@ PyGetSetDef[] SRecorder_getseters =
 	{null}  /* Sentinel */
 ];
 
-PyMethodDef[] SRecorder_methods = 
+__gshared PyMethodDef[] SRecorder_methods = 
 [
     {null}  /* Sentinel */
 ];
 
-PyTypeObject SRecorderType = 
+__gshared PyTypeObject SRecorderType = 
 {
     0,                         /*ob_refcnt*/
     null,                      /*ob_type*/

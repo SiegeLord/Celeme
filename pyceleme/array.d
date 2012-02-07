@@ -137,15 +137,12 @@ PyTypeObject SArrayType =
 	&SArray_new,                 /* tp_new */
 };
 
-static this()
+void PreInitArray()
 {
 	SArrayType.tp_methods = SArray_methods.ptr;
 	SArrayType.tp_members = SArray_members.ptr;
 	SArrayType.tp_getset = SArray_getseters.ptr;
-}
-
-void PreInitArray()
-{
+	
 	if(PyType_Ready(&SArrayType) < 0)
 		assert(0);
 }

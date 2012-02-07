@@ -357,15 +357,12 @@ __gshared PyTypeObject SNeuronGroupType =
 	&SNeuronGroup_new,                 /* tp_new */
 };
 
-static this()
+void PreInitNeuronGroup()
 {
 	SNeuronGroupType.tp_methods = SNeuronGroup_methods.ptr;
 	SNeuronGroupType.tp_members = SNeuronGroup_members.ptr;
 	SNeuronGroupType.tp_getset = SNeuronGroup_getseters.ptr;
-}
-
-void PreInitNeuronGroup()
-{
+	
 	if(PyType_Ready(&SNeuronGroupType) < 0)
 		assert(0);
 }

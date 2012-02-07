@@ -190,15 +190,12 @@ __gshared PyTypeObject SRecorderType =
 	&SRecorder_new,                 /* tp_new */
 };
 
-static this()
+void PreInitRecorder()
 {
 	SRecorderType.tp_methods = SRecorder_methods.ptr;
 	SRecorderType.tp_members = SRecorder_members.ptr;
 	SRecorderType.tp_getset = SRecorder_getseters.ptr;
-}
-
-void PreInitRecorder()
-{
+	
 	if(PyType_Ready(&SRecorderType) < 0)
 		assert(0);
 }

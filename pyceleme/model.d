@@ -458,15 +458,12 @@ __gshared PyTypeObject SModelType =
 	&SModel_new,                 /* tp_new */
 };
 
-static this()
+void PreInitModel()
 {
 	SModelType.tp_methods = SModel_methods.ptr;
 	SModelType.tp_members = SModel_members.ptr;
 	SModelType.tp_getset = SModel_getseters.ptr;
-}
-
-void PreInitModel()
-{
+	
 	if(PyType_Ready(&SModelType) < 0)
 		assert(0);
 }

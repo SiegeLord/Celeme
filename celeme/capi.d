@@ -42,10 +42,10 @@ import tango.core.Runtime;
 import tango.core.Array;
 import tango.stdc.stdlib : atexit;
 
-bool Inited = false;
-bool Registered = false;
-IModel[] Models;
-cstring ErrorText;
+__gshared bool Inited = false;
+__gshared bool Registered = false;
+__gshared IModel[] Models;
+__gshared cstring ErrorText;
 
 bool iser(T)(T a, T b)
 {

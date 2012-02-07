@@ -41,11 +41,13 @@ struct SAlignedArray(T, int N)
 		return ptr[idx] = val;
 	}
 	
+	@property
 	T* ptr()
 	{
 		return cast(T*)(Data.ptr + Offset);
 	}
 	
+	@property
 	size_t length()
 	{
 		return Length;
@@ -61,6 +63,7 @@ struct SAlignedArray(T, int N)
 		return 0;
 	}
 	
+	@property
 	void length(size_t new_length)
 	{
 		auto new_data_len = new_length * T.sizeof + N;

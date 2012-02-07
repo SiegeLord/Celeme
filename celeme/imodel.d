@@ -177,6 +177,7 @@ interface IModel
 	 * each neuron group may advance through each timestep in multiple sub-steps. This value
 	 * corresponds to the minimum delay in the network.
 	 */
+	@property
 	double TimeStepSize();
 	
 	/**
@@ -187,5 +188,6 @@ interface IModel
 	 * 
 	 * Note that this cannot be set after the model is generated.
 	 */
+	@property
 	void TimeStepSize(double val);
 }

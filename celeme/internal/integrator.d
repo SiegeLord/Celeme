@@ -109,7 +109,7 @@ class CIntegrator(float_t) : CDisposable
 	override
 	void Dispose()
 	{
-		super.Dispose;
+		super.Dispose();
 	}
 	
 	ICLNeuronGroup Group;

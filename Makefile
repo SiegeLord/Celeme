@@ -1,6 +1,6 @@
 # General configuration
 DC                 := ldc2
-D_FLAGS            := -unittest -w
+D_FLAGS            := -unittest -w -wi -property
 INSTALL_PREFIX     := /usr/local
 #PERF_STR          := -d-version=Perf
 PERF_STR           := 

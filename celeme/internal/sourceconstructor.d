@@ -96,23 +96,27 @@ class CSourceConstructor
 	
 	alias AddLine opCatAssign;
 	
+	@property
 	void EmptyLine()
 	{
 		Source ~= "\n";
 	}
 	
+	@property
 	void Clear()
 	{
 		TabLevel = 0;
 		Source.length = 0;
 	}
 	
+	@property
 	void Tab(int num = 1)
 	{
 		TabLevel += num;
 		assert(TabLevel < 10, "TabLevel has to be less than 10");
 	}
 	
+	@property
 	void DeTab(int num = 1)
 	{
 		TabLevel -= num;

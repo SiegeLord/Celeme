@@ -112,8 +112,8 @@ class CMultiBuffer(T) : CDisposable
 	{
 		foreach(buf_idx, buf; Buffers)
 		{
-			auto arr = buf.MapWrite;
-			scope(exit) buf.UnMap;
+			auto arr = buf.MapWrite();
+			scope(exit) buf.UnMap();
 			
 			foreach(arr_idx, ref val; arr)
 			{
@@ -129,10 +129,11 @@ class CMultiBuffer(T) : CDisposable
 	void Dispose()
 	{
 		foreach(buf; Buffers)
-			buf.Dispose;
+			buf.Dispose();
 		super.Dispose();
 	}
 	
+	@property
 	cstring ArgsCode()
 	{
 		char[] ret;
@@ -148,6 +149,7 @@ class CMultiBuffer(T) : CDisposable
 		return ret;
 	}
 	
+	@property
 	cstring LoadCode()
 	{
 		char[] ret;
@@ -170,6 +172,7 @@ class CMultiBuffer(T) : CDisposable
 		return ret;
 	}
 	
+	@property
 	cstring SaveCode()
 	{
 		char[] ret;
@@ -201,6 +204,7 @@ class CMultiBuffer(T) : CDisposable
 		return start_arg;
 	}
 	
+	@property
 	size_t length()
 	{
 		return Buffers.length;

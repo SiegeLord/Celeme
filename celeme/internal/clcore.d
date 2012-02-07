@@ -103,11 +103,13 @@ class CCLKernel : CDisposable
 
 class CCLBufferBase : CDisposable
 {
+	@property
 	cl_mem Buffer()
 	{
 		return BufferVal;
 	}
 	
+	@property
 	size_t Length()
 	{
 		return LengthVal;
@@ -455,6 +457,7 @@ class CCLCore : CDisposable
 	}
 	
 	/* Returns 0 if the device doesn't care */
+	@property
 	size_t GoodNumWorkgroups()
 	{
 		if(GPU)

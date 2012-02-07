@@ -261,7 +261,7 @@ if(_cur_time < timestep && _cur_time + _dt >= timestep)
 	{
 		DtBuffer.Dispose();
 		
-		super.Dispose;
+		super.Dispose();
 	}
 	
 	CCLBuffer!(float_t) DtBuffer;

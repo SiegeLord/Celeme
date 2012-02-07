@@ -29,23 +29,23 @@ import celeme.ineurongroup;
 
 interface ICLNeuronGroup : INeuronGroup
 {
-	cstring Name();
+	@property cstring Name();
 	
-	int RandLen();
-	int NumEventSources();
-	int NumSrcSynapses();
-	int NumSynThresholds();
+	@property int RandLen();
+	@property int NumEventSources();
+	@property int NumSrcSynapses();
+	@property int NumSynThresholds();
 	
-	CCLRand Rand();
-	CEventSourceBuffer[] EventSourceBuffers();
-	CSynapseBuffer[] SynapseBuffers();
-	CCLBuffer!(cl_int2) DestSynBuffer();
-	CCLBuffer!(int) ErrorBuffer();
-	cl_program Program();
+	@property CCLRand Rand();
+	@property CEventSourceBuffer[] EventSourceBuffers();
+	@property CSynapseBuffer[] SynapseBuffers();
+	@property CCLBuffer!(cl_int2) DestSynBuffer();
+	@property CCLBuffer!(int) ErrorBuffer();
+	@property cl_program Program();
 	
-	CCLCore Core();
+	@property CCLCore Core();
 	
-	bool Initialized();
-	int IntegratorArgOffset();
-	double TimeStepSize();
+	@property bool Initialized();
+	@property int IntegratorArgOffset();
+	@property double TimeStepSize();
 }

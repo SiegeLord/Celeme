@@ -93,26 +93,31 @@ interface INeuronGroup
 	 * smallest dt that the integrator can use. When fixed step integration is used, it is
 	 * the dt that the integrator uses.
 	 */
+	@property
 	void MinDt(double min_dt);
 	
 	/**
 	 * Returns the minimum dt for this neuron group.
 	 */
+	@property
 	double MinDt();
 	
 	/**
 	 * Returns the number of neurons in this group
 	 */
+	@property
 	int Count();
 	
 	/**
 	 * Returns the global index of the first neuron in this neuron group.
 	 */
+	@property
 	int NrnOffset();
 		
 	/**
 	 * Seeds the random number generator.
 	 */
+	@property
 	void Seed(int seed);
 	
 	/**

@@ -214,6 +214,7 @@ class CConfigEntry
 	/**
 	 * Duplicate this entry
 	 */
+	@property
 	CConfigEntry dup()
 	{
 		auto ret = new CConfigEntry(Name);
@@ -346,7 +347,8 @@ class CConfigEntry
 			
 			return 0;
 		}
-		
+
+		@property
 		size_t length()
 		{
 			size_t ret = 0;
@@ -368,6 +370,7 @@ class CConfigEntry
 	/**
 	 * Returns true if this entry is an aggregate.
 	 */
+	@property
 	bool IsAggregate()
 	{
 		return cast(CAggregate)this !is null;
@@ -376,6 +379,7 @@ class CConfigEntry
 	/**
 	 * Returns true if this entry is a single value.
 	 */
+	@property
 	bool IsSingleValue()
 	{
 		return cast(CSingleValue)this !is null;
@@ -724,11 +728,13 @@ class CParser
 		Advance();
 	}
 	
+	@property
 	bool EOF()
 	{
 		return CurToken.Type == EToken.EOF;
 	}
 	
+	@property
 	EToken Advance()
 	{
 		CurToken = NextToken;
@@ -737,16 +743,19 @@ class CParser
 		return Peek;
 	}
 	
+	@property
 	EToken Peek()
 	{
 		return CurToken.Type;
 	}
 	
+	@property
 	int PeekNext()
 	{
 		return NextToken.Type;
 	}
 	
+	@property
 	cstring FileName()
 	{
 		return Tokenizer.FileName;
@@ -777,6 +786,7 @@ class CAggregate : CConfigEntry
 	}
 	
 	override
+	@property
 	CAggregate dup()
 	{
 		return copy(new CAggregate(Name));
@@ -810,6 +820,7 @@ class CSingleValue : CConfigEntry
 	}
 
 	override
+	@property
 	CSingleValue dup()
 	{
 		return copy(new CSingleValue(Name));
@@ -1152,7 +1163,7 @@ CAggregate LoadConfig(cstring filename, cstring[] include_dirs, cstring src, cst
 			fp.prepend(include_dirs[idx]);
 			idx++;
 		}
-		src = cast(cstring)File.get(fp.toString);
+		src = cast(cstring)File.get(fp.toString());
 	}
 	
 	scope tok = new CTokenizer(filename, src);

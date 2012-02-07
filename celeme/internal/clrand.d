@@ -92,11 +92,13 @@ class CCLRand : CDisposable
 		return arg_id;
 	}
 	
+	@property
 	void Seed(int n)
 	{
 		
 	}
 	
+	@property
 	void Seed()
 	{
 		
@@ -108,6 +110,7 @@ class CCLRand : CDisposable
 		super.Dispose();
 	}
 	
+	@property
 	int NumArgs()
 	{
 		return 0;
@@ -169,6 +172,7 @@ class CCLRandImpl(uint N) : CCLRand
 	}
 	
 	override
+	@property
 	void Seed(int n)
 	{
 		rand.seed({return cast(uint)n;});
@@ -176,6 +180,7 @@ class CCLRandImpl(uint N) : CCLRand
 	}
 	
 	override
+	@property
 	void Seed()
 	{
 		auto arr = State.MapWrite();
@@ -184,12 +189,12 @@ class CCLRandImpl(uint N) : CCLRand
 		{
 			static if(N == 1)
 			{
-				el = rand.uniform!(int);
+				el = rand.uniform!(int)();
 			}
 			else
 			{
 				for(int ii = 0; ii < N; ii++)
-					el[ii] = rand.uniform!(int);
+					el[ii] = rand.uniform!(int)();
 			}
 		}
 	}
@@ -202,6 +207,7 @@ class CCLRandImpl(uint N) : CCLRand
 	}
 	
 	override
+	@property
 	int NumArgs()
 	{
 		return 1;

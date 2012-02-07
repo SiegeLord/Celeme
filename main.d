@@ -45,7 +45,7 @@ void main(char[][] arg_list)
 	
 	StopWatch timer;
 	
-	timer.start;
+	timer.start();
 	
 	auto model = LoadModel("stuff.cfg", ["mechanisms"], gpu);
 	scope(exit) model.Dispose();
@@ -59,13 +59,13 @@ void main(char[][] arg_list)
 	
 	//model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
-	Stdout.formatln("Specify time: {}", timer.stop);
-	timer.start;
+	Stdout.formatln("Specify time: {}", timer.stop());
+	timer.start();
 	
 	model.Generate();
 	
-	Stdout.formatln("Generating time: {}", timer.stop);
-	timer.start;
+	Stdout.formatln("Generating time: {}", timer.stop());
+	timer.start();
 	
 	//Stdout(model.Source).nl;
 	
@@ -121,8 +121,8 @@ void main(char[][] arg_list)
 		rec = model["Regular"].Record(2, 1);
 	}
 	
-	Stdout.formatln("Init time: {}", timer.stop);
-	timer.start;
+	Stdout.formatln("Init time: {}", timer.stop());
+	timer.start();
 	
 	int tstop = cast(int)(1000 * t_scale);
 	//model.Run(tstop);
@@ -130,12 +130,12 @@ void main(char[][] arg_list)
 	model.InitRun();
 	//model.RunUntil(cast(int)(50 * t_scale));
 	model.RunUntil(tstop + 1);
-	Stdout.formatln("Run time: {}", timer.stop);
+	Stdout.formatln("Run time: {}", timer.stop());
 	
 	Stdout(model["Regular"]["glu_counter", 0, 0]).nl;
 	Stdout(model["Regular"]["glu_counter", 0, 1]).nl;
 	
-	timer.start;
+	timer.start();
 	
 	if(record)
 	//if(false)
@@ -181,5 +181,5 @@ void main(char[][] arg_list)
 		/*Stdout.formatln("{} {}", v_rec1.Length, v_rec2.Length);
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);*/
 	}
-	Stdout.formatln("Plotting time: {}", timer.stop);
+	Stdout.formatln("Plotting time: {}", timer.stop());
 }

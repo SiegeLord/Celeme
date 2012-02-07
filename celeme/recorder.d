@@ -45,11 +45,13 @@ struct SCArray(T)
 		return ptr[idx] = val;
 	}
 	
+	@property
 	size_t length()
 	{
 		return Length;
 	}
 	
+	@property
 	size_t length(size_t new_len)
 	{
 		if(new_len != Length)
@@ -131,6 +133,7 @@ class CRecorder
 	/**
 	 * Returns the time array.
 	 */
+	@property
 	double[] T()
 	{
 		return TArray[0..Length];
@@ -139,6 +142,7 @@ class CRecorder
 	/**
 	 * Returns the data array.
 	 */
+	@property
 	double[] Data()
 	{
 		return DataArray[0..Length];
@@ -147,6 +151,7 @@ class CRecorder
 	/**
 	 * Returns the tag array.
 	 */
+	@property
 	int[] Tags()
 	{
 		return TagArray[0..Length];
@@ -155,6 +160,7 @@ class CRecorder
 	/**
 	 * Returns the neuron id array (if any).
 	 */
+	@property
 	int[] NeuronIds()
 	{
 		if(StoreNeuronId)

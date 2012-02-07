@@ -154,7 +154,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		
 		auto file = new File("kernel.c", File.WriteCreate);
 		file.write(Source);
-		file.close;
+		file.close();
 		
 		Program = Core.BuildProgram(Source);
 		Generated = true;
@@ -265,7 +265,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			 * Called first because it resets the record index to 0,
 			 * so the update recorders wouldn't get anything if it was right 
 			 * before it */
-			timer.start;
+			timer.start();
 			foreach(group; groups)
 			{
 				cl_event* event_ptr;
@@ -276,10 +276,10 @@ class CCLModel(float_t) : CDisposable, ICLModel
 				group.CallDeliverKernel(time, event_ptr);
 			}
 			version(Perf) Core.Finish();
-			deliver_est += timer.stop;
+			deliver_est += timer.stop();
 
 			/* Call the step kernel */
-			timer.start;
+			timer.start();
 			foreach(group; groups)
 			{
 				cl_event* event_ptr;
@@ -290,7 +290,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 				group.CallStepKernel(time, event_ptr);
 			}
 			version(Perf) Core.Finish();
-			step_est += timer.stop;
+			step_est += timer.stop();
 			
 			version(Perf)
 			{
@@ -313,19 +313,19 @@ class CCLModel(float_t) : CDisposable, ICLModel
 					deliver_total += get_dur(deliver_event);
 			}
 			
-			timer.start;	
+			timer.start();	
 			foreach(group; groups)
 				group.UpdateRecorders(t, t == num_timesteps - 1);
-			record_est += timer.stop;
+			record_est += timer.stop();
 
 			t++;
 		}
 
 		CurStep = t;
 		
-		timer.start;
+		timer.start();
 		Core.Finish();
-		finish_est = timer.stop;
+		finish_est = timer.stop();
 		
 		version(Perf)
 		{

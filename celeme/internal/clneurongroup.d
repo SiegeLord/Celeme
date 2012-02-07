@@ -492,12 +492,13 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		DestSynBuffer()[] = cl_int2(-1, -1);
 		
 		foreach(conn; Connectors)
-			conn.Initialize;
+			conn.Initialize();
 		
 		ResetBuffers();
 		UnMapBuffers();
 	}
 	
+	@property
 	bool NeedSrcSynCode()
 	{
 		/* Don't need it if the type of this neuron group has no event sources. 
@@ -1474,6 +1475,7 @@ for(int ii = 0; ii < num_fired; ii++)
 		InitKernelSource = kernel_source[];
 	}
 	
+	@property
 	bool FixedStep()
 	{
 		return cast(CAdaptiveIntegrator!(float_t))Integrator is null;
@@ -1664,8 +1666,8 @@ for(int ii = 0; ii < num_fired; ii++)
 	{
 		if(RecordingWorkgroups.length)
 		{
-			RecordIdxBuffer.MapWrite;
-			scope(exit) RecordIdxBuffer.UnMap;
+			RecordIdxBuffer.MapWrite();
+			scope(exit) RecordIdxBuffer.UnMap();
 			
 			auto rec_size = GroupRecordSize;
 			
@@ -1718,6 +1720,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	private
+	@property
 	size_t GroupRecordSize()
 	{
 		return RecordLength / RecordingWorkgroups.length;
@@ -1932,12 +1935,14 @@ for(int ii = 0; ii < num_fired; ii++)
 	double MinDtVal = 0.1;
 	
 	override
+	@property
 	double MinDt()
 	{
 		return MinDtVal;
 	}
 	
 	override
+	@property
 	void MinDt(double min_dt)
 	{
 		if(Model.Initialized && FixedStep)
@@ -1948,6 +1953,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
+	@property
 	int IntegratorArgOffset()
 	{
 		int rand_offset = 0;
@@ -1959,41 +1965,48 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
+	@property
 	void Seed(int seed)
 	{
 		if(RandLen)
 			Rand.Seed(seed);
 	}
 	
+	@property
 	size_t ValArgsOffset()
 	{
 		return RWValues.length + ROValues.length;
 	}
 	
+	@property
 	cl_program Program()
 	{
 		return Model.Program;
 	}
 	
 	override
+	@property
 	CCLCore Core()
 	{
 		return Model.Core;
 	}
 	
 	override
+	@property
 	int Count()
 	{
 		return CountVal;
 	}
 	
 	override
+	@property
 	bool Initialized()
 	{
 		return Model.Initialized;
 	}
 	
 	override
+	@property
 	double TimeStepSize()
 	{
 		return Model.TimeStepSize;

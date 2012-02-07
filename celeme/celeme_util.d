@@ -40,6 +40,7 @@ struct SData
 	/**
 	 * Returns the time array.
 	 */
+	@property
 	double[] T()
 	{
 		return TArray[0..Length];
@@ -48,6 +49,7 @@ struct SData
 	/**
 	 * Returns the data array.
 	 */
+	@property
 	double[] Data()
 	{
 		return DataArray[0..Length];

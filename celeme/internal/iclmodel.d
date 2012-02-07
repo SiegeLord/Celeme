@@ -25,9 +25,9 @@ import opencl.cl;
 
 interface ICLModel : IModel
 {
-	bool Initialized();
-	cl_program Program();
-	CCLCore Core();
-	CCLBuffer!(int) FiredSynIdxBuffer();
-	CCLBuffer!(int) FiredSynBuffer();
+	@property bool Initialized();
+	@property cl_program Program();
+	@property CCLCore Core();
+	@property CCLBuffer!(int) FiredSynIdxBuffer();
+	@property CCLBuffer!(int) FiredSynBuffer();
 }

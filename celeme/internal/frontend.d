@@ -36,6 +36,7 @@ class CValue
 		return Value = val;
 	}
 	
+	@property
 	CValue dup(CValue ret = null)
 	{
 		if(ret is null)
@@ -73,6 +74,7 @@ struct SThreshold
 	bool IsEventSource = false;
 	bool ResetTime = false;
 	
+	@property
 	SThreshold dup()
 	{
 		return SThreshold(State.dup, Condition.dup, Source.dup, IsEventSource, ResetTime);
@@ -85,12 +87,14 @@ struct SSynThreshold
 	cstring Condition;
 	cstring Source;
 	
+	@property
 	SSynThreshold dup()
 	{
 		return SSynThreshold(State.dup, Condition.dup, Source.dup);
 	}
 }
 
+@property
 cstring AddMechFunc(cstring name)()
 {
 	return 
@@ -241,31 +245,37 @@ class CMechanism
 		Thresholds ~= thresh;
 	}
 	
+	@property
 	void PreStepCode(cstring code)
 	{
 		PreStepCodeVal = code;
 	}
 	
+	@property
 	cstring PreStepCode()
 	{
 		return PreStepCodeVal;
 	}
 	
+	@property
 	void InitCode(cstring code)
 	{
 		InitCodeVal = code;
 	}
 	
+	@property
 	cstring InitCode()
 	{
 		return InitCodeVal;
 	}
-	
+
+	@property
 	void PreStageCode(cstring code)
 	{
 		PreStageCodeVal = code;
 	}
 	
+	@property
 	cstring PreStageCode()
 	{
 		return PreStageCodeVal;
@@ -291,6 +301,7 @@ class CMechanism
 		return value;
 	}
 	
+	@property
 	CMechanism dup(CMechanism ret = null)
 	{
 		if(ret is null)
@@ -442,6 +453,7 @@ class CSynapse : CMechanism
 	
 	alias CMechanism.dup dup;
 	
+	@property
 	CSynapse dup(CSynapse ret = null)
 	{
 		if(ret is null)
@@ -552,6 +564,7 @@ class CNeuronType
 		SynapseTypes ~= SSynType(syn, num_slots, prefix);
 	}
 	
+	@property
 	int NumDestSynapses()
 	{
 		int ret = 0;
@@ -904,6 +917,7 @@ class CConnector
 		Name = name;
 	}
 	
+	@property
 	CConnector dup(CConnector ret = null)
 	{
 		if(ret is null)

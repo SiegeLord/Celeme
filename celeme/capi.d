@@ -581,6 +581,7 @@ int celeme_get_connection_slot(INeuronGroup group, int nrn_id, int event_source,
 else
 {
 
+@property
 cstring ModelFunc(cstring c_name, cstring ret, cstring d_name, cstring args, cstring call_args, cstring def_ret)()
 {
 	cstring ret_str = 
@@ -669,6 +670,7 @@ mixin(ModelFunc!("set_timestep_size", "void", "TimeStepSize",
  * Neuron group bindings
  */
 
+@property
 cstring GroupFunc(cstring c_name, cstring ret, cstring d_name, cstring args, cstring call_args, cstring def_ret)()
 {
 	cstring ret_str = 

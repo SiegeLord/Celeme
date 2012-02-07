@@ -1,5 +1,6 @@
 # General configuration
 DC                 := ldc2
+DC_NAME            := ldc
 D_FLAGS            := -unittest -w -wi -property
 INSTALL_PREFIX     := /usr/local
 #PERF_STR          := -d-version=Perf
@@ -11,7 +12,7 @@ DUTIL_PATH         := /usr/local/include/d
 DUTIL_FILES        := $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d
 DGNUPLOT_PATH      := /usr/local/include/d
 DGNUPLOT_FILES     := $(DGNUPLOT_PATH)/gnuplot.d
-TANGO_LDFLAGS      := -L-ltango-ldc
+TANGO_LDFLAGS      := -L-ltango-$(DC_NAME)
 
 # Components
 CELEME_FILES_NO_CL := $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
@@ -38,7 +39,7 @@ ifeq ($(XFBUILD),)
     endef
 else
     define d_build
-        $(XFBUILD) +D=".deps_$1" +O=".objs_$1" +threads=6 +q +o$1 +c$(DC) +x$(DC) +xtango $2 $(D_FLAGS) $3
+        $(XFBUILD) +D=".deps_$1" +O=".objs_$1" +threads=6 +q +o$1 +c$(DC) +x$(DC_NAME) +xcore +xtango $2 $(D_FLAGS) $3
         rm -f *.rsp
     endef
 endif

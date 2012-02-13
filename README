@@ -6,22 +6,20 @@ Celeme is developed on Linux, and has only been tested on it... it shouldn't be 
 
 Compiling:
 
-The build script requires Python to be installed.
-Celeme core requires hg tip LDC and svn trunk Tango as well as AMD OpenCL SDK 2.4.
+Celeme core requires a D2 compiler and git trunk TangoD2 as well as AMD OpenCL SDK 2.4. You can obtain the version of TangoD2 I use here: https://github.com/SiegeLord/Tango-D2 .
 Python bindings require the development versions of the Python library (version 2.6). Celeme uses the DUtil utility modules that you can obtain here: https://github.com/SiegeLord/DUtil .
 Plotting using the D binding requires gnuplot to be installed as well as the D bindings you can get here: https://github.com/SiegeLord/DGnuplot (you can just copy the gnuplot.d into root folder).
 C bindings require the trunk Tango build without the C main (Use version=NoCMain)
 
-Once those things are taken care of, compile using the build.py script as follows:
+Once those things are taken care of, compile using the provided Makefile as follows:
 
-./build.py -> compile the D example
-./build.py lib -> compile the libceleme.lib library
-./build.py py -> compile the Python interface
-./build.py c -> compile the C example
+make -> compile the D example
+make lib -> compile the libceleme.lib library
+make py -> compile the Python interface (DOESN'T WORK)
+make c -> compile the C example (DOESN'T WORK)
 
 After building you can run the examples as follows:
 
-./build.py run -> compile and run the D example
 ./main -> run the D example
 ./test -> run the C example
 ./py_celeme test.py -> run the Python example
@@ -31,6 +29,6 @@ Licensing:
 The code I wrote myself is under LGPL3.
 
 python/python.d came from PyD @ http://pyd.dsource.org/
-opencl bindings came from cl4d @ https://bitbucket.org/trass3r/cl4d/wiki/Home
+OpenCL bindings came from cl4d @ https://bitbucket.org/trass3r/cl4d/wiki/Home
 
 That's it for now. Again, many features are not yet implemented and there are probably tons of bugs. User friendliness is also rather low right now... if you're interested in helping out, contact me via this: http://slabode.exofire.net/contact_me.shtml

@@ -543,16 +543,28 @@ size_t celeme_get_count(INeuronGroup group);
 size_t celeme_get_nrn_offset(INeuronGroup group);
 
 /**
- * Seeds the random number generator.
+ * Seeds the random number generators of all neurons.
  * 
  * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Seed, INeuronGroup.Seed)
  * 
  * C signature:
  * ---
- * int celeme_seed(CELEME_NEURON_GROUP* group, int seed);
+ * void celeme_seed(CELEME_NEURON_GROUP* group, int seed);
  * ---
  */
-int celeme_seed(INeuronGroup group);
+void celeme_seed(INeuronGroup group, int seed);
+
+/**
+ * Seeds the random number generators of one neuron.
+ * 
+ * See_Also: $(SYMLINK2 celeme.ineurongroup, INeuronGroup.Seed, INeuronGroup.Seed)
+ * 
+ * C signature:
+ * ---
+ * void celeme_seed_neuron(CELEME_NEURON_GROUP* group, size_t nrn_id, int seed);
+ * ---
+ */
+void celeme_seed_neuron(INeuronGroup group, size_t nrn_id, int seed);
 
 /**
  * Returns the target global neuron id that an event source is connected to at a specified source slot.
@@ -749,6 +761,10 @@ mixin(GroupFunc!("get_nrn_offset", "size_t", "NrnOffset",
 mixin(GroupFunc!("seed", "void", "Seed", 
 	", int seed", 
 	"seed", ""));
+
+mixin(GroupFunc!("seed_neuron", "void", "Seed", 
+	", size_t nrn_id, int seed", 
+	"nrn_id, seed", ""));
 	
 mixin(GroupFunc!("get_connection_id", "int", "GetConnectionId", 
 	", size_t nrn_id, size_t event_source, size_t src_slot", 

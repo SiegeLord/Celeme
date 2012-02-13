@@ -85,6 +85,7 @@ double celeme_get_min_dt(CELEME_NEURON_GROUP* group);
 void celeme_set_min_dt(CELEME_NEURON_GROUP* group, double min_dt);
 size_t celeme_get_count(CELEME_NEURON_GROUP* group);
 size_t celeme_get_nrn_offset(CELEME_NEURON_GROUP* group);
+void celeme_seed(INeuronGroup group, int seed);
 
 int celeme_get_connection_id(CELEME_NEURON_GROUP* group, size_t nrn_id, size_t event_source, size_t src_slot);
 int celeme_get_connection_slot(CELEME_NEURON_GROUP* group, size_t nrn_id, size_t event_source, size_t src_slot);

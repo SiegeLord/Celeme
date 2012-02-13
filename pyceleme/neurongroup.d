@@ -196,13 +196,17 @@ PyObject* SNeuronGroup_get_connection_slot(SNeuronGroup *self, PyObject* args, P
 extern (C)
 PyObject* SNeuronGroup_seed(SNeuronGroup *self, PyObject* args, PyObject* kwds)
 {
-	const(char)[][] kwlist = ["seed", null];
+	const(char)[][] kwlist = ["nrn_id", "seed", null];
+	int nrn_id = -1;
 	int seed;
 
-	if(!DParseTupleAndKeywords(args, kwds, "i", kwlist, &seed))
+	if(!DParseTupleAndKeywords(args, kwds, "i|i", kwlist, &nrn_id, &seed))
 		return null;
 	
-	celeme_seed(self.Group, seed);
+	if(nrn_id < 0)
+		celeme_seed(self.Group, seed);
+	else
+		celeme_seed_neuron(self.Group, cast(size_t)nrn_id, seed);
 	
 	mixin(ErrorCheck("null"));
 	Py_INCREF(Py_None);

@@ -115,10 +115,22 @@ interface INeuronGroup
 	size_t NrnOffset();
 		
 	/**
-	 * Seeds the random number generator.
+	 * Seeds the random number generator. Each individual neuron's random generator is set to a pseudo-random
+	 * value based on this seed.
+	 * 
+	 * Params:
+	 *     seed = New PRNG seed.
 	 */
-	@property
 	void Seed(int seed);
+	
+	/**
+	 * Seeds the random number generator of a single neuron.
+	 * 
+	 * Params:
+	 *     nrn_id = Index of the neuron.
+	 *     seed = New PRNG seed.
+	 */
+	void Seed(size_t nrn_id, int seed);
 	
 	/**
 	 * Returns the target global neuron id that an event source is connected to at a specified source slot.

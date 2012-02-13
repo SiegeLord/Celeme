@@ -1958,11 +1958,17 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	@property
 	void Seed(int seed)
 	{
 		if(RandLen)
 			Rand.Seed(seed);
+	}
+	
+	override
+	void Seed(size_t idx, int seed)
+	{
+		if(RandLen)
+			Rand.Seed(idx, seed);
 	}
 	
 	@property

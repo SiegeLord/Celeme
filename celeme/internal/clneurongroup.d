@@ -489,13 +489,14 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		Core.Finish();
 		
 		RecordFlagsBuffer[] = 0;
+		
+		DestSynBuffer().MapReadWrite();
 		DestSynBuffer()[] = cl_int2(-1, -1);
 		
 		foreach(conn; Connectors)
 			conn.Initialize();
 		
 		ResetBuffers();
-		UnMapBuffers();
 	}
 	
 	@property
@@ -544,6 +545,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		Core.Finish();
 			
 		CommonRecorder.Length = 0;
+		
+		NeedUnMap = true;
 	}
 	
 	void SetConstant(size_t idx)

@@ -122,6 +122,7 @@ protected:
 	
 	bool UseTwoBuffers = false;
 	CCLCore Core;
+	bool UseCache = false;
 	size_t CacheSize = 1;
 	size_t MappedOffset;
 	cl_mem_flags MappedMode = 0;
@@ -129,14 +130,21 @@ protected:
 
 class CCLBuffer(T) : CCLBufferBase
 {
-	this(CCLCore core, size_t length, size_t cache_size = 1, bool read = true, bool write = true, bool use_two_buffers = false)
+	this(CCLCore core, size_t length, size_t cache_size = 0, bool read = true, bool write = true, bool use_two_buffers = false)
 	{
 		Core = core;
 		LengthVal = length;
 		CacheSize = cache_size;
 		UseTwoBuffers = use_two_buffers;
 		if(CacheSize < 1)
+		{
+			UseCache = false;
 			CacheSize = 1;
+		}
+		else
+		{
+			UseCache = true;
+		}
 		
 		int err;
 		if(UseTwoBuffers)
@@ -247,47 +255,88 @@ class CCLBuffer(T) : CCLBufferBase
 		}
 	}
 	
+	/*
+	 * See opIndex for rationalle
+	 */
 	T opSliceAssign(T val)
 	{
+		bool new_map = !(CL_MAP_WRITE & MappedMode) || Mapped.length != Length;
+		
 		auto arr = MapWrite();
 		arr[] = val;
-		UnMap();
+		
+		if(new_map)
+			UnMap();
+
 		return val;
 	}
 	
+	/*
+	 * See opIndex for rationalle
+	 */
 	T opSliceAssign(T val, size_t start, size_t end)
 	{
+		assert(end >= start);
+		
+		bool new_map = !(CL_MAP_WRITE & MappedMode) || start < MappedOffset || end > MappedOffset + Mapped.length;
+		
 		auto arr = MapWrite(start, end);
 		arr[] = val;
-		UnMap();
+		
+		if(new_map)
+			UnMap();
+
 		return val;
 	}
 	
+	/*
+	 * Read one
+	 *    If mapped readable, just read it
+	 *    Else, map the cache
+	 *       If UseCache is off then uncache
+	 */
 	T opIndex(size_t idx)
 	{
 		assert(idx < Length);
 		
+		bool new_map = false;
+		
 		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
+		{
 			MapRead(idx, min(idx + CacheSize, Length));
+			new_map = true;
+		}
 		
 		auto ret = Mapped[idx - MappedOffset];
 		
-		if(CacheSize == 1)
+		if(!UseCache && new_map)
 			UnMap();
 
 		return ret;
 	}
 	
+	/*
+	 * Write one
+	 *    If mapped writable, write it
+	 *    Else, map one
+	 *       Uncache
+	 */
 	T opIndexAssign(T val, size_t idx)
 	{
 		assert(idx < Length);
 		
+		bool new_map = false;
+		
 		/* Don't do cached writes, since they are dangerous */
-		MapWrite(idx, idx + 1);
+		if(!(CL_MAP_WRITE & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
+		{
+			MapWrite(idx, idx + 1);
+			new_map = true;
+		}
 		
 		Mapped[idx - MappedOffset] = val;
 		
-		if(CacheSize == 1)
+		if(new_map)
 			UnMap();
 
 		return val;

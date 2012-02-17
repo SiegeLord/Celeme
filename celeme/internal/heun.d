@@ -81,7 +81,7 @@ class CHeun(float_t) : CIntegrator!(float_t)
 
 		auto eval_source = type.GetEvalSource();
 		
-		cstring kernel_source = 
+		char[] kernel_source = 
 "
 /* Declare temporary storage for state*/
 $declare_temp_states$

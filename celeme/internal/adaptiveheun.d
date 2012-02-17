@@ -109,7 +109,7 @@ _dt_buf[i] = _dt;";
 
 		auto eval_source = type.GetEvalSource();
 		
-		cstring kernel_source = 
+		char[] kernel_source = 
 "
 /* Declare storage for first state estimate*/
 $declare_temp_states$

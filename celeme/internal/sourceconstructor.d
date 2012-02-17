@@ -135,7 +135,7 @@ class CSourceConstructor
 		return Source.idup;
 	}
 	
-	void Inject(ref cstring dest_string, cstring label)
+	void Inject(ref char[] dest_string, cstring label)
 	{
 		/* Chomp the newline */
 		if(Source.length)

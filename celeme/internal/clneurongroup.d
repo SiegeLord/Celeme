@@ -281,6 +281,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		NumSrcSynapses = type.NumSrcSynapses;
 		MinDt = type.MinDt;
 		Parallel = parallel_delivery;
+		NeedUnMap = true;
 		
 		auto good_workgroup_count = Core.GoodNumWorkgroups;
 		if(good_workgroup_count)
@@ -332,7 +333,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 				auto name = syn_type.Prefix == "" ? val.Name : syn_type.Prefix ~ "_" ~ val.Name;
 				
 				SynGlobalBufferRegistry[name] = SynGlobalBuffers.length;
-				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, Count * syn_type.NumSynapses);			
+				SynGlobalBuffers ~= new CSynGlobalBuffer!(float_t)(val, Core, Count * syn_type.NumSynapses);
+				SynGlobalBuffers[$ - 1].Buffer.MapReadWrite();
 			}
 		}
 		
@@ -395,6 +397,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			buf.FreeIdx.UnMap();
 		foreach(buf; SynapseBuffers)
 			buf.FreeIdx.UnMap();
+		foreach(buf; SynGlobalBuffers)
+			buf.Buffer.UnMap();
 		RWValues.UnMapBuffers();
 		ROValues.UnMapBuffers();
 		NeedUnMap = false;

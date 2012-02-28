@@ -265,9 +265,11 @@ class CSynGlobalBuffer(T) : CDisposable
 
 class CEventSourceBuffer : CDisposable
 {
-	this(CCLCore core, size_t nrn_count)
+	this(CCLCore core, size_t nrn_count, bool keep_mapped = false)
 	{
 		FreeIdx = core.CreateBuffer!(int)(nrn_count);
+		if(keep_mapped)
+			FreeIdx.MapReadWrite();
 		FreeIdx[] = 0;
 	}
 	
@@ -284,9 +286,11 @@ class CEventSourceBuffer : CDisposable
 
 class CSynapseBuffer : CDisposable
 {
-	this(CCLCore core, size_t offset, size_t count, size_t nrn_count)
+	this(CCLCore core, size_t offset, size_t count, size_t nrn_count, bool keep_mapped = false)
 	{
 		FreeIdx = core.CreateBuffer!(int)(nrn_count);
+		if(keep_mapped)
+			FreeIdx.MapReadWrite();
 		FreeIdx[] = 0;
 		SlotOffset = offset;
 		Count = count;

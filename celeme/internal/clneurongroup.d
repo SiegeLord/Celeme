@@ -339,7 +339,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		int syn_type_offset = 0;
 		foreach(syn_type; type.SynapseTypes)
 		{
-			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count);
+			auto syn_buff = new CSynapseBuffer(Core, syn_type_offset, syn_type.NumSynapses, Count, true);
 			SynapseBuffers = SynapseBuffers ~ syn_buff;
 			
 			syn_type_offset += syn_type.NumSynapses;
@@ -347,7 +347,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		
 		foreach(ii; range(NumEventSources))
 		{
-			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, Count);
+			EventSourceBuffers = EventSourceBuffers ~ new CEventSourceBuffer(Core, Count, true);
 		}
 		
 		if(NeedSrcSynCode)
@@ -391,6 +391,10 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 	void UnMapBuffers()
 	{
 		DestSynBuffer.UnMap();
+		foreach(buf; EventSourceBuffers)
+			buf.FreeIdx.UnMap();
+		foreach(buf; SynapseBuffers)
+			buf.FreeIdx.UnMap();
 		NeedUnMap = false;
 	}
 	

@@ -37,7 +37,7 @@ private struct SValueHolder(T)
 
 class CMultiBuffer(T) : CDisposable
 {
-	this(cstring prefix, size_t n, size_t count, bool read = true, bool write = true)
+	this(cstring prefix, size_t n, size_t count, bool read = true, bool write = true, bool keep_mapped = false)
 	{
 		assert(n == 1 || n == 2 || n == 4, "N must be 1, 2 or 4");
 		
@@ -46,6 +46,7 @@ class CMultiBuffer(T) : CDisposable
 		Count = count;
 		Read = read;
 		Write = write;
+		KeepMapped = keep_mapped;
 	}
 	
 	void AddValue(CCLCore core, cstring name, T default_value)
@@ -60,7 +61,15 @@ class CMultiBuffer(T) : CDisposable
 		{
 			Buffers.length = Buffers.length + 1;
 			Buffers[$-1] = core.CreateBuffer!(T)(Count * N, Read, Write);
+			if(KeepMapped)
+				Buffers[$-1].MapReadWrite();
 		}
+	}
+	
+	void UnMapBuffers()
+	{
+		foreach(buf; Buffers)
+			buf.UnMap();
 	}
 	
 	size_t* HaveValue(cstring name)
@@ -218,6 +227,7 @@ private:
 	size_t N;
 	bool Read = true;
 	bool Write = true;
+	bool KeepMapped;
 }
 
 class CValueBuffer(T) : CDisposable

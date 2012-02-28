@@ -312,8 +312,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
-		RWValues = new CMultiBuffer!(float_t)("rwvalues", 16 / float_t.sizeof, Count, true, true);
-		ROValues = new CMultiBuffer!(float_t)("rovalues", 16 / float_t.sizeof, Count, true, false);
+		RWValues = new CMultiBuffer!(float_t)("rwvalues", 16 / float_t.sizeof, Count, true, true, true);
+		ROValues = new CMultiBuffer!(float_t)("rovalues", 16 / float_t.sizeof, Count, true, false, true);
 		
 		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)
@@ -395,6 +395,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			buf.FreeIdx.UnMap();
 		foreach(buf; SynapseBuffers)
 			buf.FreeIdx.UnMap();
+		RWValues.UnMapBuffers();
+		ROValues.UnMapBuffers();
 		NeedUnMap = false;
 	}
 	

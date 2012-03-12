@@ -458,7 +458,7 @@ class CCLCore : CDisposable
 		super.Dispose();
 	}
 	
-	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 1)
+	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 0)
 	{
 		return new CCLBuffer!(T)(this, length, cache_size, read, write, GPU);
 	}

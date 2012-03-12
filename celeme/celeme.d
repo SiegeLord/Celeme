@@ -24,6 +24,5 @@ public import
 	celeme.ineurongroup,
 	celeme.recorder,
 	celeme.internal.clcore,
-	celeme.capi,
 	celeme.configloader,
 	celeme.celeme_util;

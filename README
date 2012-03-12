@@ -7,22 +7,17 @@ Celeme is developed on Linux, and has only been tested on it... it shouldn't be 
 Compiling:
 
 Celeme core requires a D2 compiler and git trunk TangoD2 as well as AMD OpenCL SDK 2.4. You can obtain the version of TangoD2 I use here: https://github.com/SiegeLord/Tango-D2 .
-Python bindings require the development versions of the Python library (version 2.6). Celeme uses the DUtil utility modules that you can obtain here: https://github.com/SiegeLord/DUtil .
+Celeme uses the DUtil utility modules that you can obtain here: https://github.com/SiegeLord/DUtil .
 Plotting using the D binding requires gnuplot to be installed as well as the D bindings you can get here: https://github.com/SiegeLord/DGnuplot (you can just copy the gnuplot.d into root folder).
-C bindings require the trunk Tango build without the C main (Use version=NoCMain)
 
 Once those things are taken care of, compile using the provided Makefile as follows:
 
 make -> compile the D example
 make lib -> compile the libceleme.lib library
-make py -> compile the Python interface (DOESN'T WORK)
-make c -> compile the C example (DOESN'T WORK)
 
 After building you can run the examples as follows:
 
 ./main -> run the D example
-./test -> run the C example
-./py_celeme test.py -> run the Python example
 
 Licensing:
 

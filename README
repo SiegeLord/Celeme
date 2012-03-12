@@ -1,6 +1,6 @@
 Celeme, an Open Source OpenCL neural simulator
 
-Celeme development is in rather early stages, but I am using it for my PhD research already. It currently can simulate multitudes of single compartmental neurons with adaptive time step (using the Heun method). It sports D, C and Python bindings. Some documentation is in the doc/ subfolder.
+Celeme development is in rather early stages, but I am using it for my PhD research already. It currently can simulate multitudes of single compartmental neurons with adaptive time step (using the Heun method). Some documentation is in the doc/ subfolder.
 
 Celeme is developed on Linux, and has only been tested on it... it shouldn't be terribly difficult to get it to work on Windows. Celeme is also developed using AMD's OpenCL libraries, I do use some AMD specific extensions (that also exist for other implementations, but they are named differently) so for now AMD OpenCL is required.
 
@@ -23,7 +23,6 @@ Licensing:
 
 The code I wrote myself is under LGPL3.
 
-python/python.d came from PyD @ http://pyd.dsource.org/
 OpenCL bindings came from cl4d @ https://bitbucket.org/trass3r/cl4d/wiki/Home
 
 That's it for now. Again, many features are not yet implemented and there are probably tons of bugs. User friendliness is also rather low right now... if you're interested in helping out, contact me via this: http://slabode.exofire.net/contact_me.shtml

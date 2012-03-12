@@ -21,7 +21,6 @@ module celeme.ineurongroup;
 import dutil.Array;
 
 import celeme.internal.util;
-import celeme.recorder;
 
 /**
  * The datapoint recorded by the neuron group.

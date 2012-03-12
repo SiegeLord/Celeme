@@ -22,7 +22,6 @@ public import
 	celeme.internal.frontend,
 	celeme.imodel,
 	celeme.ineurongroup,
-	celeme.recorder,
 	celeme.internal.clcore,
 	celeme.configloader,
 	celeme.celeme_util;

@@ -112,12 +112,11 @@ void main(char[][] arg_list)
 	
 	return;+/
 	
-	CRecorder rec;
 	if(record)
 	{
-		rec = model["Regular"].Record(0, 1);
-		rec = model["Regular"].Record(1, 1);
-		rec = model["Regular"].Record(2, 1);
+		model["Regular"].Record(0, 1);
+		//model["Regular"].Record(1, 1);
+		//model["Regular"].Record(2, 1);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop());
@@ -139,7 +138,7 @@ void main(char[][] arg_list)
 	if(record)
 	//if(false)
 	{
-		auto data_arrs = ExtractData(rec);	
+		auto data_arrs = ExtractData(model["Regular"].GetRecordedData());	
 	
 		auto plot = new C2DPlot;
 		with(plot)

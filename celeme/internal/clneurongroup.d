@@ -23,7 +23,7 @@ import celeme.internal.frontend;
 import celeme.internal.clcore;
 import celeme.internal.clconnector;
 import celeme.internal.iclmodel;
-import celeme.recorder;
+import celeme.ineurongroup;
 import celeme.internal.alignedarray;
 import celeme.internal.sourceconstructor;
 import celeme.internal.util;
@@ -35,6 +35,7 @@ import celeme.internal.clmiscbuffers;
 
 import opencl.cl;
 import dutil.Disposable;
+import dutil.Array;
 
 import tango.io.Stdout;
 import tango.text.Util;
@@ -382,8 +383,6 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		else
 			Integrator = new CHeun!(float_t)(this, type);
 		
-		CommonRecorder = new CRecorder(Name, true);
-		
 		/* Create kernel sources */
 		CreateStepKernel(type);
 		CreateInitKernel(type);
@@ -553,9 +552,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			buffer.Buffer[] = buffer.DefaultValue;
 		}
 		Core.Finish();
-			
-		CommonRecorder.Length = 0;
-		
+
 		NeedUnMap = true;
 	}
 	
@@ -1715,7 +1712,8 @@ for(int ii = 0; ii < num_fired; ii++)
 						{
 							int id = cast(int)quad[0];
 							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
-							CommonRecorder.AddDatapoint(quad[0], quad[1], cast(int)quad[2], cast(size_t)quad[3]);
+							DataArray ~= SDataPoint(quad[0], quad[1], cast(int)quad[2], cast(size_t)quad[3]);
+							println("{}", quad[0]);
 						}
 					}
 				}
@@ -1734,7 +1732,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	}
 	
 	override
-	CRecorder Record(size_t neuron_id, int flags)
+	void Record(size_t neuron_id, int flags)
 	{
 		assert(Model.Initialized);
 		assert(neuron_id < Count);
@@ -1779,14 +1777,27 @@ for(int ii = 0; ii < num_fired; ii++)
 		/* If the number of workgroups changed, we need to tell the kernel this */
 		if(num_rec_workgroups != RecordingWorkgroups.length)
 			SetRecordSizeAndStart();
-		
-		return CommonRecorder;
 	}
 	
 	override
-	void StopRecording(size_t neuron_id)
+	int GetRecordFlags(size_t neuron_id)
 	{
-		Record(neuron_id, 0);
+		assert(Model.Initialized);
+		assert(neuron_id < Count);
+		
+		return RecordFlagsBuffer[neuron_id];
+	}
+	
+	override
+	SArray!(SDataPoint) GetRecordedData()
+	{
+		return DataArray;
+	}
+	
+	override
+	void ResetRecordedData()
+	{
+		DataArray.Length = 0;
 	}
 	
 	void CheckErrors()
@@ -2036,7 +2047,7 @@ for(int ii = 0; ii < num_fired; ii++)
 	mixin(Prop!("CCLRand", "Rand", "override", "private"));
 	mixin(Prop!("size_t", "RandLen", "override", "private"));
 
-	CRecorder CommonRecorder;
+	SArray!(SDataPoint) DataArray;
 	
 	/* Holds the id's where we are recording events, may have duplicates (we only care if it's empty or not though) */
 	size_t[] CommonRecorderIds;

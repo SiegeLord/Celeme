@@ -9,7 +9,7 @@ PERF_STR           =
 # Dependencies
 OPENCL_PATH        = /usr/local/amdapp/lib/x86_64
 DUTIL_PATH         = /usr/local/include/d
-DUTIL_FILES        = $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d
+DUTIL_FILES        = $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d $(DUTIL_PATH)/dutil/Array.d
 DGNUPLOT_PATH      = /usr/local/include/d
 DGNUPLOT_FILES     = $(DGNUPLOT_PATH)/gnuplot.d
 TANGO_LDFLAGS      = -L-ltango-$(DC_NAME)

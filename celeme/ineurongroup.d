@@ -18,9 +18,33 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.ineurongroup;
 
-import celeme.internal.util;
+import dutil.Array;
 
+import celeme.internal.util;
 import celeme.recorder;
+
+/**
+ * The datapoint recorded by the neuron group.
+ */
+struct SDataPoint
+{
+	/**
+	 * The time associated with the datapoint.
+	 */
+	double T;
+	/**
+	 * Actual data of this datapoint.
+	 */
+	double Data;
+	/**
+	 * The tag of this datapoint. It is set by the record() function inside the neuron code.
+	 */
+	int Tag;
+	/**
+	 * Index of the neuron that this datapoint came from.
+	 */
+	size_t NeuronIdx;
+}
 
 /**
  * A common interface to multiple types of groups.
@@ -79,14 +103,26 @@ interface INeuronGroup
 	 * Params:
 	 *     neuron_id = Index of the neuron.
 	 *     flags = flags to pass to the neuron.
-	 * Returns:
-	 *     A common recorder that will hold data points consisting of the time, data and a tag as well as the neuron id.
 	 */
-	CRecorder Record(size_t neuron_id, int flags);
+	void Record(size_t neuron_id, int flags);
+	
 	/**
-	 * Stop recording everything
+	 * Get the recoding flags of a single neuron.
+	 * 
+	 * Params:
+	 *     neuron_id = Index of the neuron.
 	 */
-	void StopRecording(size_t neuron_id);
+	int GetRecordFlags(size_t neuron_id);
+	
+	/**
+	 * Get the recorded data array.
+	 */
+	SArray!(SDataPoint) GetRecordedData();
+	
+	/**
+	 * Reset the recorded data.
+	 */
+	void ResetRecordedData();
 	
 	/**
 	 * Sets the minimum dt for this neuron group. When adaptive integration is used, this is the

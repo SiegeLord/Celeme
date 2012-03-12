@@ -18,7 +18,9 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.celeme_util;
 
-import celeme.recorder;
+import dutil.Array;
+
+import celeme.ineurongroup;
 
 /**
  * A structure to hold time and data points.
@@ -69,17 +71,18 @@ struct SData
  * Params:
  *     recoder = Data recorder
  * Returns:
- *     A double assosiative array of SData structures. First key is the neuron id, second key is tag.
+ *     A double assosiative array of SData structures. First key is the neuron idx, second key is tag.
  */
-SData[int][size_t] ExtractData(CRecorder recorder)
+SData[int][size_t] ExtractData(SArray!(SDataPoint) array)
 {
 	SData[int][size_t] ret;
 	
-	foreach(ii, time; recorder.T)
+	foreach(ii, datapoint; array[])
 	{
-		double data = recorder.Data[ii];
-		int tag = recorder.Tags[ii];
-		size_t neuron_id = recorder.NeuronIds is null ? 0 : recorder.NeuronIds[ii];
+		auto time = datapoint.T;
+		auto data = datapoint.Data;
+		auto tag = datapoint.Tag;
+		auto neuron_id = datapoint.NeuronIdx;
 		
 		auto tag_array_ptr = neuron_id in ret;
 		if(tag_array_ptr is null)

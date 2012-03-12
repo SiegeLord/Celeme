@@ -1713,7 +1713,6 @@ for(int ii = 0; ii < num_fired; ii++)
 							int id = cast(int)quad[0];
 							//Stdout.formatln("{:5} {:5} {:5} {}", quad[0], quad[1], quad[2], quad[3]);
 							DataArray ~= SDataPoint(quad[0], quad[1], cast(int)quad[2], cast(size_t)quad[3]);
-							println("{}", quad[0]);
 						}
 					}
 				}

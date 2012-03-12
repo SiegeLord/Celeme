@@ -34,7 +34,8 @@ var kandil = {
     default_tab: "#apitab", /// Initial, active tab ("#apitab", "#modtab").
     apitab_label: getPNGIcon("variable")+"Symbols",
     modtab_label: getPNGIcon("module")+"Modules",
-    dynamic_mod_loading: true, /// Load modules with JavaScript?
+    /// Load modules with JavaScript?
+    dynamic_mod_loading: true && !!window.history,
     tview_save_delay: 5*1000, /// Delay for saving a treeview's state after
                               /// each collapse and expand event of a node.
     tooltip: {
@@ -101,18 +102,20 @@ var kandil = {
     no_match: "No match...",
     symboltitle: "Show source code", /// The title attribute of symbols.
     permalink: "Permalink to this symbol",
-    srclink: ' <a href="{}" class="srclink" title="Go to the HTML source file">#</a>',
+    srclink: ' <a href="{}" class="srclink" \
+title="Go to the HTML source file">#</a>',
     dt_tagtitle: "Click to show the symbol’s source code",
     code_expand: "Double-click to expand.",
     code_shrink: "Double-click to shrink.",
   },
-  resize_func: function f() {
+  resize_func: function() {
     // Unfortunately the layout must be scripted. Couldn't find a way
     // to make it work with pure CSS in all targeted browsers.
     // The height is set so that the panel is scrollable.
     // h = viewport_height - y_offset_from_viewport - 2px_margin.
     // offsetTop comes from a dummy div, which has 'position:relative'.
-    var new_height = f.html.clientHeight - this.firstChild.offsetTop - 2;
+    var docelem = document.documentElement;
+    var new_height = docelem.clientHeight - this.firstChild.offsetTop - 2;
     this.style.height = (new_height < 0 ? 0 : new_height)+"px";
   },
   symbolTree_getter: function f() {
@@ -153,6 +156,11 @@ var kandil = {
 
   Object.getter(kandil, "symbolTree", kandil.symbolTree_getter);
 
+
+  window.onpopstate = function(event) {
+    var fqn = (event.state && event.state.fqn) || kandil.originalModuleFQN;
+    app.loadNewModule(fqn, false);
+  }
 })();
 
 /// Execute when document is ready.
@@ -168,30 +176,29 @@ $(function main() {
   var navbar = kandil.settings.navbar_html.format(kandil.settings);
   $(document.body).prepend(navbar);
 
-  createSplitbar(); // Create first, so the width of the navbar is set.
+  app.createSplitbar(); // Create first, so the width of the navbar is set.
+  app.createQuickSearchInputs();
+  app.initSymbolTags();
+  app.initTabs();
 
-  createQuickSearchInputs();
-
-  initSymbolTags(kandil);
-
-  initTabs();
   // Scripted layout. :´(
-  kandil.resize_func.panels = document.getElementById("panels");
-  kandil.resize_func.html = document.documentElement;
-  var divs = $(">div>div.scroll", kandil.resize_func.panels);
-  divs.resize(kandil.resize_func);
-  $(window).resize(function(){ divs.resize() });
-  divs.resize();
+  var divs = $("#panels>div>div.scroll");
+  function resize_divs(){ divs.each(kandil.resize_func); }
+  $(window).resize(resize_divs);
+  resize_divs();
 });
 
-function initTabs()
-{
+var app = {
+  kandil : kandil,
+  /// Initializes the tabs.
+  initTabs : function() {
   // Assign click event handlers for the tabs.
   function makeCurrentTab() {
     var tab = this;
     if (tab.hasClass("current")) return;
     $(".current", tab.parentNode).removeClass('current');
     tab.addClass('current');
+    // Don't use .hide(), in order to preserve layout data.
     $("#panels > *").css("height", "0px"); // Hide all panels.
     tab.panel.css("height", "auto"); // Show the panel under this tab.
     kandil.save.active_tab("#"+tab.id); // Save name of the active tab.
@@ -203,7 +210,7 @@ function initTabs()
   apitab[0].panel = kandil.$.apipanel;
   apitab.lazyLoad = function _() {
     apitab.unbind("click", _); // Remove the lazyLoad handler.
-    initAPIList();
+    app.initAPIList();
   };
   apitab.click(makeCurrentTab).click(apitab.lazyLoad);
 
@@ -211,10 +218,11 @@ function initTabs()
   modtab.lazyLoad = function _() {
     modtab.unbind("click", _); // Remove the lazyLoad handler.
     // Create the list.
-    var ul = createModulesUL(this.panel.find(">div.scroll"));
+    var ul = app.createModulesUL(this.panel.find(">div.scroll"));
     var tv = new Treeview(ul);
     tv.loadState(kandil.saved.modules_tv_state);
-    tv.bind("save_state", curry2(tv, tv.saveState, kandil.saved.modules_tv_state));
+    tv.bind("save_state",
+      curry2(tv, tv.saveState, kandil.saved.modules_tv_state));
     ul.parent().scroll(function() {
       kandil.save.modules_sb(this.scrollTop);
     });
@@ -223,18 +231,22 @@ function initTabs()
     });
 
     if (kandil.settings.dynamic_mod_loading)
-      this.panel.find(".tview a").click(handleLoadingModule);
+      this.panel.find(".tview a").click(function(event) {
+        event.preventDefault();
+        var modFQN = this.parentNode.title; // Fqn is in title attribute.
+        if (kandil.moduleFQN != modFQN.slice())
+          app.loadNewModule(modFQN, true);
+      });
     kandil.packageTree.initList(); // Init the list property.
   };
   modtab.click(makeCurrentTab).click(modtab.lazyLoad);
   // Activate the tab that has been saved or activate the default tab.
   var tab = kandil.saved.active_tab() || kandil.settings.default_tab;
   $(tab).click();
-}
+},
 
-/// Creates the quick search text inputs.
-function createQuickSearchInputs()
-{
+  /// Creates the quick search text inputs.
+  createQuickSearchInputs : function() {
   var options = {text: kandil.msg.filter, delay: kandil.settings.qs_delay};
   var qs = [
     new QuickSearch("apiqs", options), new QuickSearch("modqs", options)
@@ -270,16 +282,15 @@ function createQuickSearchInputs()
     // Start the search.
     if (!(quick_search(qs, symbols) & 1))
       $(ul).append("<li class='no_match_msg'>{0}</li>"
-                   .format(kandil.msg.no_match));
+        .format(kandil.msg.no_match));
   }
   qs[0].$input.add(qs[1].$input)
     .bind("first_focus", handleFirstFocus).bind("start_search", handleSearch);
   qs[0].input.tabIndex = qs[1].input.tabIndex = 0;
-}
+},
 
-/// Installs event handlers to show tooltips for symbols.
-function installTooltipHandlers()
-{
+  /// Installs event handlers to show tooltips for symbols.
+  installTooltipHandlers : function() {
   var ul = kandil.$.apipanel.find(".tview");
   var tooltip = $.extend({
     current: null, // Current tooltip.
@@ -321,14 +332,14 @@ function installTooltipHandlers()
     tooltip.TID = setTimeout(function(){ showTooltip(e); }, delay);
   }).mouseout(function(e) {
     clearTimeout(tooltip.TID);
-    if (tooltip.current) fadeOutRemove(tooltip.current, 0, tooltip.fadeout);
+    if (tooltip.current)
+      app.fadeOutRemove(tooltip.current, 0, tooltip.fadeout);
     tooltip.TID = setTimeout(function() { tooltip.current = null; }, 100);
   });
-}
+},
 
-/// Creates the split bar for resizing the navigation panel and content.
-function createSplitbar()
-{
+  /// Creates the split bar for resizing the navigation panel and content.
+  createSplitbar : function() {
   var settings = kandil.settings, saved = kandil.saved;
   var splitbar = $(settings.splitbar_html.format(kandil.msg))[0];
   var navbar = kandil.$.navbar[0], content = kandil.$.content[0];
@@ -390,18 +401,10 @@ function createSplitbar()
     pos = 0;
   splitbar.setPos(pos);
   return splitbar;
-}
+},
 
-/// Handles a mouse click on a module list item.
-function handleLoadingModule(event)
-{
-  event.preventDefault();
-  var modFQN = this.href.rpartition('/', 1).partition('.html', 0);
-  loadNewModule(modFQN);
-}
 
-function initSymbolTags(kandil)
-{
+  initSymbolTags : function() {
   kandil.$.symbols = $(".symbol");
 
   function addStuffLazily(decl)
@@ -416,26 +419,18 @@ function initSymbolTags(kandil)
     // Add code display functionality to symbol links.
     symbol.click(function(e) {
       e.preventDefault();
-      showCode($(this));
+      app.showCode($(this));
     }).attr("title", kandil.msg.symboltitle);
 
     decl.click(function(e) {
       if (e.target == this)
-        showCode($(">.symbol", this));
+        app.showCode($(">.symbol", this));
     }).attr("title", kandil.msg.dt_tagtitle);
 
     // Prepare permalinks.
     var plink = decl.find('>.plink');
     // Set the title of the permalinks.
     plink.attr("title", kandil.msg.permalink);
-    // Prevent permalinks from loading a new page,
-    // in case a different module is loaded.
-    // TODO: this code will be removed once the History object can be used.
-    if (kandil.originalModuleFQN != kandil.moduleFQN)
-      plink.click(function(event) {
-        event.preventDefault();
-        this.scrollIntoView();
-      });
   }
 
   // Prepare 'dt.decl' tags.
@@ -444,48 +439,39 @@ function initSymbolTags(kandil)
     var decl = $(this).unbind("mouseover", f);
     addStuffLazily(decl);
   });
-}
+},
 
-/// Adds click handlers to symbols and inits the symbol list.
-function initAPIList()
-{
+  /// Adds click handlers to symbols and inits the symbol list.
+  initAPIList : function() {
   // Create the HTML text and append it to the api panel.
-  var ul = createSymbolsUL(kandil.$.apipanel.find(">div.scroll"));
+  var ul = app.createSymbolsUL(kandil.$.apipanel.find(">div.scroll"));
   var tv = new Treeview(ul);
   tv.loadState(kandil.saved.symbols_tv_state);
-  tv.bind("save_state", curry2(tv, tv.saveState, kandil.saved.symbols_tv_state));
+  tv.bind("save_state",
+    curry2(tv, tv.saveState, kandil.saved.symbols_tv_state));
   ul.parent().scroll(function() {
     kandil.save.symbols_sb(this.scrollTop);
   });
   setTimeout(function() {
     ul.parent()[0].scrollTop = kandil.save.symbols_sb();
   });
-  installTooltipHandlers();
-}
+  app.installTooltipHandlers();
+},
 
-/// Delays for 'delay' ms, fades out an element in 'fade' ms and removes it.
-function fadeOutRemove(tag, delay, fade)
-{
-  tag = $(tag);
-  setTimeout(function(){
-    tag.fadeOut(fade, function(){ tag.remove() });
-  }, delay);
-}
-
-/// Loads a new module and updates the content pane.
-function loadNewModule(moduleFQN)
-{
+  /// Loads a new module and updates the content pane.
+  loadNewModule : function(moduleFQN, addHistory) {
   var kandil = window.kandil;
   // Load the module's file.
   var doc_url = moduleFQN + ".html";
 
   function errorHandler(request, error, e)
   {
-    hideLoadingGif();
+    app.hideLoadingGif();
     var msg = kandil.msg.failed_module.format(doc_url);
-    msg = $("<p class='ajaxerror'>{0}<br/><br/>{1.name}: {1.message}</p>".format(msg, e));
+    msg = $(("<p class='ajaxerror'>{0}<br/><br/>\
+{1.name}: {1.message}</p>").format(msg, e));
     $(document.body).append(msg);
-    fadeOutRemove(msg, 5000, 500);
+    app.fadeOutRemove(msg, 5000, 500);
   }
 
   function extractParts(text)
@@ -499,22 +485,21 @@ function loadNewModule(moduleFQN)
     return parts;
   }
 
-  showLoadingGif(kandil.msg.loading_module);
+  app.showLoadingGif(kandil.msg.loading_module);
   try {
     $.ajax({url: doc_url, dataType: "text", error: errorHandler,
       async: false,
       success: function(text) {
         if (text == "")
           return errorHandler(0, 0, Error(kandil.msg.got_empty_file));
-        text = new String(text);
-        var parts = extractParts(text);
+
+        var parts = extractParts(new String(text));
         // Reset some global variables.
         kandil.moduleFQN = moduleFQN;
         kandil.sourceCode = null;
-        document.title = parts.title;
         $("html")[0].scrollTop = 0; // Scroll the document to the top.
         kandil.$.content[0].innerHTML = parts.content;
-        initSymbolTags(kandil);
+        app.initSymbolTags();
         // Update the API panel.
         kandil.$.apipanel.find(".tview").remove(); // Delete old API list.
         kandil.$.apitab.unbind("click", kandil.$.apitab.lazyLoad)
@@ -522,71 +507,69 @@ function loadNewModule(moduleFQN)
         if (kandil.$.apitab.hasClass("current")) // Is the API tab selected?
           kandil.$.apitab.lazyLoad(); // Load the contents then.
         $("#apiqs")[0].qs.resetFirstFocusHandler();
-        hideLoadingGif();
+        // Change the title and hide the loading animation.
+        document.title = parts.title;
+        app.hideLoadingGif();
+
+        if (addHistory)
+          window.history.pushState({fqn:moduleFQN}, parts.title, doc_url);
       }
     });
   }
   catch(e){ errorHandler(0, 0, e); }
-}
+},
 
-function showLoadingGif(msg)
-{
+  /// Shows a little message for feedback.
+  showLoadingGif : function(msg) {
   if (!msg)
     msg = "";
   var loading = $("#kandil-loading");
   if (!loading.length)
-    (loading = $("<div id='kandil-loading'><img src='img/loading.gif'/>&nbsp;<span/></div>")),
-    $(document.body).append(loading);
+    (loading = $("<div id='kandil-loading'>\
+<img src='img/loading.gif'/>&nbsp;<span/></div>")),
+    $(document.body).append(loading).addClass("progress");
   $("span", loading).html(msg);
-}
+},
+  /// Hides the feedback message.
+  hideLoadingGif : function() {
+  $(document.body).removeClass("progress");
+  app.fadeOutRemove($("#kandil-loading"), 1, 500);
+},
 
-function hideLoadingGif()
-{
-  fadeOutRemove($("#kandil-loading"), 1, 500);
-}
-
-/// Returns an image tag for the provided kind of symbol.
-function getPNGIcon(kind)
-{
-  if (SymbolKind.isFunction(kind))
-    kind = "function";
-  return "<img src='img/icon_"+kind+".png'/>";
-}
-
-function createSymbolsUL(panel)
-{ // TODO: put loading.gif in the center of ul and animate showing/hiding?
+  createSymbolsUL : function(panel) {
   var root = kandil.symbolTree.root;
-  var ul = $("<ul class='tview'><li class='root'><i></i>"+getPNGIcon("module")+
-    "<label><a href='#m-"+root.fqn+"'>"+root.fqn+"</a></label></li>"+
-    "<li><img src='img/loading.gif'/></li></ul>");
+  var ul = $('<ul class="tview"><li class="root"><i></i>{0}\
+<label><a href="#m-{1}">{1}</a></label></li>\
+<li><img src="img/loading.gif"/></li></ul>'
+    .format(getPNGIcon("module"), root.fqn));
   panel.append(ul);
   if (root.sub.length) {
     if (!(content = kandil.saved.symbols_ul()))
-      kandil.save.symbols_ul(content = createSymbolsUL_(root.sub));
+      kandil.save.symbols_ul(content = app.createSymbolsUL_(root.sub));
     ul[0].firstChild.innerHTML += content;
   }
   $(ul[0].lastChild).remove();
   return ul;
-}
+},
 
-function createModulesUL(panel)
-{
+  createModulesUL : function(panel) {
   var root = kandil.packageTree.root;
-  var ul = $("<ul class='tview'><li class='root'><i></i>"+getPNGIcon("package")+
-    "<label>/</label></li><li><img src='img/loading.gif'/></li></ul>");
+  var ul = $('<ul class="tview"><li class="root"><i></i>{0}\
+<label>{1}</label></li>\
+<li><img src="img/loading.gif"/></li></ul>'
+    .format(getPNGIcon("package"), "Module Tree"));
   panel.append(ul);
   if (root.sub.length) {
     if (!(content = kandil.saved.modules_ul()))
-      kandil.save.modules_ul(content = createModulesUL_(root.sub));
+      kandil.save.modules_ul(content = app.createModulesUL_(root.sub));
     ul[0].firstChild.innerHTML += content;
   }
   $(ul[0].lastChild).remove();
   return ul;
-}
+},
 
-/// Constructs a ul (enclosing nested ul's) from the symbols data structure.
-function createSymbolsUL_(symbols)
-{
+  /// Constructs a ul (enclosing nested ul's) from the symbols data structure.
+  createSymbolsUL_ : function fn(symbols) {
   var list = "<ul>";
   for (var i = 0, len = symbols.length; i < len; i++)
   {
@@ -599,15 +582,14 @@ function createSymbolsUL_(symbols)
     list += "<li"+leafClass+"><i></i>"+getPNGIcon(sym.kind)+
             "<label><a href='#"+sym.fqn+"'>"+label+"</a></label>";
     if (hasSubSymbols)
-      list += createSymbolsUL_(sym.sub);
+      list += fn(sym.sub);
     list += "</li>";
   }
   return list + "</ul>";
-}
+},
 
-/// Constructs a ul (enclosing nested ul's) from the package tree.
-function createModulesUL_(symbols)
-{
+  /// Constructs a ul (enclosing nested ul's) from the package tree.
+  createModulesUL_ : function fn(symbols) {
   var list = "<ul>";
   for (var i = 0, len = symbols.length; i < len; i++)
   {
@@ -615,19 +597,20 @@ function createModulesUL_(symbols)
     var hasSubSymbols = sym.sub && sym.sub.length;
     var leafClass = hasSubSymbols ? '' : ' class="leaf"';
     list += "<li"+leafClass+">"+ //  kind='"+sym.kind+"'
-            "<i></i>"+getPNGIcon(sym.kind)+"<label>";
+            "<i></i>"+getPNGIcon(sym.kind)+
+            '<label title="'+sym.fqn+'">';
     if (hasSubSymbols)
-      list += sym.name + "</label>" + createModulesUL_(sym.sub);
+      list += sym.name + "</label>" + fn(sym.sub);
     else
       list += "<a href='"+sym.fqn+".html'>"+sym.name+"</a></label>"
     list += "</li>";
   }
   return list + "</ul>";
-}
+},
 
-/// Extracts the code from the HTML file. Cached in kandil.sourceCode.
-function setSourceCode(html_code)
-{ // NB: Profiled code.
+  /// Extracts the code from the HTML file. Cached in kandil.sourceCode.
+  setSourceCode : function(html_code) {
+  // NB: Profiled code.
   var start = html_code.indexOf('<pre class="sourcecode">'),
       end = html_code.lastIndexOf('</pre>');
   if (start < 0 || end < 0)
@@ -636,17 +619,15 @@ function setSourceCode(html_code)
   var code = html_code.slice(start, end);
   // Split on newline.
   kandil.sourceCode = code.split(/\n|\r\n|\r|\u2028|\u2029/);
-}
+},
 
-/// Returns the relative URL to the source code of this module.
-function getSourceCodeURL()
-{
+  /// Returns the relative URL to the source code of this module.
+  getSourceCodeURL : function() {
   return "htmlsrc/" + kandil.moduleFQN + ".html";
-}
+},
 
-/// Shows the code for a symbol in a div tag beneath it.
-function showCode(symbol)
-{
+  /// Shows the code for a symbol in a div tag beneath it.
+  showCode : function(symbol) {
   var dt_tag = symbol.parent()[0];
 
   if (dt_tag.code_div)
@@ -659,7 +640,7 @@ function showCode(symbol)
   dt_tag.code_div = $("<div/>");
 
   if (kandil.sourceCode == null)
-    loadHTMLCode();
+    app.loadHTMLCode();
 
   // The function that actually displays the code.
   var loc_tuple = kandil.symbolTree.dict.get(symbol[0].name).loc;
@@ -669,7 +650,7 @@ function showCode(symbol)
   var code = kandil.sourceCode.slice(line_beg, line_end+1);
   code = code.join("\n");
   // Create the lines column.
-  var lines = "", srcURL = getSourceCodeURL();
+  var lines = "", srcURL = app.getSourceCodeURL();
   // TODO: cache lines?
   for (var num = line_beg; num <= line_end; num++)
     lines += '<a href="' + srcURL + '#L' + num + '">' + num + '</a>\n';
@@ -694,23 +675,23 @@ function showCode(symbol)
       // show/hide line numbers | expand/minimize
       // A resize bar at the bottom that adjusts max-height when dragged?
     });
-}
+},
 
-/// Loads the HTML source code file and keeps it cached.
-function loadHTMLCode()
-{
-  var doc_url = getSourceCodeURL();
+  /// Loads the HTML source code file and keeps it cached.
+  loadHTMLCode : function() {
+  var doc_url = app.getSourceCodeURL();
 
   function errorHandler(request, error, e)
   { // Appends a p-tag to the document. Can be styled with CSS.
-    hideLoadingGif();
+    app.hideLoadingGif();
     var msg = kandil.msg.failed_code.format(doc_url);
-    msg = $("<p class='ajaxerror'>{0}<br/><br/>{1.name}: {1.message}</p>".format(msg, e));
+    msg = $(("<p class='ajaxerror'>{0}<br/><br/>\
+{1.name}: {1.message}</p>").format(msg, e));
     $(document.body).append(msg);
-    fadeOutRemove(msg, 5000, 500);
+    app.fadeOutRemove(msg, 5000, 500);
   }
 
-  showLoadingGif(kandil.msg.loading_code);
+  app.showLoadingGif(kandil.msg.loading_code);
   try {
     var xhr = $.ajax({url: doc_url, dataType: "text",
       error: errorHandler, async: false});
@@ -718,10 +699,29 @@ function loadHTMLCode()
     if (text == "")
       return errorHandler(0, 0, Error(kandil.msg.got_empty_file));
     text = new String(text);
-    setSourceCode(text);
-    hideLoadingGif();
+    app.setSourceCode(text);
+    app.hideLoadingGif();
   }
   catch(e){ errorHandler(0, 0, e); }
+},
+
+  /// Delays for 'delay' ms, fades out an element in 'fade' ms and removes it.
+  fadeOutRemove : function(tag, delay, fade) {
+  tag = $(tag);
+  setTimeout(function(){
+    tag.fadeOut(fade, function(){ tag.remove() });
+  }, delay);
+},
+
+}; // End of app variable value.
+
+
+
+/// Returns an image tag for the provided kind of symbol.
+function getPNGIcon(kind) {
+  if (SymbolKind.isFunction(kind))
+    kind = "function";
+  return "<img src='img/icon_"+kind+".png'/>";
 }
 
 function reportBug()
@@ -729,238 +729,3 @@ function reportBug()
   // TODO: implement.
 }
 
-/// Constructs a Treeview object.
-/// Adds treeview functionality to ul. Expects special markup.
-function Treeview(ul)
-{
-  var tv = this;
-  ul.addClass("tview");
-  this.$ul = ul;
-  this.ul = ul[0];
-
-  this.ul.tabIndex = 1; // Make this tag focusable by tabbing and clicking.
-  if (window.opera)
-    // Unfortunately Opera selects all the text inside ul if it is focused via
-    // the tab key. We can still make an element focusable with a value of -1.
-    // Hope this gets fixed in Opera 10.
-    this.ul.tabIndex = -1; // Make focusable but prevent tabbing.
-
-  this.selected_li = ul[0].firstChild;
-
-  function handleKeypress(e)
-  {
-    if (33 <= e.keyCode && e.keyCode <= 40 || e.keyCode == 13)
-      e.preventDefault(),
-      tv.eventHandlerTable[e.keyCode].call(tv, e);
-  }
-
-  this.setFocus = function() {
-    if (tv.focused) return;
-    tv.focused = true;
-    tv.ul.addClass("focused");
-  }
-
-  this.unsetFocus = function() {
-    if (!tv.focused) return;
-    tv.focused = false;
-    tv.ul.removeClass("focused");
-  }
-
-  this.$ul.focus(tv.setFocus);
-  this.$ul.blur(tv.unsetFocus); // Losing focus.
-  // Note: keyboard navigation is unfinished.
-//   this.$ul.keypress(handleKeypress);
-
-  this.$ul.mousedown(function(e) {
-    tv.setFocus();
-    var tagName = e.target.tagName;
-    // The i-tag represents the icon of the tree node.
-    if (tagName == "I")
-      tv.iconClick(e.target.parentNode);
-    else if (tagName == "A" || tagName == "LABEL" || tagName == "SUB")
-    {
-      var li = e.target;
-      for (; li && li.tagName != "LI";)
-        li = li.parentNode;
-      if (li) tv.selected(li);
-    }
-  });
-
-  // When the state of a node changes, trigger a delayed save_state event.
-  this.$ul.bind("state_toggled", function() {
-    tv.savedState = false;
-    clearTimeout(tv.saveTID);
-    tv.saveTID = setTimeout(function() {
-      tv.$ul.trigger("save_state");
-    }, kandil.settings.tview_save_delay);
-  });
-}
-
-Treeview.prototype = {
-//   default_li: {
-//     nextSibling: ,
-//     lastChild: {
-//     }
-//   },
-  selected: function(new_li) {
-    if (new_li != undefined) {
-      new_li.addClass("selected");
-      if (new_li == this.selected_li)
-        return;
-      this.selected_li.removeClass("selected");
-      this.selected_li = new_li;
-      // TODO: Adjust the scrollbar position.
-      // This is very difficult.
-//       if (new_li.scrollTop < this.ul.scrollTop)
-//         this.ul.scrollTop = new_li.scrollTop;
-//       else if (new_li.scrollTop > this.ul.scrollTop + this.ul.clientHeight)
-//         this.ul.scrollTop = new_li.scrollTop;
-    }
-    return this.selected_li;
-  },
-
-  // Functions for keyboard navigation:
-  // TODO: The code must be reviewed, debugged and tested for correctness.
-
-  getLastLI: function(ul) {
-    var li = $(">li:visible:last", ul)[0];
-    if (li && li.lastChild.tagName == "UL" && li.lastChild.clientHeight != 0)
-      return this.getLastLI(li.lastChild);
-    return li;
-  },
-  movePageUp: function(e) { /*TODO:*/ },
-  movePageDown: function(e) { /*TODO:*/ },
-  moveHome: function(e) {
-    if (first_li = this.ul.firstChild)
-      this.selected(first_li);
-  },
-  moveEnd: function(e) {
-    if (last_li = this.getLastLI(this.ul))
-      this.selected(last_li);
-  },
-  moveLeft: function(e) {
-    var li = this.selected();
-    if (li.lastChild.tagName == "UL" &&
-        !li.hasClass("closed|has_hidden|show_hidden"))
-      this.iconClick(li);
-    else if (li.parentNode != this.ul)
-      (li = li.parentNode.parentNode),
-      this.selected(li),
-      this.iconClick(li);
-    else
-      this.moveUp(e);
-  },
-  moveUp: function(e) {
-    var tview = this;
-    function prev_visible(li)
-    {
-      var prev_li = li.previousSibling; // Default.
-      if (prev_li && prev_li.tagName != "LI")
-        return prev_visible(prev_li);
-      if (!prev_li && li.parentNode != tview.ul)
-        prev_li = li.parentNode.parentNode; // Go up one level.
-      else if (prev_li && prev_li.lastChild.tagName == "UL" &&
-              !prev_li.hasClass("closed"))
-        // Get the last li-tag of the previous branch.
-        prev_li = tview.getLastLI(prev_li.lastChild);
-      if (prev_li && prev_li.clientHeight == 0)
-        return prev_visible(prev_li);
-      return prev_li;
-    }
-    if (li = prev_visible(this.selected()))
-      this.selected(li);
-  },
-  moveRight: function(e) {
-    var li = this.selected();
-    if (li.hasClass("closed|has_hidden"))
-      this.iconClick(li);
-    else
-      this.moveDown(e);
-  },
-  moveDown: function(e) {
-    var tview = this;
-    function next_visible(li)
-    {
-      var next_li = li.nextSibling; // Default.
-      if (li.lastChild &&
-          li.lastChild.tagName == "UL" &&
-          !li.hasClass("closed"))
-        next_li = li.lastChild.firstChild; // Go down one level.
-      if (!next_li)
-        // Backtrack to the next sibling branch.
-        for (var p_ul = li.parentNode; !next_li && p_ul != tview.ul;
-             p_ul = p_ul.parentNode.parentNode)
-          if (p_ul.parentNode.nextSibling)
-            next_li = p_ul.parentNode.nextSibling;
-//       if (next_li && next_li.tagName != "LI")
-//         return next_visible(next_li);
-      if (next_li && next_li.clientHeight == 0)
-        return next_visible(next_li);
-      return next_li;
-    }
-    if (li = next_visible(this.selected()))
-      this.selected(li);
-  },
-  itemEnter: function(e) {
-    if (link = $(">label>a", this.selected())[0])
-      if (link.click) link.click(); // For Opera.
-      else { // Browsers like Firefox, Safari etc.
-        var ev = document.createEvent('MouseEvents');
-        ev.initEvent('click', true, true);
-        link.dispatchEvent(ev);
-      }
-  },
-  iconClick: function(li) {
-    if (this.ul.hasClass("filtered")) {
-      // Go from [.] -> [-] -> [+] -> [.]
-      if (li.hasClass("has_hidden")) {
-        if (li.hasClass("closed")) // [+] -> [.]
-          li.removeClass("closed");
-        else // [.] -> [-]
-          li.addClass("show_hidden").removeClass("has_hidden");
-      }
-      else if (li.hasClass("show_hidden")) // [-] -> [+]
-        li.addClass("has_hidden|closed").removeClass("show_hidden");
-      else // [-] <-> [+]
-        li.toggleClass("closed");
-    }
-    else // Normal node. [-] <-> [+]
-      li.toggleClass("closed");
-    this.$ul.trigger("state_toggled");
-  },
-  // Binds a function to an event from the ul tag.
-  bind: function(which_event, func) {
-    this.$ul.bind(which_event, func);
-  },
-};
-
-Treeview.prototype.eventHandlerTable = (function() {
-  var p = Treeview.prototype;
-  return {
-    33:p.movePageUp, 34:p.movePageDown, 35:p.moveEnd, 36:p.moveHome,
-    37:p.moveLeft, 38:p.moveUp, 39:p.moveRight, 40:p.moveDown,
-    13:p.itemEnter
-  };
-})();
-
-/// Saves the state of a treeview in a cookie.
-Treeview.prototype.saveState = function(save_fn) {
-  if (this.savedState)
-    return;
-  var ul_tags = this.ul.getElementsByTagName("ul"), list = "";
-  for (var i = 0, len = ul_tags.length; i < len; i++)
-    if (ul_tags[i].parentNode.hasClass("closed"))
-      list += i + ",";
-  save_fn(list.slice(0, -1)); // Strip last comma.
-  this.savedState = true;
-};
-/// Loads the state of a treeview from a cookie.
-Treeview.prototype.loadState = function(load_fn) {
-  var list = load_fn();
-  if (!list)
-    return;
-  var ul_tags = this.ul.getElementsByTagName("ul");
-  list = list.split(",");
-  for (var i = 0, len = list.length; i < len; i++)
-    ul_tags[list[i]].parentNode.addClass("closed");
-};

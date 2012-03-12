@@ -1,6 +1,7 @@
 @charset "utf-8";
 /* Author: Aziz Köksal */
-* { color: black; }
+a { color: DarkBlue; }
+a:visited { color: DarkSlateBlue; }
 body { margin: 0; }
 body.progress { cursor: progress; }
 
@@ -255,7 +256,7 @@ ul.tview {
   border-top: 1px dashed Gray;
 }
 
-.plink, .srclink{
+.plink, .plink:visited, .srclink, .srclink:visited {
   padding: 0em 0.2em;
   text-decoration: none;
   color: DarkRed;
@@ -277,7 +278,7 @@ h1.module:hover .srclink {
   background-color: DarkRed;
 }
 
-.symbol {
+.symbol, .symbol:visited {
   color: ForestGreen;
   text-decoration: none;
   font-weight: bold;
@@ -301,6 +302,7 @@ h1.module:hover .srclink {
 
 .attrs {
   font-size: 0.8em;
+  color: #555;
 }
 
 table.params td {
@@ -308,12 +310,12 @@ table.params td {
 }
 
 table.params td:first-child {
-  padding-right: 0.2em;
+  padding-right: 0.5em;
   text-align: right;
 }
 
 #kandil-loading, .ajaxerror {
-  background-color: white;
+  background-color: White;
   position: fixed;
   margin: 0.5em;
   padding: 0.2em;

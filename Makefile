@@ -1,29 +1,29 @@
 # General configuration
-DC                 := ldc2
-DC_NAME            := ldc
-D_FLAGS            := -unittest -w -wi -property -d-version=Tango -O3
-INSTALL_PREFIX     := /usr/local
-#PERF_STR          := -d-version=Perf
-PERF_STR           := 
+DC                 = ldc2
+DC_NAME            = ldc
+D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3
+INSTALL_PREFIX     = /usr/local
+#PERF_STR          = -d-version=Perf
+PERF_STR           = 
 
 # Dependencies
-OPENCL_PATH        := /usr/local/amdapp/lib/x86_64
-DUTIL_PATH         := /usr/local/include/d
-DUTIL_FILES        := $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d
-DGNUPLOT_PATH      := /usr/local/include/d
-DGNUPLOT_FILES     := $(DGNUPLOT_PATH)/gnuplot.d
-TANGO_LDFLAGS      := -L-ltango-$(DC_NAME)
-LD_FLAGS           := -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) 
+OPENCL_PATH        = /usr/local/amdapp/lib/x86_64
+DUTIL_PATH         = /usr/local/include/d
+DUTIL_FILES        = $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d
+DGNUPLOT_PATH      = /usr/local/include/d
+DGNUPLOT_FILES     = $(DGNUPLOT_PATH)/gnuplot.d
+TANGO_LDFLAGS      = -L-ltango-$(DC_NAME)
+LD_FLAGS           = -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) 
 
 # Components
-CELEME_FILES_NO_CL := $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
-CELEME_FILES       := $(CELEME_FILES_NO_CL) $(wildcard opencl/*.d)
-D_EXAMPLE_NAME     := main
-D_EXAMPLE_FILES    := main.d $(CELEME_FILES)
-LIBRARY_NAME       := libceleme.a
+CELEME_FILES_NO_CL = $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
+CELEME_FILES       = $(CELEME_FILES_NO_CL) $(wildcard opencl/*.d)
+D_EXAMPLE_NAME     = main
+D_EXAMPLE_FILES    = main.d $(CELEME_FILES)
+LIBRARY_NAME       = libceleme.a
 
 # xfbuild specific
-XFBUILD         := $(shell which xfbuild)
+XFBUILD            = $(shell which xfbuild)
 
 # Compiles a D program
 # $1 - program name

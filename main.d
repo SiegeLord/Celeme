@@ -19,7 +19,6 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 module main;
 
 import celeme.celeme;
-import celeme.capi;
 
 import opencl.cl;
 import gnuplot;

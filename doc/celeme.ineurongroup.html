@@ -19,24 +19,40 @@
   <h1 class="module" id="m-celeme.ineurongroup"><a href="htmlsrc/celeme.ineurongroup.html" class="symbol">celeme.ineurongroup</a></h1>
 
 <dl>
-<dt class="decl"><span class="kw">interface</span> <a class="symbol _interface" name="INeuronGroup" href="htmlsrc/celeme.ineurongroup.html#L28">INeuronGroup</a> <a href="celeme.ineurongroup.html#INeuronGroup" class="plink">¶</a></dt>
+<dt class="decl"><span class="kw">struct</span> <a class="symbol _struct" name="SDataPoint" href="htmlsrc/celeme.ineurongroup.html#L28">SDataPoint</a> <a href="celeme.ineurongroup.html#SDataPoint" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">The datapoint recorded by the neuron group.</div></div>
+<dl>
+<dt class="decl">double <a class="symbol _variable" name="SDataPoint.T" href="htmlsrc/celeme.ineurongroup.html#L33">T</a> <a href="celeme.ineurongroup.html#SDataPoint.T" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">The time associated with the datapoint.</div></div></dd>
+<dt class="decl">double <a class="symbol _variable" name="SDataPoint.Data" href="htmlsrc/celeme.ineurongroup.html#L37">Data</a> <a href="celeme.ineurongroup.html#SDataPoint.Data" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Actual data of this datapoint.</div></div></dd>
+<dt class="decl">int <a class="symbol _variable" name="SDataPoint.Tag" href="htmlsrc/celeme.ineurongroup.html#L41">Tag</a> <a href="celeme.ineurongroup.html#SDataPoint.Tag" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">The tag of this datapoint. It is set by the record() function inside the neuron code.</div></div></dd>
+<dt class="decl">size_t <a class="symbol _variable" name="SDataPoint.NeuronIdx" href="htmlsrc/celeme.ineurongroup.html#L45">NeuronIdx</a> <a href="celeme.ineurongroup.html#SDataPoint.NeuronIdx" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Index of the neuron that this datapoint came from.</div></div></dd></dl></dd>
+<dt class="decl"><span class="kw">interface</span> <a class="symbol _interface" name="INeuronGroup" href="htmlsrc/celeme.ineurongroup.html#L51">INeuronGroup</a> <a href="celeme.ineurongroup.html#INeuronGroup" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">A common interface to multiple types of groups.</div></div>
 <dl>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex" href="htmlsrc/celeme.ineurongroup.html#L33">opIndex</a><span class="params">(cstring <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex" href="htmlsrc/celeme.ineurongroup.html#L56">opIndex</a><span class="params">(cstring <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a constant, or the default value of a global or a syn global.</div></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign" href="htmlsrc/celeme.ineurongroup.html#L38">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign" href="htmlsrc/celeme.ineurongroup.html#L61">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a constant, or the default value of a global or a syn global.</div></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:2" href="htmlsrc/celeme.ineurongroup.html#L46">opIndex</a><span class="params">(cstring <em>name</em>, size_t <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:2" href="htmlsrc/celeme.ineurongroup.html#L69">opIndex</a><span class="params">(cstring <em>name</em>, size_t <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a global value of a particular neuron.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>name</em></td><td>Name of the global.</td></tr>
 <tr><td><em>idx</em></td><td>Index of the neuron.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:2" href="htmlsrc/celeme.ineurongroup.html#L55">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>, size_t <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:2" href="htmlsrc/celeme.ineurongroup.html#L78">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>, size_t <em>idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a global value of a particular neuron.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -44,7 +60,7 @@
 <tr><td><em>val</em></td><td>New value.</td></tr>
 <tr><td><em>name</em></td><td>Name of the global.</td></tr>
 <tr><td><em>idx</em></td><td>Index of the neuron.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:3" href="htmlsrc/celeme.ineurongroup.html#L64">opIndex</a><span class="params">(cstring <em>name</em>, size_t <em>nrn_idx</em>, size_t <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:3" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndex:3" href="htmlsrc/celeme.ineurongroup.html#L87">opIndex</a><span class="params">(cstring <em>name</em>, size_t <em>nrn_idx</em>, size_t <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndex:3" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Get the value of a syn global value of a particular neuron.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -52,7 +68,7 @@
 <tr><td><em>name</em></td><td>Name of the global.</td></tr>
 <tr><td><em>nrn_idx</em></td><td>Index of the neuron.</td></tr>
 <tr><td><em>syn_idx</em></td><td>Index of the synapse within the neuron.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:3" href="htmlsrc/celeme.ineurongroup.html#L74">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>, size_t <em>nrn_idx</em>, size_t <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:3" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.opIndexAssign:3" href="htmlsrc/celeme.ineurongroup.html#L97">opIndexAssign</a><span class="params">(double <em>val</em>, cstring <em>name</em>, size_t <em>nrn_idx</em>, size_t <em>syn_idx</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.opIndexAssign:3" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the value of a syn global value of a particular neuron.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -61,46 +77,54 @@
 <tr><td><em>name</em></td><td>Name of the global.</td></tr>
 <tr><td><em>nrn_idx</em></td><td>Index of the neuron.</td></tr>
 <tr><td><em>syn_idx</em></td><td>Index of the synapse within the neuron.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">CRecorder</span> <a class="symbol _function" name="INeuronGroup.Record" href="htmlsrc/celeme.ineurongroup.html#L85">Record</a><span class="params">(size_t <em>neuron_id</em>, int <em>flags</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Record" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.Record" href="htmlsrc/celeme.ineurongroup.html#L106">Record</a><span class="params">(size_t <em>neuron_id</em>, int <em>flags</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Record" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Set the recording flags of a single neuron.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>neuron_id</em></td><td>Index of the neuron.</td></tr>
-<tr><td><em>flags</em></td><td>flags to pass to the neuron.</td></tr></table>
-<p class="sec_header">Returns:</p><div class="cmnt">A common recorder that will hold data points consisting of the time, data and a tag as well as the neuron id.</div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.StopRecording" href="htmlsrc/celeme.ineurongroup.html#L89">StopRecording</a><span class="params">(size_t <em>neuron_id</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.StopRecording" class="plink">¶</a></dt>
+<tr><td><em>flags</em></td><td>flags to pass to the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.GetRecordFlags" href="htmlsrc/celeme.ineurongroup.html#L114">GetRecordFlags</a><span class="params">(size_t <em>neuron_id</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetRecordFlags" class="plink">¶</a></dt>
 <dd class="ddef">
-<div class="summary"><div class="cmnt">Stop recording everything</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.MinDt" href="htmlsrc/celeme.ineurongroup.html#L97">MinDt</a><span class="params">(double <em>min_dt</em>)</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt" class="plink">¶</a></dt>
+<div class="summary"><div class="cmnt">Get the recoding flags of a single neuron.</div></div>
+<p class="sec_header">Parameters:</p>
+<table class="params">
+<tr><td><em>neuron_id</em></td><td>Index of the neuron.</td></tr></table></dd>
+<dt class="decl"><span class="rettyp">SArray!(SDataPoint)</span> <a class="symbol _function" name="INeuronGroup.GetRecordedData" href="htmlsrc/celeme.ineurongroup.html#L119">GetRecordedData</a><span class="params">()</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetRecordedData" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Get the recorded data array.</div></div></dd>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.ResetRecordedData" href="htmlsrc/celeme.ineurongroup.html#L124">ResetRecordedData</a><span class="params">()</span> <a href="celeme.ineurongroup.html#INeuronGroup.ResetRecordedData" class="plink">¶</a></dt>
+<dd class="ddef">
+<div class="summary"><div class="cmnt">Reset the recorded data.</div></div></dd>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.MinDt" href="htmlsrc/celeme.ineurongroup.html#L132">MinDt</a><span class="params">(double <em>min_dt</em>)</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Sets the minimum dt for this neuron group. When adaptive integration is used, this is the
  smallest dt that the integrator can use. When fixed step integration is used, it is
  the dt that the integrator uses.</div></div></dd>
-<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.MinDt:2" href="htmlsrc/celeme.ineurongroup.html#L103">MinDt</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">double</span> <a class="symbol _function" name="INeuronGroup.MinDt:2" href="htmlsrc/celeme.ineurongroup.html#L138">MinDt</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.MinDt:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the minimum dt for this neuron group.</div></div></dd>
-<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="INeuronGroup.Count" href="htmlsrc/celeme.ineurongroup.html#L109">Count</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.Count" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="INeuronGroup.Count" href="htmlsrc/celeme.ineurongroup.html#L144">Count</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.Count" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the number of neurons in this group</div></div></dd>
-<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="INeuronGroup.NrnOffset" href="htmlsrc/celeme.ineurongroup.html#L115">NrnOffset</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.NrnOffset" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">size_t</span> <a class="symbol _function" name="INeuronGroup.NrnOffset" href="htmlsrc/celeme.ineurongroup.html#L150">NrnOffset</a><span class="params">()</span> <span class="attrs">[<span class="stc">@property</span>]</span> <a href="celeme.ineurongroup.html#INeuronGroup.NrnOffset" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the global index of the first neuron in this neuron group.</div></div></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.Seed" href="htmlsrc/celeme.ineurongroup.html#L124">Seed</a><span class="params">(int <em>seed</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Seed" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.Seed" href="htmlsrc/celeme.ineurongroup.html#L159">Seed</a><span class="params">(int <em>seed</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Seed" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Seeds the random number generator. Each individual neuron's random generator is set to a pseudo-random
  value based on this seed.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>seed</em></td><td>New PRNG seed.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.Seed:2" href="htmlsrc/celeme.ineurongroup.html#L133">Seed</a><span class="params">(size_t <em>nrn_id</em>, int <em>seed</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Seed:2" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">void</span> <a class="symbol _function" name="INeuronGroup.Seed:2" href="htmlsrc/celeme.ineurongroup.html#L168">Seed</a><span class="params">(size_t <em>nrn_id</em>, int <em>seed</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.Seed:2" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Seeds the random number generator of a single neuron.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>nrn_id</em></td><td>Index of the neuron.</td></tr>
 <tr><td><em>seed</em></td><td>New PRNG seed.</td></tr></table></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.GetConnectionId" href="htmlsrc/celeme.ineurongroup.html#L145">GetConnectionId</a><span class="params">(size_t <em>nrn_id</em>, size_t <em>event_source</em>, size_t <em>src_slot</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionId" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.GetConnectionId" href="htmlsrc/celeme.ineurongroup.html#L180">GetConnectionId</a><span class="params">(size_t <em>nrn_id</em>, size_t <em>event_source</em>, size_t <em>src_slot</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionId" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the target global neuron id that an event source is connected to at a specified source slot.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -109,7 +133,7 @@
 <tr><td><em>event_source</em></td><td>Index of the event source.</td></tr>
 <tr><td><em>src_slot</em></td><td>Index of the event source slot.</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">The global destination neuron id, or -1 if no connection is present.</div></dd>
-<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.GetConnectionSlot" href="htmlsrc/celeme.ineurongroup.html#L157">GetConnectionSlot</a><span class="params">(size_t <em>src_nrn_id</em>, size_t <em>event_source</em>, size_t <em>src_slot</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionSlot" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">int</span> <a class="symbol _function" name="INeuronGroup.GetConnectionSlot" href="htmlsrc/celeme.ineurongroup.html#L192">GetConnectionSlot</a><span class="params">(size_t <em>src_nrn_id</em>, size_t <em>event_source</em>, size_t <em>src_slot</em>)</span> <a href="celeme.ineurongroup.html#INeuronGroup.GetConnectionSlot" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Returns the target slot that an event source is connected to at a specified source slot.</div></div>
 <p class="sec_header">Parameters:</p>
@@ -121,7 +145,7 @@
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sun Mar 11 23:25:11 2012. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Mon Mar 12 20:53:54 2012. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

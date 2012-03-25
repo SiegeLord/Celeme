@@ -36,6 +36,8 @@ void main(char[][] arg_list)
 	bool save_to_file = false;
 	bool gpu = false;
 	
+	rand.seed({return 0U;});
+	
 	auto args = new Arguments;
 	args("run-only").aliased('r').bind({record = false;});
 	args("save").aliased('s').bind({save_to_file = true;});
@@ -115,8 +117,8 @@ void main(char[][] arg_list)
 	if(record)
 	{
 		model["Regular"].Record(0, 1);
-		//model["Regular"].Record(1, 1);
-		//model["Regular"].Record(2, 1);
+		model["Regular"].Record(1, 1);
+		model["Regular"].Record(N-1, 1);
 	}
 	
 	Stdout.formatln("Init time: {}", timer.stop());
@@ -164,6 +166,13 @@ void main(char[][] arg_list)
 				foreach(tag, data; tag_arr)
 				{
 					Plot(data.T, data.Data, Format("{} : {}", nrn_id, tag));
+					foreach(idx, t; data.T[1..$])
+						assert(t >= data.T[idx]);
+					
+					foreach(idx; 0..data.Length)
+					{
+						//println("{}	{}", data.T[idx], data.Data[idx]);
+					}
 				}
 			}
 			/*Color([0,0,0]);

@@ -555,19 +555,6 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		StepKernel.SetGlobalArg(idx + ValArgsOffset + ArgOffsetStep, val);
 	}
 	
-	void SetTolerance(cstring state, double tolerance)
-	{
-		auto adaptive = cast(CAdaptiveIntegrator!(float_t))Integrator;
-		if(adaptive !is null)
-		{
-			adaptive.SetTolerance(StepKernel, state, tolerance);
-		}
-		else
-		{
-			throw new Exception("Can only set tolerances for adaptive integrators.");
-		}
-	}
-	
 	final void CallInitKernel(cl_event* ret_event = null)
 	{
 		assert(Model.Initialized);
@@ -672,6 +659,10 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		foreach(name, val; &type.AllImmutables)
 		{
 			source ~= "const $num_type$ " ~ name ~ " = " ~ Format("{:e6}", val.Value) ~ ";";
+		}
+		foreach(name; &type.MissingTolerances)
+		{
+			source ~= "const $num_type$ " ~ name ~ " = 0.1;";
 		}
 		source.Inject(kernel_source, "$immutables$");
 		

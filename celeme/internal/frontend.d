@@ -45,7 +45,6 @@ class CValue
 		ret.Name = Name.dup;
 		ret.Value = Value;
 		ret.ReadOnly = ReadOnly;
-		ret.Tolerance = Tolerance;
 		
 		return ret;
 	}
@@ -53,7 +52,6 @@ class CValue
 	cstring Name;
 	double Value = 0;
 	bool ReadOnly = false;
-	double Tolerance = 0.1;
 }
 
 bool IsValidName(cstring name)
@@ -592,6 +590,34 @@ class CNeuronType
 			throw new Exception("Unreasolved externals in '" ~ Name.idup ~ "' neuron type." ~ error.idup);
 	}
 	
+	/* Goes through all the states and returns the missing tolerance names */
+	int MissingTolerances(scope int delegate(ref cstring name) dg)
+	{
+		outer: foreach(name, state; &AllStates)
+		{
+			auto tol_name = name ~ "_tol";
+			foreach(val_name, _; &AllImmutables)
+			{
+				if(tol_name == val_name)
+					continue outer;
+			}
+			foreach(val_name, _; &AllConstants)
+			{
+				if(tol_name == val_name)
+					continue outer;
+			}
+			foreach(val_name, _; &AllGlobals)
+			{
+				if(tol_name == val_name)
+					continue outer;
+			}
+			
+			if(int ret = dg(tol_name))
+				return ret;
+		}
+		return 0;
+	}
+	
 	int AllSynGlobals(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(syn_type; SynapseTypes)
@@ -634,7 +660,7 @@ class CNeuronType
 		return 0;
 	}
 	
-	/* I.e. all globals */
+	/* Globals and states*/
 	int AllNonLocals(scope int delegate(ref cstring name, ref CValue value) dg)
 	{
 		foreach(ii, mech; Mechanisms)
@@ -645,6 +671,20 @@ class CNeuronType
 				if(int ret = dg(name, val))
 					return ret;
 			}
+			foreach(val; mech.Globals)
+			{
+				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;
+				if(int ret = dg(name, val))
+					return ret;
+			}
+		}
+		return 0;
+	}
+	
+	int AllGlobals(scope int delegate(ref cstring name, ref CValue value) dg)
+	{
+		foreach(ii, mech; Mechanisms)
+		{
 			foreach(val; mech.Globals)
 			{
 				auto name = MechanismPrefixes[ii] == "" ? val.Name : MechanismPrefixes[ii] ~ "_" ~ val.Name;

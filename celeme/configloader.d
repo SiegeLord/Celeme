@@ -71,10 +71,9 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
 			else if(val_entry.IsAggregate)
 			{
 				val = val_entry.ValueOf!(double)("init", 0.0);
-				val.Tolerance = val_entry.ValueOf!(double)("tolerance", 0.1);
 			}
 			
-			//println("State: {} = {} @ {}", val_entry.Name, val.Value, val.Tolerance);
+			//println("State: {} = {}", val_entry.Name, val.Value);
 		}
 	}
 	
@@ -196,12 +195,11 @@ void FillMechanism(CMechanism mech, CConfigEntry mech_entry)
  *     pre_stage = "";
  *     
  *     // States
+ *     // To specify the tolerance for a state, add a global/constant/immutable value that has a _tol suffix
  *     state StateName
  *     {
  *         // Initial value
  *         init = 0;
- *         // Tolerance
- *         tolerance = 0.1
  *     }
  *     // Alternate syntax, the init is set to the assigned value
  *     state StateName2 = 0;
@@ -468,11 +466,6 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
 				{
 					mech[val_entry.Name] = value;
 				}
-				value = val_entry.ValueOf!(double)("tolerance", 0.0, &is_def);
-				if(!is_def)
-				{
-					mech[val_entry.Name].Tolerance = value;
-				}
 			}
 		}
 	}
@@ -561,9 +554,6 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
  *             {
  *                 // Initial value. If omitted, mechanism's default value is used
  *                 init;
- *                 // Tolerance (makes sense only for states). If omitted, mechanism's default value
- *                 // is used
- *                 tolerance;
  *             }
  *             // Alternate syntax, the init is set to the assigned value
  *             SomeOtherVal = 0;
@@ -593,9 +583,6 @@ void ApplyMechVals(CMechanism mech, CConfigEntry mech_entry)
  *             {
  *                 // Initial value. If omitted, mechanism's default value is used
  *                 init;
- *                 // Tolerance (makes sense only for states). If omitted, mechanism's default value
- *                 // is used
- *                 tolerance;
  *             }
  *             // Alternate syntax, the init is set to the assigned value
  *             SomeOtherVal = 0;

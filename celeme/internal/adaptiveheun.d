@@ -40,13 +40,6 @@ class CAdaptiveHeun(float_t) : CAdaptiveIntegrator!(float_t)
 	{
 		super(group, type);
 		
-		/* Copy tolerances */
-		foreach(name, state; &type.AllStates)
-		{
-			ToleranceRegistry[name] = Tolerances.length;
-			Tolerances ~= state.Tolerance;
-		}
-		
 		DtBuffer = Group.Core.CreateBuffer!(float_t)(Group.Count);
 	}
 	
@@ -80,11 +73,6 @@ _dt_buf[i] = _dt;";
 	size_t SetArgs(CCLKernel kernel, size_t arg_id)
 	{
 		kernel.SetGlobalArg(arg_id++, DtBuffer);
-		foreach(tol; Tolerances)
-		{
-			float_t tolerance = tol;
-			kernel.SetGlobalArg(arg_id++, tolerance);
-		}
 		
 		return arg_id;
 	}
@@ -93,10 +81,6 @@ _dt_buf[i] = _dt;";
 	cstring GetArgsCode(CNeuronType type)
 	{
 		cstring ret = "__global $num_type$* _dt_buf,\n";
-		foreach(name, state; &type.AllStates)
-		{
-			ret ~= "const $num_type$ _" ~ name ~ "_tol," ~ "\n";
-		}
 		if(ret.length)
 			ret = ret[0..$-1];
 		return ret;
@@ -211,7 +195,7 @@ else
 		/* Compute error */
 		foreach(name, state; &type.AllStates)
 		{
-			source ~= "_error = max(_error, fabs(_d" ~ name ~ "_dt_1 - _d" ~ name ~ "_dt_2) / _" ~ name ~ "_tol);";
+			source ~= "_error = max(_error, fabs(_d" ~ name ~ "_dt_1 - _d" ~ name ~ "_dt_2) / " ~ name ~ "_tol);";
 		}
 		source.Inject(kernel_source, "$compute_error$");
 		
@@ -223,24 +207,6 @@ else
 		source.Inject(kernel_source, "$update_state$");
 		
 		return kernel_source;
-	}
-	
-	override
-	void SetTolerance(CCLKernel kernel, cstring state, double tolerance)
-	{
-		assert(tolerance > 0);
-		
-		auto idx_ptr = state in ToleranceRegistry;
-		if(idx_ptr !is null)
-		{	
-			Tolerances[*idx_ptr] = tolerance;
-			if(Group.Initialized)
-			{
-				kernel.SetGlobalArg(*idx_ptr + Group.IntegratorArgOffset, cast(float_t)tolerance);
-			}
-		}
-		else
-			throw new Exception("Neuron group '" ~ Group.Name.idup ~ "' does not have a '" ~ state.idup ~ "' state.");
 	}
 	
 	override
@@ -265,6 +231,4 @@ if(_cur_time < timestep && _cur_time + _dt >= timestep)
 	}
 	
 	CCLBuffer!(float_t) DtBuffer;
-	double[] Tolerances;
-	size_t[char[]] ToleranceRegistry;
 }

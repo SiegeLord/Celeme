@@ -1,15 +1,10 @@
 mechanism Izhikevich
 {
-	state V
-	{
-		init -65;
-		tolerance 0.2;
-	}
-	state u
-	{
-		init -5;
-		tolerance 0.02;
-	}
+	state V -65;
+	immutable V_tol 0.2;
+	state u -5;
+	immutable u_tol 0.02;
+	
 	local I;
 	
 	threshold

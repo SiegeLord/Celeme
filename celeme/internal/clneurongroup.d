@@ -24,6 +24,7 @@ import celeme.internal.clcore;
 import celeme.internal.clconnector;
 import celeme.internal.iclmodel;
 import celeme.ineurongroup;
+import celeme.integrator_type;
 import celeme.internal.alignedarray;
 import celeme.internal.sourceconstructor;
 import celeme.internal.util;
@@ -257,7 +258,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, bool adaptive_dt = true, bool parallel_delivery = true)
+	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -368,10 +369,21 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			Constants ~= state.Value;
 		}
 		
-		if(adaptive_dt)
-			Integrator = new CAdaptiveHeun!(float_t)(this, type);
+		if(integrator_type & EIntegratorType.Heun)
+		{
+			if(integrator_type & EIntegratorType.Adaptive)
+				Integrator = new CAdaptiveHeun!(float_t)(this, type);
+			else
+				Integrator = new CHeun!(float_t)(this, type);
+		}
+		else if(integrator_type & EIntegratorType.Euler)
+		{
+			assert(0);
+		}
 		else
-			Integrator = new CHeun!(float_t)(this, type);
+		{
+			throw new Exception("Invalid integrator type for neuron group '" ~ name.idup ~ "'.");
+		}
 		
 		/* Create kernel sources */
 		CreateStepKernel(type);

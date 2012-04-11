@@ -25,6 +25,7 @@ module celeme.imodel;
 import celeme.internal.util;
 import celeme.internal.clmodel;
 import celeme.internal.frontend;
+import celeme.integrator_type;
 import celeme.ineurongroup;
 
 /**
@@ -50,11 +51,12 @@ interface IModel
 	 *     type_name = Name of the neuron type to add
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
-	 *     adaptive_dt = Whether or not to use the adaptive timestep integration
+	 *     integrator_type = What integrator to use for this neuron group. See $(SYMLINK2 celeme.itegrator_type, EIntegratorType, EIntegratorType)
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
+	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, 
+	                    EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true);
 	
 	/**
 	 * Adds a new neuron group.
@@ -63,11 +65,12 @@ interface IModel
 	 *     type = What neuron type to add
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
-	 *     adaptive_dt = Whether or not to use the adaptive timestep integration
+	 *     integrator_type = What integrator to use for this neuron group. See $(SYMLINK2 celeme.itegrator_type, EIntegratorType, EIntegratorType)
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
-	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true);
+	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null,
+	                    EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true);
 	
 	/**
 	 * Generates the model. You must generate it before you run it, or set any neuron-specific

@@ -24,6 +24,7 @@ import celeme.internal.frontend;
 import celeme.internal.clneurongroup;
 import celeme.internal.util;
 import celeme.internal.iclmodel;
+import celeme.integrator_type;
 import celeme.ineurongroup;
 
 import opencl.cl;
@@ -57,7 +58,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
 	{
 		assert(Registry !is null, "No neuron types available.");
 		
@@ -65,11 +66,11 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		if(type_ptr is null)
 			throw new Exception("The registry has no neuron type named '" ~ type_name.idup ~ "'.");
 		
-		AddNeuronGroup(*type_ptr, number, name, adaptive_dt, parallel_delivery);
+		AddNeuronGroup(*type_ptr, number, name, integrator_type, parallel_delivery);
 	}
 	
 	override
-	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, bool adaptive_dt = true, bool parallel_delivery = true)
+	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");
@@ -92,7 +93,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		
 		RandsUsed[type.RandLen] = true;
 		
-		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, adaptive_dt, parallel_delivery);
+		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, integrator_type, parallel_delivery);
 		
 		NeuronGroups[name] = group;
 	}

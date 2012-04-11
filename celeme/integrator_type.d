@@ -1,6 +1,6 @@
 /*
 This file is part of Celeme, an Open Source OpenCL neural simulator.
-Copyright (C) 2010-2011 Pavel Sountsov
+Copyright (C) 2010-2012 Pavel Sountsov
 
 Celeme is free software: you can redistribute it and/or modify
 it under the terms of the Lesser GNU General Public License as published by
@@ -16,13 +16,24 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.celeme;
+module celeme.integrator_type;
 
-public import
-	celeme.internal.frontend,
-	celeme.imodel,
-	celeme.ineurongroup,
-	celeme.integrator_type,
-	celeme.internal.clcore,
-	celeme.configloader,
-	celeme.celeme_util;
+/**
+ * Specifies what integrator to use for a neuron group. All integrators (for now) use sub-stepping, taking multiple
+ * smaller steps within the simulation timestep.
+ */
+enum EIntegratorType
+{
+	/**
+	 * Minimize the integration error by varying the integration timestep. Not available for the Euler method.
+	 */
+	Adaptive = 0x1,
+	/**
+	 * The second-order explicit Heun method.
+	 */
+	Heun     = 0x2,
+	/**
+	 * The first-order explicit Euler method.
+	 */
+	Euler    = 0x4
+}

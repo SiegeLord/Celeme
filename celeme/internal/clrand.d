@@ -72,6 +72,11 @@ $num_type$ rand2(uint2* zp)
 
 class CCLRand : CDisposable
 {
+	this()
+	{
+		Rand = new Random;
+	}
+	
 	cstring GetLoadCode()
 	{
 		return "";
@@ -118,6 +123,8 @@ class CCLRand : CDisposable
 	{
 		return 0;
 	}
+protected:
+	Random Rand;
 }
 
 class CCLRandImpl(size_t N) : CCLRand
@@ -141,6 +148,7 @@ class CCLRandImpl(size_t N) : CCLRand
 	
 	this(CCLCore core, size_t count)
 	{
+		super();
 		State = new CCLBuffer!(state_t)(core, count);
 	}
 	
@@ -181,7 +189,7 @@ class CCLRandImpl(size_t N) : CCLRand
 	override
 	void Seed(int n)
 	{
-		rand.seed({return cast(uint)n;});
+		Rand.seed({return cast(uint)n;});
 		Seed();
 	}
 	
@@ -194,12 +202,12 @@ class CCLRandImpl(size_t N) : CCLRand
 		{
 			static if(N == 1)
 			{
-				el = rand.uniform!(int)();
+				el = Rand.uniform!(int)();
 			}
 			else
 			{
 				for(int ii = 0; ii < N; ii++)
-					el[ii] = rand.uniform!(int)();
+					el[ii] = Rand.uniform!(int)();
 			}
 		}
 	}
@@ -207,16 +215,16 @@ class CCLRandImpl(size_t N) : CCLRand
 	override
 	void Seed(size_t idx, int n)
 	{
-		rand.seed({return cast(uint)n;});
+		Rand.seed({return cast(uint)n;});
 		state_t el;
 		static if(N == 1)
 		{
-			el = rand.uniform!(int)();
+			el = Rand.uniform!(int)();
 		}
 		else
 		{
 			for(int ii = 0; ii < N; ii++)
-				el[ii] = rand.uniform!(int)();
+				el[ii] = Rand.uniform!(int)();
 		}
 		State[idx] = el;
 	}

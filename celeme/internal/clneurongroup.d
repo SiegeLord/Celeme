@@ -1687,24 +1687,18 @@ for(int ii = 0; ii < num_fired; ii++)
 	
 	void SetRecordSizeAndStart()
 	{
+		RecordIdxBuffer.MapWrite();
+		scope(exit) RecordIdxBuffer.UnMap();
+		RecordIdxBufferStart[] = 0;
+		
 		if(RecordingWorkgroups.length)
-		{
-			RecordIdxBuffer.MapWrite();
-			scope(exit) RecordIdxBuffer.UnMap();
-			
+		{		
 			auto rec_size = GroupRecordSize;
 			
 			StepKernel.SetGlobalArg(RecordSizeArgStep, cast(int)rec_size);
 			
 			foreach(ii, workgroup; RecordingWorkgroups)
-			{
 				RecordIdxBufferStart[workgroup.Id] = cast(int)(ii * rec_size);
-			}
-		}
-		else
-		{
-			/* Just so we have nice values */
-			RecordIdxBufferStart[] = 0;
 		}
 	}
 	
@@ -1719,6 +1713,7 @@ for(int ii = 0; ii < num_fired; ii++)
 				foreach(ii, workgroup; RecordingWorkgroups)
 				{
 					int num_written = RecordIdxBuffer[workgroup.Id];
+					assert(num_written <= GroupRecordSize);
 					if(num_written)
 					{
 						auto start = ii * GroupRecordSize;

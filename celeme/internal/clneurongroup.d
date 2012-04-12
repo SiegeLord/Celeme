@@ -31,6 +31,7 @@ import celeme.internal.util;
 import celeme.internal.integrator;
 import celeme.internal.adaptiveheun;
 import celeme.internal.heun;
+import celeme.internal.euler;
 import celeme.internal.clrand;
 import celeme.internal.clmiscbuffers;
 
@@ -378,7 +379,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		}
 		else if(integrator_type & EIntegratorType.Euler)
 		{
-			assert(0);
+			Integrator = new CEuler!(float_t)(this, type);
 		}
 		else
 		{

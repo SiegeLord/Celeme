@@ -29,6 +29,7 @@ import tango.io.Stdout;
 import tango.math.random.Random;
 import tango.text.Arguments;
 import tango.text.convert.Format;
+import tango.io.Console;
 
 void main(char[][] arg_list)
 {
@@ -189,4 +190,12 @@ void main(char[][] arg_list)
 		Stdout.formatln("{} {}", v_rec1.T[$-1], v_rec2.T[$-1]);*/
 	}
 	Stdout.formatln("Plotting time: {}", timer.stop());
+	
+	version(Windows)
+	{
+		/* Gnuplot needs the main process alive for the plots to remain */
+		Cout("Press ENTER to quit...").newline;
+		char[] ret;
+		Cin.readln(ret);
+	}
 }

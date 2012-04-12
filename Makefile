@@ -1,7 +1,6 @@
 # General configuration
 DC                 = ldc2
 DC_NAME            = ldc
-D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3
 INSTALL_PREFIX     = /usr/local
 #PERF_STR          = -d-version=Perf
 PERF_STR           = 
@@ -14,6 +13,7 @@ DGNUPLOT_PATH      = /usr/local/include/d
 DGNUPLOT_FILES     = $(DGNUPLOT_PATH)/gnuplot.d
 TANGO_LDFLAGS      = -L-ltango-$(DC_NAME)
 LD_FLAGS           = -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) 
+D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3 -I$(DUTIL_PATH) -I$(DGNUPLOT_PATH)
 
 # Components
 CELEME_FILES_NO_CL = $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)

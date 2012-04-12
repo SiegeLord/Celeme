@@ -1,0 +1,53 @@
+# General configuration
+DC                 = dmd
+DC_NAME            = dmd
+#PERF_STR          = -d-version=Perf
+PERF_STR           = 
+
+# Dependencies
+DUTIL_PATH         = C:/dev/d
+DUTIL_FILES        = $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d $(DUTIL_PATH)/dutil/Array.d
+DGNUPLOT_PATH      = C:/dev/d
+DGNUPLOT_FILES     = $(DGNUPLOT_PATH)/gnuplot.d
+TANGO_LDFLAGS      = libtango-$(DC_NAME).lib
+OPENCL_LDFLAGS     = OpenCL.lib
+LD_FLAGS           = $(TANGO_LDFLAGS) $(OPENCL_LDFLAGS)
+D_FLAGS            = -unittest -w -wi -property -version=Tango -O -I$(DUTIL_PATH) -I$(DGNUPLOT_PATH)
+
+# Components
+CELEME_FILES_NO_CL = $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)
+CELEME_FILES       = $(CELEME_FILES_NO_CL) $(wildcard opencl/*.d)
+D_EXAMPLE_NAME     = main.exe
+D_EXAMPLE_FILES    = main.d $(CELEME_FILES)
+LIBRARY_NAME       = libceleme.lib
+
+# Compiles a D program
+# $1 - program name
+# $2 - program files
+# $3 - extra compiler flags
+define d_build
+    $(DC) -of$1 -od.objs_$1 $(D_FLAGS) $2 $3
+endef
+
+.PHONY : all
+all : $(D_EXAMPLE_NAME)
+
+.PHONY : lib
+lib : $(LIBRARY_NAME)
+
+.PHONY : doc
+doc : 
+	dil d doc/ --kandil -hl $(CELEME_FILES_NO_CL) -version=Doc
+
+$(D_EXAMPLE_NAME) : $(D_EXAMPLE_FILES)
+	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), $(LD_FLAGS))
+
+$(LIBRARY_NAME) : $(CELEME_FILES)
+	$(DC) -lib -of$(LIBRARY_NAME) $(CELEME_FILES) $(DUTIL_FILES) $(D_FLAGS) $(PERF_STR)
+
+.PHONY : clean
+clean :
+	del /Q $(D_EXAMPLE_NAME) $(LIBRARY_NAME)
+	del /Q .objs_$(D_EXAMPLE_NAME)
+	rmdir .objs_$(D_EXAMPLE_NAME)
+	del /Q doc

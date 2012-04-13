@@ -27,7 +27,7 @@ module opencl.cl;
 
 public import opencl.cl_platform;
 
-extern(C): // TODO: change back to System
+extern(System):
 
 alias void*
 	cl_platform_id,

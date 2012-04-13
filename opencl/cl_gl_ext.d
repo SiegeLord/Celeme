@@ -31,7 +31,7 @@ module opencl.cl_gl_ext;
 import opencl.cl_gl;
 import opencl.opencl;
 
-extern(C):
+extern(System):
 
 /+
  * For each extension, follow this template

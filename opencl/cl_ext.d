@@ -30,7 +30,7 @@ module opencl.cl_ext;
 
 import opencl.opencl;
 
-extern(C):
+extern(System):
 
 enum
 {
@@ -62,7 +62,7 @@ enum
 version = cl_APPLE_SetMemObjectDestructor;
 
 cl_int clSetMemObjectDestructorAPPLE(cl_mem memobj,
-                                     void function(cl_mem memobj, void* user_data) pfn_notify, // TODO: extern(C)?
+                                     void function(cl_mem memobj, void* user_data) pfn_notify, // TODO: extern(System)?
                                      void* user_data);  
 
 

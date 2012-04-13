@@ -33,7 +33,7 @@ module opencl.cl_gl;
 //import opencl.cl_platform;
 import opencl.cl;
 
-extern(C):
+extern(System):
 
 alias cl_uint	 cl_gl_object_type;
 alias cl_uint	 cl_gl_texture_info;

@@ -55,7 +55,7 @@ void main(char[][] arg_list)
 	const N = 1000;
 	
 	model.TimeStepSize = 1.0;
-	model.AddNeuronGroup("Regular", N, null, EIntegratorType.Adaptive | EIntegratorType.Heun, gpu);
+	model.AddNeuronGroup("Regular", N, null, EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, gpu);
 	
 	auto t_scale = 1.0 / model.TimeStepSize;
 	

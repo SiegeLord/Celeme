@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 */
 
-module celeme.integrator_type;
+module celeme.integrator_flags;
 
 /**
  * Specifies what integrator to use for a neuron group. All integrators (for now) use sub-stepping, taking multiple
  * smaller steps within the simulation timestep.
  */
-enum EIntegratorType
+enum EIntegratorFlags
 {
 	/**
 	 * Minimize the integration error by varying the integration timestep. Not available for the Euler method.

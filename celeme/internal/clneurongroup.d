@@ -24,7 +24,7 @@ import celeme.internal.clcore;
 import celeme.internal.clconnector;
 import celeme.internal.iclmodel;
 import celeme.ineurongroup;
-import celeme.integrator_type;
+import celeme.integrator_flags;
 import celeme.internal.alignedarray;
 import celeme.internal.sourceconstructor;
 import celeme.internal.util;
@@ -259,7 +259,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
+	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, EIntegratorFlags integrator_type = EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
@@ -370,14 +370,14 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			Constants ~= state.Value;
 		}
 		
-		if(integrator_type & EIntegratorType.Heun)
+		if(integrator_type & EIntegratorFlags.Heun)
 		{
-			if(integrator_type & EIntegratorType.Adaptive)
+			if(integrator_type & EIntegratorFlags.Adaptive)
 				Integrator = new CAdaptiveHeun!(float_t)(this, type);
 			else
 				Integrator = new CHeun!(float_t)(this, type);
 		}
-		else if(integrator_type & EIntegratorType.Euler)
+		else if(integrator_type & EIntegratorFlags.Euler)
 		{
 			Integrator = new CEuler!(float_t)(this, type);
 		}

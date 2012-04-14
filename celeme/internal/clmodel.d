@@ -24,7 +24,7 @@ import celeme.internal.frontend;
 import celeme.internal.clneurongroup;
 import celeme.internal.util;
 import celeme.internal.iclmodel;
-import celeme.integrator_type;
+import celeme.integrator_flags;
 import celeme.ineurongroup;
 
 import opencl.cl;
@@ -58,7 +58,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
+	void AddNeuronGroup(cstring type_name, size_t number, cstring name = null, EIntegratorFlags integrator_type = EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, bool parallel_delivery = true)
 	{
 		assert(Registry !is null, "No neuron types available.");
 		
@@ -70,7 +70,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, EIntegratorType integrator_type = EIntegratorType.Adaptive | EIntegratorType.Heun, bool parallel_delivery = true)
+	void AddNeuronGroup(CNeuronType type, size_t number, cstring name = null, EIntegratorFlags integrator_type = EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, bool parallel_delivery = true)
 	{
 		assert(!Generated, "Can't add neuron groups to generated models");
 		assert(number > 0, "Need at least 1 neuron in a group");

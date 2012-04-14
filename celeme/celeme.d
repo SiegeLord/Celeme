@@ -22,7 +22,7 @@ public import
 	celeme.internal.frontend,
 	celeme.imodel,
 	celeme.ineurongroup,
-	celeme.integrator_type,
+	celeme.integrator_flags,
 	celeme.internal.clcore,
 	celeme.configloader,
 	celeme.celeme_util;

@@ -21,7 +21,7 @@
 <div class="summary"><div class="cmnt">This module allows the loading of a model definition (including connectors,
  neuron types, mechanisms and synapses) from a configuration file.</div></div>
 <dl>
-<dt class="decl"><span class="rettyp">CMechanism[char[]]</span> <a class="symbol _function" name="LoadMechanisms" href="htmlsrc/celeme.configloader.html#L258">LoadMechanisms</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadMechanisms" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CMechanism[char[]]</span> <a class="symbol _function" name="LoadMechanisms" href="htmlsrc/celeme.configloader.html#L257">LoadMechanisms</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadMechanisms" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load mechanisms from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of mechanisms.
@@ -103,7 +103,6 @@
 <a href="#L71_ex1" name="L71_ex1">71</a>
 <a href="#L72_ex1" name="L72_ex1">72</a>
 <a href="#L73_ex1" name="L73_ex1">73</a>
-<a href="#L74_ex1" name="L74_ex1">74</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">mechanism</span> <span class="i">MechName</span>
 {
@@ -122,12 +121,11 @@
     <span class="i">pre_stage</span> = <span class="sl">""</span>;
 
     <span class="lc">// States</span>
+    <span class="lc">// To specify the tolerance for a state, add a global/constant/immutable value that has a _tol suffix</span>
     <span class="i">state</span> <span class="i">StateName</span>
     {
         <span class="lc">// Initial value</span>
         <span class="i">init</span> = <span class="n">0</span>;
-        <span class="lc">// Tolerance</span>
-        <span class="i">tolerance</span> = <span class="n">0.1</span>
     }
     <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
     <span class="i">state</span> <span class="i">StateName2</span> = <span class="n">0</span>;
@@ -181,7 +179,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L323">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CSynapse[char[]]</span> <a class="symbol _function" name="LoadSynapses" href="htmlsrc/celeme.configloader.html#L322">LoadSynapses</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadSynapses" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load synapses from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of synapses.
@@ -251,7 +249,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L406">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CConnector[char[]]</span> <a class="symbol _function" name="LoadConnectors" href="htmlsrc/celeme.configloader.html#L405">LoadConnectors</a><span class="params">(CConfigEntry <em>root</em>)</span> <a href="celeme.configloader.html#LoadConnectors" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load connectors from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of connectors.
@@ -284,7 +282,7 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L610">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">CNeuronType[char[]]</span> <a class="symbol _function" name="LoadNeuronTypes" href="htmlsrc/celeme.configloader.html#L598">LoadNeuronTypes</a><span class="params">(CConfigEntry <em>root</em>, CMechanism[char[]] <em>mechanisms</em>, CSynapse[char[]] <em>synapses</em>, CConnector[char[]] <em>connectors</em>)</span> <a href="celeme.configloader.html#LoadNeuronTypes" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Load neuron types from a root config entry.</div></div>
 <p class="sec_header">Returns:</p><div class="cmnt">An associative array of neuron types.
@@ -373,12 +371,6 @@
 <a href="#L78_ex4" name="L78_ex4">78</a>
 <a href="#L79_ex4" name="L79_ex4">79</a>
 <a href="#L80_ex4" name="L80_ex4">80</a>
-<a href="#L81_ex4" name="L81_ex4">81</a>
-<a href="#L82_ex4" name="L82_ex4">82</a>
-<a href="#L83_ex4" name="L83_ex4">83</a>
-<a href="#L84_ex4" name="L84_ex4">84</a>
-<a href="#L85_ex4" name="L85_ex4">85</a>
-<a href="#L86_ex4" name="L86_ex4">86</a>
 </pre></td><td class="d_codetext"><pre>
 <span class="i">neuron</span> <span class="i">NeuronTypeName</span>
 {
@@ -422,9 +414,6 @@
             {
                 <span class="lc">// Initial value. If omitted, mechanism's default value is used</span>
                 <span class="i">init</span>;
-                <span class="lc">// Tolerance (makes sense only for states). If omitted, mechanism's default value</span>
-                <span class="lc">// is used</span>
-                <span class="i">tolerance</span>;
             }
             <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
             <span class="i">SomeOtherVal</span> = <span class="n">0</span>;
@@ -454,9 +443,6 @@
             {
                 <span class="lc">// Initial value. If omitted, mechanism's default value is used</span>
                 <span class="i">init</span>;
-                <span class="lc">// Tolerance (makes sense only for states). If omitted, mechanism's default value</span>
-                <span class="lc">// is used</span>
-                <span class="i">tolerance</span>;
             }
             <span class="lc">// Alternate syntax, the init is set to the assigned value</span>
             <span class="i">SomeOtherVal</span> = <span class="n">0</span>;
@@ -468,20 +454,21 @@
 }</pre>
 </td></tr>
 </table></div></dd>
-<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L710">LoadModel</a><span class="params">(cstring <em>file</em>, cstring[] <em>include_directories</em>, bool <em>gpu</em> = <span class="defval"><span class="k">false</span></span>, bool <em>double_precision</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
+<dt class="decl"><span class="rettyp">IModel</span> <a class="symbol _function" name="LoadModel" href="htmlsrc/celeme.configloader.html#L699">LoadModel</a><span class="params">(cstring <em>file</em>, cstring[] <em>include_directories</em>, EPlatformFlags <em>flags</em> = <span class="defval"><span class="i">GPU</span></span>, size_t <em>device_idx</em> = <span class="defval"><span class="n">0</span></span>, bool <em>double_precision</em> = <span class="defval"><span class="k">false</span></span>)</span> <a href="celeme.configloader.html#LoadModel" class="plink">¶</a></dt>
 <dd class="ddef">
 <div class="summary"><div class="cmnt">Loads a model from a configuration file.</div></div>
 <p class="sec_header">Parameters:</p>
 <table class="params">
 <tr><td><em>file</em></td><td>Path to a file to load from.</td></tr>
 <tr><td><em>include_directories</em></td><td>Additional include directories.</td></tr>
-<tr><td><em>gpu</em></td><td>Whether or not to use the GPU.</td></tr>
+<tr><td><em>flags</em></td><td>Flags specifying which platform and type of device you wish to use. See <a href="celeme.platform_flags.html#EPlatformFlags">EPlatformFlags</a>.</td></tr>
+<tr><td><em>device_idx</em></td><td>If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is uesd.</td></tr>
 <tr><td><em>double_precision</em></td><td>Whether or not to use double precision.</td></tr></table>
 <p class="sec_header">Returns:</p><div class="cmnt">The loaded model.</div></dd></dl>
 </div>
 <div id="kandil-footer">
   <p></p>
-  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Mon Mar 12 20:53:54 2012. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
+  <p>Page generated by <a href="http://code.google.com/p/dil">dil</a> on Sun Apr 15 22:05:32 2012. Rendered by <a href="http://code.google.com/p/dil/wiki/Kandil">kandil</a>.</p>
 </div>
 </div>
 </body>

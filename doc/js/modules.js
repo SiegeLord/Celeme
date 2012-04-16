@@ -1,10 +1,12 @@
 var g_moduleList = [
   "celeme.celeme", "celeme.celeme_util", "celeme.config", "celeme.configloader",
-  "celeme.imodel", "celeme.ineurongroup", "celeme.internal.adaptiveheun",
+  "celeme.imodel", "celeme.ineurongroup", "celeme.integrator_flags",
+  "celeme.platform_flags", "celeme.internal.adaptiveheun",
   "celeme.internal.alignedarray", "celeme.internal.clconnector",
   "celeme.internal.clcore", "celeme.internal.clmiscbuffers",
   "celeme.internal.clmodel", "celeme.internal.clneurongroup",
-  "celeme.internal.clrand", "celeme.internal.frontend", "celeme.internal.heun",
+  "celeme.internal.clrand", "celeme.internal.euler",
+  "celeme.internal.frontend", "celeme.internal.heun",
   "celeme.internal.iclmodel", "celeme.internal.iclneurongroup",
   "celeme.internal.integrator", "celeme.internal.sourceconstructor",
   "celeme.internal.util",
@@ -21,6 +23,7 @@ var g_packageTree = new PackageTree(P('', [
       M('celeme.internal.clmodel'),
       M('celeme.internal.clneurongroup'),
       M('celeme.internal.clrand'),
+      M('celeme.internal.euler'),
       M('celeme.internal.frontend'),
       M('celeme.internal.heun'),
       M('celeme.internal.iclmodel'),
@@ -35,8 +38,10 @@ var g_packageTree = new PackageTree(P('', [
     M('celeme.configloader'),
     M('celeme.imodel'),
     M('celeme.ineurongroup'),
+    M('celeme.integrator_flags'),
+    M('celeme.platform_flags'),
   ]),
 ])
 );
 
-var g_creationTime = 1331600035;
+var g_creationTime = 1334541933;

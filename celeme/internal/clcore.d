@@ -423,8 +423,7 @@ class CCLCore : CDisposable
 		
 		size_t get_platform_idx(cstring vendor_string)
 		{
-			bool delegate(SPlatformDesc) d = (e) => vendor_string == e.Vendor;
-			return platform_descs.findIf(d);
+			return platform_descs.findIf((SPlatformDesc e) { return vendor_string == e.Vendor; });
 		}
 		
 		/* Choose the default platform */

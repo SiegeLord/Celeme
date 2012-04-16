@@ -18,6 +18,7 @@ along with Celeme. If not, see <http:#www.gnu.org/licenses/>.
 
 module celeme.internal.clcore;
 
+import celeme.platform_flags;
 import celeme.internal.util;
 
 import opencl.cl;
@@ -26,6 +27,9 @@ import dutil.Disposable;
 import tango.io.Stdout;
 import tango.util.Convert;
 import tango.util.MinMax;
+import tango.core.ArrayLiteral : AL = ArrayLiteral;
+import tango.core.Array;
+import tango.text.convert.Format;
 
 class CCLKernel : CDisposable
 {
@@ -347,73 +351,39 @@ protected:
 
 class CCLCore : CDisposable
 {
-	this(bool use_gpu = false, bool verbose = false)
+	this(EPlatformFlags platform_flags, size_t device_idx)
 	{
-		GPU = use_gpu;
-		
 		int err;
+		PlatformFlags = platform_flags;
 		
-		/* Get platforms */
-		uint num_platforms;
-		err = clGetPlatformIDs(0, null, &num_platforms);
-		assert(err == 0, GetCLErrorString(err));
-		assert(num_platforms);
+		bool force = (PlatformFlags & EPlatformFlags.Force) != 0;
 		
-		cl_platform_id[] platforms;
-		platforms.length = num_platforms;
-		err = clGetPlatformIDs(num_platforms, platforms.ptr, null);
-		assert(err == 0, GetCLErrorString(err));
+		/* PlatformFlags are adjusted here to reflect what we actually have */
+		auto devices = GetDevices(PlatformFlags, Platform);
 		
-		if(verbose)
+		if(devices is null)
+			throw new Exception("Couldn't find suitable OpenCL devices." ~ force ? " Try a different platform." : "");
+		
+		if(force)
 		{
-			foreach(ii, platform; platforms)
+			assert(device_idx < devices.length, "Invalid device index");
+			Device = devices[device_idx];
+			if(GetDeviceParam!(int)(Device, CL_DEVICE_AVAILABLE) != 1)
+				throw new Exception("Device " ~ Format("{}", device_idx).idup ~ " is not available.");
+		}
+		else
+		{
+			foreach(device; devices)
 			{
-				cstring get_param(cl_platform_info param)
+				if(GetDeviceParam!(int)(device, CL_DEVICE_AVAILABLE) == 1)
 				{
-					char[] ret;
-					size_t ret_len;
-					auto err2 = clGetPlatformInfo(platform, param, 0, null, &ret_len);
-					assert(err2 == 0, GetCLErrorString(err2)); 
-					ret.length = ret_len;
-					err2 = clGetPlatformInfo(platform, param, ret_len, ret.ptr, null);
-					assert(err2 == 0, GetCLErrorString(err2));
-					return ret[0..$-1];
+					Device = device;
+					break;
 				}
-				Stdout.formatln("Platform {}:", ii);
-				Stdout.formatln("\tCL_PLATFORM_PROFILE:\n\t\t{}", get_param(CL_PLATFORM_PROFILE));
-				Stdout.formatln("\tCL_PLATFORM_VERSION:\n\t\t{}", get_param(CL_PLATFORM_VERSION));
-				Stdout.formatln("\tCL_PLATFORM_NAME:\n\t\t{}", get_param(CL_PLATFORM_NAME));
-				Stdout.formatln("\tCL_PLATFORM_VENDOR:\n\t\t{}", get_param(CL_PLATFORM_VENDOR));
-				Stdout.formatln("\tCL_PLATFORM_EXTENSIONS:\n\t\t{}", get_param(CL_PLATFORM_EXTENSIONS));
 			}
+			if(Device is null)
+				throw new Exception("No available devices.");
 		}
-		
-		Platform = platforms[0];
-		
-		/* Get devices */
-		uint num_devices;
-		auto device_type = GPU ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU;
-		err = clGetDeviceIDs(Platform, device_type, 0, null, &num_devices);
-		assert(err == 0, "This platform does not support " ~ (GPU ? "GPU" : "CPU") ~ " devices:" ~ GetCLErrorString(err));
-		
-		cl_device_id[] devices;
-		devices.length = num_devices;
-		err = clGetDeviceIDs(Platform, device_type, num_devices, devices.ptr, null);
-		assert(err == 0, GetCLErrorString(err));
-		
-		if(verbose)
-		{
-			foreach(ii, device; devices)
-			{
-				Stdout.formatln("Device {}:", ii);
-				Stdout.formatln("\tCL_DEVICE_ADDRESS_BITS:\n\t\t{}", GetDeviceParam!(uint)(device, CL_DEVICE_ADDRESS_BITS));
-				Stdout.formatln("\tCL_DEVICE_AVAILABLE:\n\t\t{}", 1 == GetDeviceParam!(int)(device, CL_DEVICE_AVAILABLE));
-				Stdout.formatln("\tCL_DEVICE_COMPILER_AVAILABLE:\n\t\t{}", 1 == GetDeviceParam!(int)(device, CL_DEVICE_COMPILER_AVAILABLE));
-				/* And so on... */
-			}
-		}
-		
-		Device = devices[0];
 		
 		NumComputeUnits = GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS);
 		
@@ -426,6 +396,148 @@ class CCLCore : CDisposable
 		version(Perf) flags = CL_QUEUE_PROFILING_ENABLE;
 		Commands = clCreateCommandQueue(Context, Device, flags, &err);
 		assert(err == 0, "Failed to create a command queue:" ~ GetCLErrorString(err));
+	}
+	
+	cl_device_id[] GetDevices(ref EPlatformFlags flags, out cl_platform_id chosen_platform)
+	{
+		int err;
+		
+		enum : size_t
+		{
+			AMD,
+			NVidia,
+			Intel,
+			NumPlatforms
+		}
+		
+		struct SPlatformDesc
+		{
+			cstring Vendor;
+			EPlatformFlags Flags;
+		}
+		
+		SPlatformDesc[NumPlatforms] platform_descs;
+		platform_descs[AMD] = SPlatformDesc("Advanced Micro Devices, Inc.", EPlatformFlags.AMD);
+		platform_descs[NVidia] = SPlatformDesc("NVIDIA Corporation", EPlatformFlags.NVidia);
+		platform_descs[Intel] = SPlatformDesc("Intel(R) Corporation", EPlatformFlags.Intel);
+		
+		size_t get_platform_idx(cstring vendor_string)
+		{
+			bool delegate(SPlatformDesc) d = (e) => vendor_string == e.Vendor;
+			return platform_descs.findIf(d);
+		}
+		
+		/* Choose the default platform */
+		size_t preferred_platform = AMD;
+		bool platform_pref = true;
+		if(flags & EPlatformFlags.AMD)
+			preferred_platform = AMD;
+		else if(flags & EPlatformFlags.Intel)
+			preferred_platform = Intel;
+		else if(flags & EPlatformFlags.NVidia)
+			preferred_platform = NVidia;
+		else
+			platform_pref = false; /* We choose AMD, but make note that the user picked nothing */
+		
+		/* Get all the available platforms */
+		uint num_platforms;
+		err = clGetPlatformIDs(0, null, &num_platforms);
+		assert(err == 0, GetCLErrorString(err));
+		assert(num_platforms);
+		
+		cl_platform_id[] platforms;
+		platforms.length = num_platforms;
+		err = clGetPlatformIDs(num_platforms, platforms.ptr, null);
+		assert(err == 0, GetCLErrorString(err));
+		
+		cstring get_platform_param(cl_platform_id platform, cl_platform_info param)
+		{
+			char[] ret;
+			size_t ret_len;
+			auto err2 = clGetPlatformInfo(platform, param, 0, null, &ret_len);
+			assert(err2 == 0, GetCLErrorString(err2)); 
+			ret.length = ret_len;
+			err2 = clGetPlatformInfo(platform, param, ret_len, ret.ptr, null);
+			assert(err2 == 0, GetCLErrorString(err2));
+			return ret[0..$-1];
+		}
+		
+		bool platform_sorter(cl_platform_id p1, cl_platform_id p2)
+		{
+			auto idx1 = get_platform_idx(get_platform_param(p1, CL_PLATFORM_VENDOR));
+			auto idx2 = get_platform_idx(get_platform_param(p2, CL_PLATFORM_VENDOR));
+			
+			if(idx1 == preferred_platform)
+				return true;
+			else if(idx2 == preferred_platform)
+				return false;
+			else
+				return idx1 < idx2;
+		}
+		
+		platforms.sort(&platform_sorter);
+		
+		cl_device_id[] test_platform(cl_platform_id platform, bool gpu)
+		{
+			/* Get devices, check at least one is available */
+			uint num_devices;
+			auto device_type = gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU;
+			err = clGetDeviceIDs(platform, device_type, 0, null, &num_devices);
+			if(err != 0)
+				return null;
+			
+			cl_device_id[] devices;
+			devices.length = num_devices;
+			err = clGetDeviceIDs(platform, device_type, num_devices, devices.ptr, null);
+			assert(err == 0, GetCLErrorString(err));
+			
+			foreach(device; devices)
+			{
+				if(GetDeviceParam!(int)(device, CL_DEVICE_AVAILABLE) == 1)
+					return devices;
+			}
+			
+			return null;
+		}
+		
+		cl_device_id[] test_platforms(bool gpu)
+		{
+			foreach(platform; platforms)
+			{
+				auto platform_idx = get_platform_idx(get_platform_param(platform, CL_PLATFORM_VENDOR));
+				
+				if(platform_pref && flags & EPlatformFlags.Force && platform_idx != preferred_platform)
+					continue;
+				
+				auto ret = test_platform(platform, gpu);
+				if(ret !is null)
+				{
+					chosen_platform = platform;
+					flags = gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU;
+					if(platform_idx < NumPlatforms)
+						flags |= platform_descs[platform_idx].Flags;
+					return ret;
+				}
+			}
+			
+			return null;
+		}
+		
+		/* If the flags don't ask for the CPU devices explicitly, try the GPU devices first */
+		if(!(flags & EPlatformFlags.CPU))
+		{
+			auto ret = test_platforms(true);
+			if(ret !is null)
+				return ret;
+			
+			if(flags & EPlatformFlags.GPU && flags & EPlatformFlags.Force)
+				return null;
+		}
+		
+		/* Try the CPU devices */
+		auto ret = test_platforms(false);
+		
+		return ret;
 	}
 	
 	private T GetDeviceParam(T)(cl_device_id device, cl_device_info param)
@@ -535,14 +647,19 @@ class CCLCore : CDisposable
 	}
 	
 	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
-	mixin(Prop!("bool", "GPU", "", "private"));
+	
+	@property
+	bool GPU()
+	{
+		return (PlatformFlags & EPlatformFlags.GPU) != 0;
+	}
 	
 protected:
+	EPlatformFlags PlatformFlags;
 	cl_context Context;
 	cl_command_queue Commands;
 	cl_platform_id Platform;
 	cl_device_id Device;
-	bool GPUVal = false;
 	size_t NumComputeUnitsVal;
 }
 

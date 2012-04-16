@@ -26,6 +26,7 @@ import celeme.internal.util;
 import celeme.internal.iclmodel;
 import celeme.integrator_flags;
 import celeme.ineurongroup;
+import celeme.platform_flags;
 
 import opencl.cl;
 import dutil.Disposable;
@@ -50,9 +51,9 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		static assert(0);
 	}
 	
-	this(bool gpu, CNeuronType[char[]] registry = null)
+	this(EPlatformFlags flags, size_t device_idx, CNeuronType[char[]] registry = null)
 	{
-		Core = new CCLCore(gpu);
+		Core = new CCLCore(flags, device_idx);
 		RandsUsed[] = false;
 		Registry = registry;
 	}

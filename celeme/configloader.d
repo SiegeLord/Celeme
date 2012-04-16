@@ -28,6 +28,7 @@ import celeme.internal.util;
 import celeme.internal.frontend;
 import celeme.imodel;
 import celeme.internal.clmodel;
+import celeme.platform_flags;
 
 import tango.text.convert.Format;
 
@@ -688,13 +689,14 @@ CNeuronType[char[]] LoadNeuronTypes(CConfigEntry root, CMechanism[char[]] mechan
  * Params:
  *     file = Path to a file to load from.
  *     include_directories = Additional include directories.
- *     gpu = Whether or not to use the GPU.
+ *     flags = Flags specifying which platform and type of device you wish to use. See $(SYMLINK2 celeme.platform_flags, EPlatformFlags, EPlatformFlags).
+ *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is uesd.
  *     double_precision = Whether or not to use double precision.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(cstring file, cstring[] include_directories, bool gpu = false, bool double_precision = false)
+IModel LoadModel(cstring file, cstring[] include_directories, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, bool double_precision = false)
 {
 	auto root = LoadConfig(file, include_directories);
 	auto mechanisms = LoadMechanisms(root);
@@ -703,7 +705,7 @@ IModel LoadModel(cstring file, cstring[] include_directories, bool gpu = false, 
 	auto types = LoadNeuronTypes(root, mechanisms, synapses, connectors);
 	
 	if(double_precision)
-		return new CCLModel!(double)(gpu, types);
+		return new CCLModel!(double)(flags, device_idx, types);
 	else
-		return new CCLModel!(float)(gpu, types);
+		return new CCLModel!(float)(flags, device_idx, types);
 }

@@ -51,7 +51,7 @@ interface IModel
 	 *     type_name = Name of the neuron type to add
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
-	 *     integrator_flags = What integrator to use for this neuron group. See $(SYMLINK2 celeme.itegrator_type, EIntegratorFlags, EIntegratorFlags)
+	 *     integrator_flags = What integrator to use for this neuron group. See $(SYMLINK2 celeme.integrator_flags, EIntegratorFlags, EIntegratorFlags)
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */
@@ -65,7 +65,7 @@ interface IModel
 	 *     type = What neuron type to add
 	 *     number = Number of neurons to add of this type
 	 *     name = What name to use to override the type name
-	 *     integrator_flags = What integrator to use for this neuron group. See $(SYMLINK2 celeme.itegrator_type, EIntegratorFlags, EIntegratorFlags)
+	 *     integrator_flags = What integrator to use for this neuron group. See $(SYMLINK2 celeme.integrator_flags, EIntegratorFlags, EIntegratorFlags)
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */

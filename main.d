@@ -49,7 +49,7 @@ void main(char[][] arg_list)
 	
 	timer.start();
 	
-	auto model = LoadModel("stuff.cfg", ["mechanisms"], gpu);
+	auto model = LoadModel("stuff.cfg", ["mechanisms"], gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU);
 	scope(exit) model.Dispose();
 	
 	const N = 1000;

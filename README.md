@@ -4,13 +4,13 @@ By Pavel Sountsov
 
 Celeme development is in rather early stages, but I am using it for my PhD research already. It currently can simulate multitudes of single compartmental neurons with adaptive time step (using the Heun method). Some documentation is in the doc/ subfolder.
 
-Celeme is developed on Linux, and seems to work on Windows too. Celeme is also developed using AMD's OpenCL libraries, I do use some AMD specific extensions (that also exist for other implementations, but they are named differently) so for now AMD OpenCL is required.
+Celeme is developed on Linux, and seems to work on Windows too. Celeme is developed using AMD's OpenCL libraries, but I did get it to work with the NVidia platform as well. Other platforms should work too, but have not been tried yet.
 
 ## Compiling:
 
 ### General requirements:
 
-Celeme core requires a D2 compiler and git trunk TangoD2 as well as AMD APP SDK. You can obtain the version of TangoD2 I use here: https://github.com/SiegeLord/Tango-D2 .
+Celeme core requires a D2 compiler and git trunk TangoD2 as well as OpenCL SDK. You can obtain the version of TangoD2 I use here: https://github.com/SiegeLord/Tango-D2 .
 Celeme uses the DUtil utility modules that you can obtain here: https://github.com/SiegeLord/DUtil .
 Plotting using the D binding requires gnuplot to be installed as well as the D bindings you can get here: https://github.com/SiegeLord/DGnuplot (you can just copy the gnuplot.d into root folder).
 

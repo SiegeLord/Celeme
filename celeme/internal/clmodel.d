@@ -128,7 +128,8 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable\n";
 		Source ~= "#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable\n";
-		Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
+		if(Core.PlatformFlags & EPlatformFlags.AMD)
+			Source ~= "#pragma OPENCL EXTENSION cl_amd_printf : enable\n";
 		
 		/* RNG */
 		bool need_rand = false;

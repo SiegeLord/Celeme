@@ -359,7 +359,7 @@ class CCLCore : CDisposable
 		bool force = (PlatformFlags & EPlatformFlags.Force) != 0;
 		
 		/* PlatformFlags are adjusted here to reflect what we actually have */
-		auto devices = GetDevices(PlatformFlags, Platform);
+		auto devices = GetDevices(PlatformFlagsVal, Platform);
 		
 		if(devices is null)
 			throw new Exception("Couldn't find suitable OpenCL devices." ~ force ? " Try a different platform." : "");
@@ -646,6 +646,7 @@ class CCLCore : CDisposable
 	}
 	
 	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
+	mixin(Prop!("EPlatformFlags", "PlatformFlags", "", "private"));
 	
 	@property
 	bool GPU()
@@ -654,7 +655,7 @@ class CCLCore : CDisposable
 	}
 	
 protected:
-	EPlatformFlags PlatformFlags;
+	EPlatformFlags PlatformFlagsVal;
 	cl_context Context;
 	cl_command_queue Commands;
 	cl_platform_id Platform;

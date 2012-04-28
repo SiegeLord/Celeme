@@ -385,8 +385,6 @@ class CCLCore : CDisposable
 				throw new Exception("No available devices.");
 		}
 		
-		NumComputeUnits = GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS);
-		
 		/* Create a compute context */
 		Context = clCreateContext(null, 1, &Device, null, null, &err);
 		assert(err == 0, "Failed to create a compute context: " ~ GetCLErrorString(err));
@@ -396,6 +394,26 @@ class CCLCore : CDisposable
 		version(Perf) flags = CL_QUEUE_PROFILING_ENABLE;
 		Commands = clCreateCommandQueue(Context, Device, flags, &err);
 		assert(err == 0, "Failed to create a command queue:" ~ GetCLErrorString(err));
+		
+		/* Get the multiplier, for GPU we get it by building a dummy kernel and for CPU we get it from
+		 * the number of cores the device has */
+		if(GPU)
+		{
+			auto dummy_program = BuildProgram("__kernel void dummy() {}");
+			scope(exit) clReleaseProgram(dummy_program);
+			
+			auto dummy_kernel = clCreateKernel(dummy_program, "dummy", &err);
+			scope(exit) clReleaseKernel(dummy_kernel);
+			assert(err == 0, "Failed to create the dummy kernel." ~ GetCLErrorString(err));
+			
+			err = clGetKernelWorkGroupInfo(dummy_kernel, Device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, size_t.sizeof, &SizeMultiplier, null);
+			assert(err == 0, "Failed to get the preferred workgroup size.");
+		}
+		else
+		{
+			/* Overloading the CPU seems to do better than doing 1 workgroup per core */
+			SizeMultiplier = cast(size_t)(GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS) * 1.9);
+		}
 	}
 	
 	cl_device_id[] GetDevices(ref EPlatformFlags flags, out cl_platform_id chosen_platform)
@@ -616,36 +634,37 @@ class CCLCore : CDisposable
 		clFinish(Commands);
 	}
 	
-	/* Returns 0 if the device doesn't care */
-	@property
-	size_t GoodNumWorkgroups()
+	/* Given the current number of workitems it returns a better number (greater than or equal to
+	 * the passed one) as well as the workgroup size that corresponds to it */
+	size_t GetGoodNumWorkitems(size_t cur_num, out size_t workgroup_size)
 	{
-		if(GPU)
-			return 0;
-
-		/* Overloading the CPU seems to do better than doing 1 workgroup per core */
-		switch(NumComputeUnits)
+		size_t get_next_multiple(size_t num, size_t mult)
 		{
-			case 4:
-				return 7;
-			case 6:
-				return 11;
-			default:
-				return NumComputeUnits;
+			return num % mult ? (num / mult) * mult + mult : num;
 		}
-	}
-	
-	size_t GetGoodNumWorkitems(size_t cur_num)
-	{
-		size_t mult = GPU ? 64 : GoodNumWorkgroups;
 		
-		if(cur_num == 0)
-			return mult;
+		auto ret = get_next_multiple(cur_num, SizeMultiplier);
+		if(GPU)
+		{
+			workgroup_size = SizeMultiplier;
+		}
 		else
-			return (cur_num / mult) * mult + ((cur_num % mult == 0) ? 0 : mult);
+		{
+			workgroup_size = ret / SizeMultiplier;
+			
+			/* Check to see that we can actually make a workgroup size for this */
+			auto max_size = GetDeviceParam!(size_t)(Device, CL_DEVICE_MAX_WORK_GROUP_SIZE);
+			if(workgroup_size > max_size)
+			{
+				auto new_mult = get_next_multiple(cur_num, max_size) / max_size;
+				ret = get_next_multiple(cur_num, new_mult);
+				workgroup_size = ret / new_mult;
+			}
+		}
+		
+		return ret;
 	}
-	
-	mixin(Prop!("size_t", "NumComputeUnits", "", "private"));
+
 	mixin(Prop!("EPlatformFlags", "PlatformFlags", "", "private"));
 	
 	@property
@@ -660,7 +679,7 @@ protected:
 	cl_command_queue Commands;
 	cl_platform_id Platform;
 	cl_device_id Device;
-	size_t NumComputeUnitsVal;
+	size_t SizeMultiplier;
 }
 
 class CCLException : Exception

@@ -84,7 +84,8 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		if((name in NeuronGroups) !is null)
 			throw new Exception("A group named '" ~ name.idup ~ "' already exists in this model.");
 
-		number = cast(int)Core.GetGoodNumWorkitems(cast(int)number);
+		size_t workgroup_size;
+		number = cast(int)Core.GetGoodNumWorkitems(cast(int)number, workgroup_size);
 		
 		auto nrn_offset = NumNeurons;
 		NumNeurons += number;
@@ -94,7 +95,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		
 		RandsUsed[type.RandLen] = true;
 		
-		auto group = new CNeuronGroup!(float_t)(this, type, number, name, sink_offset, nrn_offset, integrator_type, parallel_delivery);
+		auto group = new CNeuronGroup!(float_t)(this, type, number, workgroup_size, name, sink_offset, nrn_offset, integrator_type, parallel_delivery);
 		
 		NeuronGroups[name] = group;
 	}

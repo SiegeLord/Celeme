@@ -259,10 +259,11 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		static assert(0);
 	}
 	
-	this(ICLModel model, CNeuronType type, size_t count, cstring name, size_t sink_offset, size_t nrn_offset, EIntegratorFlags integrator_type = EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, bool parallel_delivery = true)
+	this(ICLModel model, CNeuronType type, size_t count, size_t workgroup_size, cstring name, size_t sink_offset, size_t nrn_offset, EIntegratorFlags integrator_type = EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, bool parallel_delivery = true)
 	{
 		Model = model;
 		CountVal = count;
+		WorkgroupSize = workgroup_size;
 		Name = name;
 		NumEventSources = type.NumEventSources;
 		RecordLength = type.RecordLength;
@@ -275,12 +276,6 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		MinDt = type.MinDt;
 		Parallel = parallel_delivery;
 		NeedUnMap = true;
-		
-		auto good_workgroup_count = Core.GoodNumWorkgroups;
-		if(good_workgroup_count)
-			WorkgroupSize = Count / good_workgroup_count;
-		else
-			WorkgroupSize = Core.GetGoodNumWorkitems(0);
 		
 		RandLen = type.RandLen;
 		switch(RandLen)

@@ -362,7 +362,7 @@ class CCLCore : CDisposable
 		auto devices = GetDevices(PlatformFlagsVal, Platform);
 		
 		if(devices is null)
-			throw new Exception("Couldn't find suitable OpenCL devices." ~ force ? " Try a different platform." : "");
+			throw new Exception("Couldn't find suitable OpenCL devices." ~ (force ? " Try a different platform." : ""));
 		
 		if(force)
 		{

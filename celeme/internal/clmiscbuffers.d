@@ -154,7 +154,7 @@ class CMultiBuffer(T) : CDisposable
 		}
 		
 		ret = ret.substitute("$type$", T.stringof);
-		ret = ret.substitute("$num$", Format("{}", N));
+		ret = ret.substitute("$num$", N > 1 ? Format("{}", N) : "");
 		ret = ret.substitute("$prefix$", Prefix);
 		
 		return ret;
@@ -167,17 +167,26 @@ class CMultiBuffer(T) : CDisposable
 		foreach(buf_idx, buf; Buffers)
 		{
 			ret ~= Format("$type$$num$ _$prefix$_{0} = _$prefix$_{0}_buf[i];\n", buf_idx);
-			foreach(tuple_idx; range(N))
+			if(N > 1)
 			{
-				auto val_idx = buf_idx * N + tuple_idx;
+				foreach(tuple_idx; range(N))
+				{
+					auto val_idx = buf_idx * N + tuple_idx;
+					if(val_idx < Values.length)
+						ret ~= Format("$type$ {1} = _$prefix$_{0}.s{2};\n", buf_idx, Values[val_idx].Name, tuple_idx);
+				}
+			}
+			else
+			{
+				auto val_idx = buf_idx;
 				if(val_idx < Values.length)
-					ret ~= Format("$type$ {1} = _$prefix$_{0}.s{2};\n", buf_idx, Values[val_idx].Name, tuple_idx);
+					ret ~= Format("$type$ {1} = _$prefix$_{0};\n", buf_idx, Values[val_idx].Name);
 			}
 			ret ~= "\n";
 		}
 		
 		ret = ret.substitute("$type$", T.stringof);
-		ret = ret.substitute("$num$", Format("{}", N));
+		ret = ret.substitute("$num$", N > 1 ? Format("{}", N) : "");
 		ret = ret.substitute("$prefix$", Prefix);
 		
 		return ret;
@@ -201,7 +210,7 @@ class CMultiBuffer(T) : CDisposable
 		}
 		
 		ret = ret.substitute("$type$", T.stringof);
-		ret = ret.substitute("$num$", Format("{}", N));
+		ret = ret.substitute("$num$", N > 1 ? Format("{}", N) : "");
 		ret = ret.substitute("$prefix$", Prefix);
 		
 		return ret;

@@ -30,12 +30,15 @@ import tango.math.random.Random;
 import tango.text.Arguments;
 import tango.text.convert.Format;
 import tango.io.Console;
+import tango.util.Convert;
 
 void main(char[][] arg_list)
 {
 	bool record = true;
 	bool save_to_file = false;
 	bool gpu = false;
+	bool force_device = false;
+	size_t device_idx = 0;
 	
 	rand.seed({return 0U;});
 	
@@ -43,13 +46,14 @@ void main(char[][] arg_list)
 	args("run-only").aliased('r').bind({record = false;});
 	args("save").aliased('s').bind({save_to_file = true;});
 	args("gpu").aliased('g').bind({gpu = true;});
+	args("device").aliased('d').params(1).bind({force_device = true;}).bind((arg) {device_idx = to!(size_t)(arg); return cast(char[])null;});
 	args.parse(arg_list);
 	
 	StopWatch timer;
 	
 	timer.start();
 	
-	auto model = LoadModel("stuff.cfg", ["mechanisms"], gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU);
+	auto model = LoadModel("stuff.cfg", ["mechanisms"], (force_device ? EPlatformFlags.Force : cast(EPlatformFlags)0) | (gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU), device_idx);
 	scope(exit) model.Dispose();
 	
 	const N = 1000;

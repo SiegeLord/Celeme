@@ -44,6 +44,7 @@ import tango.text.Util;
 import tango.util.Convert;
 import tango.text.convert.Format;
 import tango.core.Array;
+import tango.util.MinMax;
 //import stdc = tango.stdc.stdio;
 
 const RecordSizeArgStep = 6;
@@ -301,8 +302,11 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
-		RWValues = new CMultiBuffer!(float_t)("rwvalues", (1 * float.sizeof) / float_t.sizeof, Count, 16, true, true, true);
-		ROValues = new CMultiBuffer!(float_t)("rovalues", (1 * float.sizeof) / float_t.sizeof, Count, 16, true, false, true);
+		size_t tuple_size = (1 * float.sizeof) / float_t.sizeof;
+		tuple_size = max(tuple_size, 1UL);
+		
+		RWValues = new CMultiBuffer!(float_t)("rwvalues", tuple_size, Count, 16, true, true, true);
+		ROValues = new CMultiBuffer!(float_t)("rovalues", tuple_size, Count, 16, true, false, true);
 		
 		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)

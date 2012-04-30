@@ -594,7 +594,8 @@ class CCLCore : CDisposable
 	
 	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 0)
 	{
-		return new CCLBuffer!(T)(this, length, cache_size, read, write, GPU);
+		/* Only AMD GPU's like the double buffer trick */
+		return new CCLBuffer!(T)(this, length, cache_size, read, write, (PlatformFlags & (EPlatformFlags.GPU | EPlatformFlags.AMD)) == (EPlatformFlags.GPU | EPlatformFlags.AMD));
 	}
 	
 	CCLKernel CreateKernel(cl_program program, cstring name)

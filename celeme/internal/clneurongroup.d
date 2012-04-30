@@ -301,8 +301,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			Connectors[conn.Name] = new CCLConnector!(float_t)(this, conn);
 		}
 		
-		RWValues = new CMultiBuffer!(float_t)("rwvalues", 16 / float_t.sizeof, Count, true, true, true);
-		ROValues = new CMultiBuffer!(float_t)("rovalues", 16 / float_t.sizeof, Count, true, false, true);
+		RWValues = new CMultiBuffer!(float_t)("rwvalues", (4 * float.sizeof) / float_t.sizeof, Count, 16, true, true, true);
+		ROValues = new CMultiBuffer!(float_t)("rovalues", (4 * float.sizeof) / float_t.sizeof, Count, 16, true, false, true);
 		
 		/* Copy the non-locals from the type */
 		foreach(name, state; &type.AllNonLocals)
@@ -1528,10 +1528,16 @@ for(int ii = 0; ii < num_fired; ii++)
 		}
 		
 		if(RWValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return RWValues[name];
+		}
 			
 		if(ROValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return ROValues[name];
+		}
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1555,10 +1561,16 @@ for(int ii = 0; ii < num_fired; ii++)
 		}
 		
 		if(RWValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return RWValues[name] = val;
+		}
 			
 		if(ROValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return ROValues[name] = val;
+		}
 		
 		idx_ptr = name in SynGlobalBufferRegistry;
 		if(idx_ptr !is null)
@@ -1579,10 +1591,16 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 	
 		if(RWValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return RWValues[name, idx];
+		}
 			
 		if(ROValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return ROValues[name, idx];
+		}
 		
 		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}
@@ -1594,10 +1612,16 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(idx < Count, "Neuron index needs to be less than Count.");
 		
 		if(RWValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return RWValues[name, idx] = val;
+		}
 			
 		if(ROValues.HaveValue(name))
+		{
+			NeedUnMap = true;
 			return ROValues[name, idx] = val;
+		}
 		
 		throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ name.idup ~ "' variable.");
 	}

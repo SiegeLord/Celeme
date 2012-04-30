@@ -28,6 +28,7 @@ import dutil.Disposable;
 import tango.core.Traits;
 import tango.text.convert.Format;
 import tango.text.Util;
+import tango.util.MinMax;
 
 private struct SValueHolder(T)
 {
@@ -37,7 +38,7 @@ private struct SValueHolder(T)
 
 class CMultiBuffer(T) : CDisposable
 {
-	this(cstring prefix, size_t n, size_t count, bool read = true, bool write = true, bool keep_mapped = false)
+	this(cstring prefix, size_t n, size_t count, size_t cache_size, bool read = true, bool write = true, bool keep_mapped = false)
 	{
 		assert(n == 1 || n == 2 || n == 4, "N must be 1, 2 or 4");
 		
@@ -47,6 +48,7 @@ class CMultiBuffer(T) : CDisposable
 		Read = read;
 		Write = write;
 		KeepMapped = keep_mapped;
+		CacheSize = max(cache_size, 1UL);
 	}
 	
 	void AddValue(CCLCore core, cstring name, T default_value)
@@ -60,7 +62,7 @@ class CMultiBuffer(T) : CDisposable
 		if(Buffers.length * N < Values.length)
 		{
 			Buffers.length = Buffers.length + 1;
-			Buffers[$-1] = core.CreateBuffer!(T)(Count * N, Read, Write);
+			Buffers[$-1] = core.CreateBuffer!(T)(Count * N, Read, Write, CacheSize);
 			if(KeepMapped)
 				Buffers[$-1].MapReadWrite();
 		}
@@ -225,6 +227,7 @@ private:
 	size_t[char[]] Registry;
 	size_t Count;
 	size_t N;
+	size_t CacheSize;
 	bool Read = true;
 	bool Write = true;
 	bool KeepMapped;

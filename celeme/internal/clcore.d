@@ -127,8 +127,9 @@ protected:
 	bool UseTwoBuffers = false;
 	CCLCore Core;
 	bool UseCache = false;
+	bool PreserveMappedBuffer = false;
 	size_t CacheSize = 1;
-	size_t MappedOffset;
+	size_t MappedOffset = 0;
 	cl_mem_flags MappedMode = 0;
 }
 
@@ -138,17 +139,9 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		Core = core;
 		LengthVal = length;
-		CacheSize = cache_size;
+		UseCache = cache_size > 0;
+		CacheSize = max(cache_size, 1UL);
 		UseTwoBuffers = use_two_buffers;
-		if(CacheSize < 1)
-		{
-			UseCache = false;
-			CacheSize = 1;
-		}
-		else
-		{
-			UseCache = true;
-		}
 		
 		int err;
 		if(UseTwoBuffers)
@@ -182,22 +175,22 @@ class CCLBuffer(T) : CCLBufferBase
 		}
 	}
 	
-	T[] MapWrite(size_t start = 0, size_t end = 0)
+	T[] MapWrite(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
-		return Map(CL_MAP_WRITE, start, end);
+		return Map(CL_MAP_WRITE, start, end, preserve_mapped_buffer);
 	}
 	
-	T[] MapReadWrite(size_t start = 0, size_t end = 0)
+	T[] MapReadWrite(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
-		return Map(CL_MAP_WRITE | CL_MAP_READ, start, end);
+		return Map(CL_MAP_WRITE | CL_MAP_READ, start, end, preserve_mapped_buffer);
 	}
 	
-	T[] MapRead(size_t start = 0, size_t end = 0)
+	T[] MapRead(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
-		return Map(CL_MAP_READ, start, end);
+		return Map(CL_MAP_READ, start, end, preserve_mapped_buffer);
 	}
 	
-	T[] Map(cl_map_flags mode, size_t start = 0, size_t end = 0)
+	T[] Map(cl_map_flags mode, size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
 		assert(end <= Length);
 		assert(end >= start);
@@ -205,8 +198,9 @@ class CCLBuffer(T) : CCLBufferBase
 		if(end <= 0)
 			end = Length;
 			
-		if((mode & MappedMode) && start >= MappedOffset && end <= MappedOffset + Mapped.length)
+		if(((mode & MappedMode) == mode) && start >= MappedOffset && end <= MappedOffset + Mapped.length)
 		{
+			PreserveMappedBuffer = preserve_mapped_buffer;
 			return Mapped[start - MappedOffset..end - MappedOffset];
 		}
 		else
@@ -223,6 +217,7 @@ class CCLBuffer(T) : CCLBufferBase
 			T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, HostBuffer, CL_TRUE, mode, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
 			assert(err == 0, GetCLErrorString(err));
 			
+			PreserveMappedBuffer = preserve_mapped_buffer;
 			MappedMode = mode;
 			MappedOffset = start;
 			Mapped = ret[0..end - start];
@@ -256,41 +251,8 @@ class CCLBuffer(T) : CCLBufferBase
 			Mapped.length = 0;
 			MappedOffset = 0;
 			MappedMode = 0;
+			PreserveMappedBuffer = false;
 		}
-	}
-	
-	/*
-	 * See opIndex for rationalle
-	 */
-	T opSliceAssign(T val)
-	{
-		bool new_map = !(CL_MAP_WRITE & MappedMode) || Mapped.length != Length;
-		
-		auto arr = MapWrite();
-		arr[] = val;
-		
-		if(new_map)
-			UnMap();
-
-		return val;
-	}
-	
-	/*
-	 * See opIndex for rationalle
-	 */
-	T opSliceAssign(T val, size_t start, size_t end)
-	{
-		assert(end >= start);
-		
-		bool new_map = !(CL_MAP_WRITE & MappedMode) || start < MappedOffset || end > MappedOffset + Mapped.length;
-		
-		auto arr = MapWrite(start, end);
-		arr[] = val;
-		
-		if(new_map)
-			UnMap();
-
-		return val;
 	}
 	
 	/*
@@ -307,7 +269,9 @@ class CCLBuffer(T) : CCLBufferBase
 		
 		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 		{
-			MapRead(idx, min(idx + CacheSize, Length));
+			if(PreserveMappedBuffer)
+				assert("Tried to read outside the mapped region (or from a write only region).");
+			MapRead(idx, min(idx + CacheSize, Length), false);
 			new_map = true;
 		}
 		
@@ -331,16 +295,57 @@ class CCLBuffer(T) : CCLBufferBase
 		
 		bool new_map = false;
 		
-		/* Don't do cached writes, since they are dangerous */
 		if(!(CL_MAP_WRITE & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 		{
-			MapWrite(idx, idx + 1);
+			if(PreserveMappedBuffer)
+				assert("Tried to write outside the mapped region (or to a read only region).");
+			/* When doing cached writes we need to read as well as write */
+			if(UseCache)
+				MapReadWrite(idx, min(idx + CacheSize, Length), false);
+			else
+				MapWrite(idx, idx + 1, false);
 			new_map = true;
 		}
 		
 		Mapped[idx - MappedOffset] = val;
 		
-		if(new_map)
+		if(!UseCache && new_map)
+			UnMap();
+
+		return val;
+	}
+	
+	/*
+	 * See opIndex for rationale
+	 */
+	T opSliceAssign(T val)
+	{
+		return this[0..Length] = val;
+	}
+	
+	/*
+	 * See opIndex for rationale
+	 */
+	T opSliceAssign(T val, size_t start, size_t end)
+	{
+		assert(end >= start);
+		
+		bool new_map = false;
+		
+		if(!(CL_MAP_WRITE & MappedMode) || start < MappedOffset || end > MappedOffset + Mapped.length)
+		{
+			if(PreserveMappedBuffer)
+				assert("Tried to write outside the mapped region (or to a read only region).");
+			if(UseCache)
+				MapReadWrite(start, end, false);
+			else
+				MapWrite(start, end, false);
+			new_map = true;
+		}
+		
+		Mapped[start - MappedOffset..end - MappedOffset] = val;
+		
+		if(!UseCache && new_map)
 			UnMap();
 
 		return val;

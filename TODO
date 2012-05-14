@@ -1,3 +1,9 @@
+opDispatch
+
+accesors for stuff (opSlice assign)
+
+helper to deal with slots obtained from GetConnection (rewamp that function too)
+
 Short term things:
 
 - Vectorize reads/writes for the benefit of AMD GPU's

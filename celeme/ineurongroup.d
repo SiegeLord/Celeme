@@ -121,7 +121,7 @@ interface INeuronGroup
 	/**
 	 * Download data from the GPU. Call this before reading out data for speed.
 	 */
-	void MapBuffers();
+	void MapBuffers(const(char)[] variable = null);
 	
 	/**
 	 * Reset the recorded data.

@@ -74,10 +74,23 @@ class CMultiBuffer(T) : CDisposable
 			buf.UnMap();
 	}
 	
-	void MapBuffers()
+	void MapBuffers(const(char)[] variable = null)
 	{
-		foreach(buf; Buffers)
-			buf.MapReadWrite();
+		if(variable == "")
+		{
+			foreach(buf; Buffers)
+				buf.MapReadWrite();
+		}
+		else
+		{
+			auto idx_ptr = HaveValue(variable);
+			assert(idx_ptr);
+
+			/* Buffer index */
+			auto buf_idx = (*idx_ptr) / N;
+			
+			Buffers[buf_idx].MapReadWrite();
+		}
 	}
 	
 	size_t* HaveValue(cstring name)

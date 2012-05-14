@@ -406,17 +406,44 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 	}
 	
 	override
-	void MapBuffers()
+	void MapBuffers(const(char)[] variable)
 	{
-		DestSynBuffer.MapReadWrite();
-		foreach(buf; EventSourceBuffers)
-			buf.FreeIdx.MapReadWrite();
-		foreach(buf; SynapseBuffers)
-			buf.FreeIdx.MapReadWrite();
-		foreach(buf; SynGlobalBuffers)
-			buf.Buffer.MapReadWrite();
-		RWValues.MapBuffers();
-		ROValues.MapBuffers();
+		if(variable == "")
+		{
+			DestSynBuffer.MapReadWrite();
+			foreach(buf; EventSourceBuffers)
+				buf.FreeIdx.MapReadWrite();
+			foreach(buf; SynapseBuffers)
+				buf.FreeIdx.MapReadWrite();
+			foreach(buf; SynGlobalBuffers)
+				buf.Buffer.MapReadWrite();
+			RWValues.MapBuffers();
+			ROValues.MapBuffers();
+		}
+		else
+		{
+			if(RWValues.HaveValue(variable))
+			{
+				RWValues.MapBuffers(variable);
+				return;
+			}
+				
+			if(ROValues.HaveValue(variable))
+			{
+				ROValues.MapBuffers(variable);
+				return;
+			}
+			
+			auto idx_ptr = variable in SynGlobalBufferRegistry;
+			if(idx_ptr !is null)
+			{
+				SynGlobalBuffers[*idx_ptr].Buffer.MapReadWrite();
+				return;
+			}
+			
+			throw new Exception("Neuron group '" ~ Name.idup ~ "' does not have a '" ~ variable.idup ~ "' variable.");
+		}
+		
 		NeedUnMap = true;
 	}
 	

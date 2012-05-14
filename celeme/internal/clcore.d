@@ -267,12 +267,17 @@ class CCLBuffer(T) : CCLBufferBase
 		
 		bool new_map = false;
 		
+		//CacheTotal++;
 		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 		{
 			if(PreserveMappedBuffer)
 				assert("Tried to read outside the mapped region (or from a write only region).");
 			MapRead(idx, min(idx + CacheSize, Length), false);
 			new_map = true;
+		}
+		else
+		{
+			//CacheHit++;
 		}
 		
 		auto ret = Mapped[idx - MappedOffset];
@@ -353,6 +358,9 @@ class CCLBuffer(T) : CCLBufferBase
 protected:
 	T[] Mapped;
 }
+
+__gshared size_t CacheTotal = 0;
+__gshared size_t CacheHit = 0;
 
 class CCLCore : CDisposable
 {

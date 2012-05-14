@@ -74,6 +74,12 @@ class CMultiBuffer(T) : CDisposable
 			buf.UnMap();
 	}
 	
+	void MapBuffers()
+	{
+		foreach(buf; Buffers)
+			buf.MapReadWrite();
+	}
+	
 	size_t* HaveValue(cstring name)
 	{
 		return name in Registry;

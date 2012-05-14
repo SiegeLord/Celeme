@@ -119,6 +119,11 @@ interface INeuronGroup
 	SArray!(SDataPoint) GetRecordedData();
 	
 	/**
+	 * Download data from the GPU. Call this before reading out data for speed.
+	 */
+	void MapBuffers();
+	
+	/**
 	 * Reset the recorded data.
 	 */
 	void ResetRecordedData();

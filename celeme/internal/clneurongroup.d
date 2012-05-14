@@ -359,7 +359,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		
 		if(NeedSrcSynCode)
 		{
-			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses, true, true, 128);
+			DestSynBuffer = Core.CreateBuffer!(cl_int2)(Count * NumEventSources * NumSrcSynapses, true, true, NumSrcSynapses);
 		}
 
 		foreach(name, state; &type.AllConstants)
@@ -403,6 +403,21 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		RWValues.UnMapBuffers();
 		ROValues.UnMapBuffers();
 		NeedUnMap = false;
+	}
+	
+	override
+	void MapBuffers()
+	{
+		DestSynBuffer.MapReadWrite();
+		foreach(buf; EventSourceBuffers)
+			buf.FreeIdx.MapReadWrite();
+		foreach(buf; SynapseBuffers)
+			buf.FreeIdx.MapReadWrite();
+		foreach(buf; SynGlobalBuffers)
+			buf.Buffer.MapReadWrite();
+		RWValues.MapBuffers();
+		ROValues.MapBuffers();
+		NeedUnMap = true;
 	}
 	
 	/* Call this after the program has been created, as we need the memset kernel

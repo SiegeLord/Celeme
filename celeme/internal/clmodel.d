@@ -339,12 +339,12 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			println("\tDeliver time: {:f8}", deliver_total);
 		}
 		
-		println("Estimates:");
+		/*println("Estimates:");
 		println("\tStep: {:f8}", step_est);
 		println("\tDeliver: {:f8}", deliver_est);
 		println("\tRecord: {:f8}", record_est);
 		println("\tFinish: {:f8}", finish_est);
-		println("\tSum: {:f8}", step_est + deliver_est + record_est + finish_est);
+		println("\tSum: {:f8}", step_est + deliver_est + record_est + finish_est);*/
 		
 		/* Check for errors */
 		foreach(group; groups)

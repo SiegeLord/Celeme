@@ -591,7 +591,7 @@ class CNeuronType
 	}
 	
 	/* Goes through all the states and returns the missing tolerance names */
-	int MissingTolerances(scope int delegate(ref cstring name) dg)
+	int MissingTolerances(scope int delegate(cstring name) dg)
 	{
 		outer: foreach(name, state; &AllStates)
 		{

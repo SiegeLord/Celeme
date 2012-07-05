@@ -39,29 +39,29 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CCode</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src</span> = <span class="e String"><span class="sl">""</span></span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src</span> = <span class="e String"><span class="sl">""</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span> = <span class="e Identifier"><span class="i">src</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opAssign</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span> = <span class="e Identifier"><span class="i">src</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">opSlice</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">opSlice</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">Source</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opIndexAssign</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">T</span></span>)</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">what</span></span>)</span>
+	<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opIndexAssign</span><span class="o ">(<span class="o "><span class="i">T</span></span>)</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">what</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">substitute</span></span>(<span class="i">what</span>, <span class="i">to</span>!(<span class="k">char</span>[])(<span class="i">val</span>))</span></span>;</span>
 	}</span></span></span></span></span>
 	
 	<span class="d Struct"><span class="k">struct</span> <span class="i">CAccess</span>
 	<span class="d Compound">{
-		<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opIndexAssign</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">T</span></span>)</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">what</span></span>)</span>
+		<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">opIndexAssign</span><span class="o ">(<span class="o "><span class="i">T</span></span>)</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">what</span></span>)</span>
 		<span class="s FuncBody"><span class="s Compound">{
 			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">what</span>, <span class="i">to</span>!(<span class="k">char</span>[])(<span class="i">val</span>))</span></span>;</span>
 		}</span></span></span></span></span>
@@ -69,7 +69,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="d Variables"><span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">Source</span>;</span>
 	}</span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">CAccess</span></span> <span class="i">C</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CAccess</span></span> <span class="i">C</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">CAccess</span></span>(<span class="i">Source</span>)</span>;</span>
 	}</span></span></span>
@@ -79,31 +79,31 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CSourceConstructor</span>
 <span class="d Compound">{
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Add</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">text</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Add</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">text</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">Source</span></span> ~= <span class="e Identifier"><span class="i">text</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddLine</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">line</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddLine</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">line</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">tabs</span> = <span class="e String"><span class="sl">"<span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span><span class="es">\t</span>"</span></span>;</span></span>
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">Source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Slice"><span class="e Identifier"><span class="i">tabs</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Identifier"><span class="i">TabLevel</span></span>]</span> ~ <span class="e Identifier"><span class="i">line</span></span></span> ~ <span class="e String"><span class="sl">"<span class="es">\n</span>"</span></span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddLine</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddLine</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">AddLine</span></span>(<span class="i">code</span><span class="t Array">[]</span>);</span></span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddBlock</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">block</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddBlock</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">block</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">line</span></span></span>; <span class="e Call"><span class="e Identifier"><span class="i">lines</span></span>(<span class="i">block</span>)</span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">line</span></span></span>; <span class="e Call"><span class="e Identifier"><span class="i">lines</span></span>(<span class="i">block</span>)</span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">AddLine</span></span>(<span class="i">line</span>);</span></span>
 		}</span></span></span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddBlock</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddBlock</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">AddBlock</span></span>(<span class="i">code</span><span class="t Array">[]</span>);</span></span>
 	}</span></span></span>
@@ -111,45 +111,45 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Alias"><span class="k">alias</span> <span class="d Variables"><span class="t Identifier"><span class="i">AddLine</span></span> <span class="i">opCatAssign</span>;</span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">EmptyLine</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">EmptyLine</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">Source</span></span> ~= <span class="e String"><span class="sl">"<span class="es">\n</span>"</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Clear</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Clear</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">TabLevel</span></span> = <span class="e Int"><span class="n">0</span></span></span>;</span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">length</span></span> = <span class="e Int"><span class="n">0</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Tab</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span> = <span class="e Int"><span class="n">1</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Tab</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span> = <span class="e Int"><span class="n">1</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e PlusAssign"><span class="e Identifier"><span class="i">TabLevel</span></span> += <span class="e Identifier"><span class="i">num</span></span></span>;</span>
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Identifier"><span class="i">TabLevel</span></span> &lt; <span class="e Int"><span class="n">10</span></span></span>, <span class="e String"><span class="sl">"TabLevel has to be less than 10"</span></span>)</span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">DeTab</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span> = <span class="e Int"><span class="n">1</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">DeTab</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span> = <span class="e Int"><span class="n">1</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e MinusAssign"><span class="e Identifier"><span class="i">TabLevel</span></span> -= <span class="e Identifier"><span class="i">num</span></span></span>;</span>
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Identifier"><span class="i">TabLevel</span></span> &gt;= <span class="e Int"><span class="n">0</span></span></span>, <span class="e String"><span class="sl">"TabLevel cannot be less than 0"</span></span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Retreat</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Retreat</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">num</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Minus"><span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">length</span></span> - <span class="e Identifier"><span class="i">num</span></span></span> &gt;= <span class="e Int"><span class="n">0</span></span></span>, <span class="e String"><span class="sl">"Can't retreat past start!"</span></span>)</span>;</span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Source</span></span> = <span class="e Slice"><span class="e Identifier"><span class="i">Source</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Minus"><span class="e Dollar">$</span>-<span class="e Identifier"><span class="i">num</span></span></span>]</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Immutable"><span class="k">immutable</span>(<span class="t Integral"><span class="k">char</span></span>)</span><span class="t Array">[]</span> <span class="i">toString</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Immutable"><span class="k">immutable</span>(<span class="t Integral"><span class="k">char</span></span>)</span><span class="t Array">[]</span> <span class="i">toString</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">idup</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Inject</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">dest_string</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">label</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Inject</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span> <span class="i">dest_string</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">label</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="bc">/* Chomp the newline */</span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">length</span></span>)
@@ -159,7 +159,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Clear</span></span>()</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Inject</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">label</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Inject</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCode</span></span> <span class="i">code</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">label</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">code</span>.<span class="i">Source</span>, <span class="i">label</span>)</span>;</span>
 	}</span></span></span>

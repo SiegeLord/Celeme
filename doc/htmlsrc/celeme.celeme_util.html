@@ -41,7 +41,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
  */</span>
 <span class="d Struct"><span class="k">struct</span> <span class="i">SData</span>
 <span class="d Compound">{	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddDatapoint</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">t</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">data</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddDatapoint</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">t</span></span>, <span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">data</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Rel"><span class="e Identifier"><span class="i">Length</span></span> &gt;= <span class="e Identifier"><span class="i">TArray</span></span>.<span class="e Identifier"><span class="i">length</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
@@ -57,7 +57,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Returns the time array.
 	 */</span>
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span><span class="t Array">[]</span> <span class="i">T</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span><span class="t Array">[]</span> <span class="i">T</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Slice"><span class="e Identifier"><span class="i">TArray</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Identifier"><span class="i">Length</span></span>]</span>;</span>
 	}</span></span></span>
@@ -66,7 +66,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Returns the data array.
 	 */</span>
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span><span class="t Array">[]</span> <span class="i">Data</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span><span class="t Array">[]</span> <span class="i">Data</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Slice"><span class="e Identifier"><span class="i">DataArray</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Identifier"><span class="i">Length</span></span>]</span>;</span>
 	}</span></span></span>
@@ -87,11 +87,11 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
  * Returns:
  *     A double assosiative array of SData structures. First key is the neuron idx, second key is tag.
  */</span>
-<span class="d Function"><span class="t Identifier"><span class="i">SData</span></span><span class="t Array">[<span class="t Integral"><span class="k">int</span></span>]</span><span class="t Array">[<span class="t Identifier"><span class="i">size_t</span></span>]</span> <span class="i">ExtractData</span><span class="o Parameters">(<span class="o Parameter"><span class="t TemplateInstance"><span class="i">SArray</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">SDataPoint</span></span>)</span></span> <span class="i">array</span></span>)</span>
+<span class="d Function"><span class="t Identifier"><span class="i">SData</span></span><span class="t Array">[<span class="t Integral"><span class="k">int</span></span>]</span><span class="t Array">[<span class="t Identifier"><span class="i">size_t</span></span>]</span> <span class="i">ExtractData</span><span class="o ">(<span class="o "><span class="t TemplateInstance"><span class="i">SArray</span>!<span class="o ">(<span class="t Identifier"><span class="i">SDataPoint</span></span>)</span></span> <span class="i">array</span></span>)</span>
 <span class="s FuncBody"><span class="s Compound">{
 	<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">SData</span></span><span class="t Array">[<span class="t Integral"><span class="k">int</span></span>]</span><span class="t Array">[<span class="t Identifier"><span class="i">size_t</span></span>]</span> <span class="i">ret</span>;</span></span>
 	
-	<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">datapoint</span></span></span>; <span class="e Slice"><span class="e Identifier"><span class="i">array</span></span>[]</span>)
+	<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">datapoint</span></span></span>; <span class="e Slice"><span class="e Identifier"><span class="i">array</span></span>[]</span>)
 	<span class="s Scope"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">time</span> = <span class="e Identifier"><span class="i">datapoint</span></span>.<span class="e Identifier"><span class="i">T</span></span>;</span></span>
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">data</span> = <span class="e Identifier"><span class="i">datapoint</span></span>.<span class="e Identifier"><span class="i">Data</span></span>;</span></span>

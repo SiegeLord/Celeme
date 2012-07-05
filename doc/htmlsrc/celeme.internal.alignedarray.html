@@ -37,39 +37,39 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Import"><span class="k">import</span> <span class="i">tango</span>.<span class="i">io</span>.<span class="i">Stdout</span>;</span>
 
-<span class="d Template"><span class="d Compound"><span class="d Struct"><span class="k">struct</span> <span class="i">SAlignedArray</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">T</span></span>, <span class="o TemplateValueParam"><span class="t Integral"><span class="k">int</span></span> <span class="i">N</span></span>)</span>
+<span class="d Template"><span class="d Compound"><span class="d Struct"><span class="k">struct</span> <span class="i">SAlignedArray</span><span class="o ">(<span class="o "><span class="i">T</span></span>, <span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">N</span></span>)</span>
 <span class="d Compound">{
-	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opCatAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opCatAssign</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">length</span></span> = <span class="e Plus"><span class="e Identifier"><span class="i">length</span></span> + <span class="e Int"><span class="n">1</span></span></span></span>;</span>
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">opIndexAssign</span></span>(<span class="i">val</span>, <span class="i">length</span> - <span class="n">1</span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opIndex</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opIndex</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Index"><span class="e Identifier"><span class="i">ptr</span></span>[<span class="e Identifier"><span class="i">idx</span></span>]</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opIndexAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span> <span class="i">opIndexAssign</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">T</span></span> <span class="i">val</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">ptr</span></span>[<span class="e Identifier"><span class="i">idx</span></span>]</span> = <span class="e Identifier"><span class="i">val</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span><span class="t Pointer">*</span> <span class="i">ptr</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">T</span></span><span class="t Pointer">*</span> <span class="i">ptr</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Cast"><span class="k">cast</span>(<span class="t Identifier"><span class="i">T</span></span><span class="t Pointer">*</span>)<span class="e Paren">(<span class="e Plus"><span class="e Identifier"><span class="i">Data</span></span>.<span class="e Identifier"><span class="i">ptr</span></span> + <span class="e Identifier"><span class="i">Offset</span></span></span>)</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">length</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">length</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">Length</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">opApply</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">T</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">opApply</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">T</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Slice"><span class="e Identifier"><span class="i">ptr</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Identifier"><span class="i">Length</span></span>]</span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Slice"><span class="e Identifier"><span class="i">ptr</span></span>[<span class="e Int"><span class="n">0</span></span>..<span class="e Identifier"><span class="i">Length</span></span>]</span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
@@ -78,7 +78,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">length</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">new_length</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">length</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">new_length</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">new_data_len</span> = <span class="e Plus"><span class="e Mul"><span class="e Identifier"><span class="i">new_length</span></span> * <span class="e Identifier"><span class="i">T</span></span>.<span class="e Identifier"><span class="i">sizeof</span></span></span> + <span class="e Identifier"><span class="i">N</span></span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Rel"><span class="e Identifier"><span class="i">new_data_len</span></span> &gt; <span class="e Identifier"><span class="i">Data</span></span>.<span class="e Identifier"><span class="i">length</span></span></span>)
@@ -105,7 +105,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 <span class="s FuncBody"><span class="s Compound">{
 	<span class="bc">/* Test an odd alignment to make sure it works */</span>
 	<span class="s Declaration"><span class="d StorageClass"><span class="k">const</span></span> <span class="d Variables"><span class="i">N</span> = <span class="e Int"><span class="n">7</span></span>;</span></span>
-	<span class="s Declaration"><span class="d Variables"><span class="t TemplateInstance"><span class="i">SAlignedArray</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">double</span></span>, <span class="t Identifier"><span class="i">N</span></span>)</span></span> <span class="i">arr</span>;</span></span>
+	<span class="s Declaration"><span class="d Variables"><span class="t TemplateInstance"><span class="i">SAlignedArray</span>!<span class="o ">(<span class="t Integral"><span class="k">double</span></span>, <span class="t Identifier"><span class="i">N</span></span>)</span></span> <span class="i">arr</span>;</span></span>
 	<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">arr</span></span>.<span class="e Identifier"><span class="i">length</span></span> = <span class="e Int"><span class="n">1</span></span></span>;</span>
 	<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Identity"><span class="e Identifier"><span class="i">arr</span></span>.<span class="e Identifier"><span class="i">ptr</span></span> !<span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)</span>;</span>
 	<span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">arr</span></span>[<span class="e Int"><span class="n">0</span></span>]</span> = <span class="e Float"><span class="n">5.0</span></span></span>;</span>

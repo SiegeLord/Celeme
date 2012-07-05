@@ -40,18 +40,18 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 <span class="bc">/* A front end value, primarily stores the name and default value */</span>
 <span class="d Class"><span class="k">class</span> <span class="i">CValue</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">name</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opAssign</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Assign"><span class="e Identifier"><span class="i">Value</span></span> = <span class="e Identifier"><span class="i">val</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">dup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">dup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">ret</span></span> <span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CValue</span></span>(<span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">dup</span></span>)</span></span>;</span></span></span>
@@ -68,7 +68,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Variables"><span class="t Integral"><span class="k">bool</span></span> <span class="i">ReadOnly</span> = <span class="e Bool"><span class="k">false</span></span>;</span>
 }</span></span>
 
-<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsValidName</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsValidName</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 <span class="s FuncBody"><span class="s Compound">{
 	<span class="s Return"><span class="k">return</span> <span class="e AndAnd"><span class="e AndAnd"><span class="e AndAnd"><span class="e AndAnd"><span class="e AndAnd"><span class="e Equal"><span class="e Identifier"><span class="i">name</span></span> != <span class="e String"><span class="sl">"t"</span></span></span>
 	    &amp;&amp; <span class="e Equal"><span class="e Identifier"><span class="i">name</span></span> != <span class="e String"><span class="sl">"dt"</span></span></span></span>
@@ -87,7 +87,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Variables"><span class="t Integral"><span class="k">bool</span></span> <span class="i">ResetTime</span> = <span class="e Bool"><span class="k">false</span></span>;</span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">dup</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">dup</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">SThreshold</span></span>(<span class="i">State</span>.<span class="i">dup</span>, <span class="i">Condition</span>.<span class="i">dup</span>, <span class="i">Source</span>.<span class="i">dup</span>, <span class="i">IsEventSource</span>, <span class="i">ResetTime</span>)</span>;</span>
 	}</span></span></span>
@@ -100,14 +100,14 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">Source</span>;</span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">dup</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">dup</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">SSynThreshold</span></span>(<span class="i">State</span>.<span class="i">dup</span>, <span class="i">Condition</span>.<span class="i">dup</span>, <span class="i">Source</span>.<span class="i">dup</span>)</span>;</span>
 	}</span></span></span>
 }</span></span>
 
 <span class="d StorageClass">@<span class="i">property</span></span>
-<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">AddMechFunc</span><span class="o TemplateParameters">(<span class="o TemplateValueParam"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span><span class="o Parameters">()</span>
+<span class="d Template"><span class="d Compound"><span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">AddMechFunc</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span><span class="o ">()</span>
 <span class="s FuncBody"><span class="s Compound">{
 	<span class="s Return"><span class="k">return</span> 
 	<span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">`CValue Add`</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">`(cstring name)
@@ -125,18 +125,18 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CMechanism</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">name</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"State"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"Local"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"Global"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"Constant"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"Immutable"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"State"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"Local"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"Global"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"Constant"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"Immutable"</span></span>)</span></span>);</span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddExternal</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddExternal</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Call"><span class="e Not">!<span class="e Identifier"><span class="i">IsValidName</span></span></span>(<span class="i">name</span>)</span>)
 			<span class="s Scope"><span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"The name '"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' is reserved."</span></span></span>)</span>;</span></span></span>
@@ -145,9 +145,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">Externals</span></span> ~= <span class="e Identifier"><span class="i">name</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">RemoveValue</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">RemoveValue</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{		
-		<span class="s Declaration"><span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">try_remove</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span><span class="t Array">[]</span> <span class="i">arr</span></span>)</span>
+		<span class="s Declaration"><span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">try_remove</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span><span class="t Array">[]</span> <span class="i">arr</span></span>)</span>
 		<span class="s FuncBody"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">new_length</span> = <span class="e Call"><span class="e Identifier"><span class="i">arr</span></span>.<span class="e Identifier"><span class="i">removeIf</span></span>((<span class="i">CValue</span> <span class="i">val</span>) { <span class="k">return</span> <span class="i">val</span>.<span class="i">Name</span> == <span class="i">name</span>; })</span>;</span></span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">ret</span> = <span class="e Equal"><span class="e Identifier"><span class="i">new_length</span></span> != <span class="e Identifier"><span class="i">arr</span></span>.<span class="e Identifier"><span class="i">length</span></span></span>;</span></span>
@@ -173,10 +173,10 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"Mechanism does not have a value named '"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"'."</span></span></span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="bc">/* TODO: LOL OPTIMIZE */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">true</span></span>;</span></span></span>
@@ -184,29 +184,29 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">false</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllValues</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllValues</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">States</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">States</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
 		}</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Globals</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Globals</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
 		}</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Locals</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Locals</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
 		}</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
 		}</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Immutables</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Immutables</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
@@ -214,9 +214,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllImmutables</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllImmutables</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Immutables</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Immutables</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
@@ -224,9 +224,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllStates</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllStates</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">States</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">States</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
@@ -234,7 +234,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetStage</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">stage</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetStage</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">stage</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Identifier"><span class="i">stage</span></span> &gt;= <span class="e Int"><span class="n">0</span></span></span>, <span class="e String"><span class="sl">"stage must be greater than or equal to 0"</span></span>)</span>;</span>
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Identifier"><span class="i">stage</span></span> &lt; <span class="e Int"><span class="n">3</span></span></span>, <span class="e String"><span class="sl">"stage must be less than 3"</span></span>)</span>;</span>
@@ -242,7 +242,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">Stages</span></span>[<span class="e Identifier"><span class="i">stage</span></span>]</span> = <span class="e Identifier"><span class="i">source</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddThreshold</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">condition</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">event_source</span> = <span class="e Bool"><span class="k">false</span></span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">resetting</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddThreshold</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">condition</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">event_source</span> = <span class="e Bool"><span class="k">false</span></span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">resetting</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">thresh</span>;</span></span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh</span></span>.<span class="e Identifier"><span class="i">State</span></span> = <span class="e Identifier"><span class="i">state</span></span></span>;</span>
@@ -258,45 +258,45 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">PreStepCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">PreStepCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">PreStepCodeVal</span></span> = <span class="e Identifier"><span class="i">code</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">PreStepCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">PreStepCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">PreStepCodeVal</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">InitCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">InitCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">InitCodeVal</span></span> = <span class="e Identifier"><span class="i">code</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">InitCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">InitCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">InitCodeVal</span></span>;</span>
 	}</span></span></span>
 
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">PreStageCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">PreStageCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">PreStageCodeVal</span></span> = <span class="e Identifier"><span class="i">code</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">PreStageCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">PreStageCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">PreStageCodeVal</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndex</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndex</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="bc">/* TODO: LOL OPTIMIZE */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">val</span></span>;</span></span></span>
@@ -305,7 +305,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"'"</span></span> ~ <span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' does not have a '"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' value."</span></span></span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndexAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndexAssign</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">value</span> = <span class="e Call"><span class="e Identifier"><span class="i">opIndex</span></span>(<span class="i">name</span>)</span>;</span></span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">value</span></span> = <span class="e Identifier"><span class="i">val</span></span></span>;</span>
@@ -314,13 +314,13 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">dup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">dup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">ret</span></span> <span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CMechanism</span></span>(<span class="e Identifier"><span class="i">Name</span></span>)</span></span>;</span></span></span>
 		
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">stage</span></span></span>; <span class="e Identifier"><span class="i">Stages</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">stage</span></span></span>; <span class="e Identifier"><span class="i">Stages</span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">Stages</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Identifier"><span class="i">stage</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span></span></span>
 		
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">Externals</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Externals</span></span>.<span class="e Identifier"><span class="i">deep_dup</span></span>()</span></span>;</span>
@@ -400,20 +400,20 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CSynapse</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CMechanism</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>(<span class="i">name</span>)</span>;</span>
+		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="k">super</span></span>(<span class="i">name</span>);</span></span>
 	}</span></span></span>
 	
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"SynGlobal"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">AddMechFunc</span>!<span class="o ">(<span class="e String"><span class="sl">"SynGlobal"</span></span>)</span></span>);</span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">ret</span> = <span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">IsDuplicateName</span></span>(<span class="i">name</span>)</span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">ret</span></span>)
 			<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">true</span></span>;</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllSynGlobals</span></span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllSynGlobals</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">true</span></span>;</span></span></span>
@@ -421,10 +421,10 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">false</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"SynCode"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"SynThreshCode"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o ">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"SynCode"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o ">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"SynThreshCode"</span></span>)</span></span>);</span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddSynThreshold</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">condition</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddSynThreshold</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">condition</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">source</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">thresh</span>;</span></span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh</span></span>.<span class="e Identifier"><span class="i">State</span></span> = <span class="e Identifier"><span class="i">state</span></span></span>;</span>
@@ -434,9 +434,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">SynThresholds</span></span> ~= <span class="e Identifier"><span class="i">thresh</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynGlobals</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynGlobals</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">SynGlobals</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">SynGlobals</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">val</span>)</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
@@ -445,16 +445,16 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndex</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">opIndex</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="bc">/* TODO: LOL OPTIMIZE */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllValues</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">val</span></span>;</span></span></span>
 		}</span></span></span>
 		
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllSynGlobals</span></span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllSynGlobals</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">val</span></span>;</span></span></span>
@@ -466,12 +466,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Alias"><span class="k">alias</span> <span class="d Variables"><span class="t Identifier"><span class="i">CMechanism</span></span>.<span class="t Identifier"><span class="i">dup</span></span> <span class="i">dup</span>;</span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">dup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">dup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">ret</span></span> <span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CSynapse</span></span>(<span class="e Identifier"><span class="i">Name</span></span>)</span></span>;</span></span></span>
 		
-		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">dup</span></span>(<span class="i">ret</span>)</span>;</span>
+		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="k">super</span></span>.<span class="t Identifier"><span class="i">dup</span></span>(<span class="i">ret</span>);</span></span>
 		
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">SynGlobals</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">SynGlobals</span></span>.<span class="e Identifier"><span class="i">deep_dup</span></span>()</span></span>;</span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">SynThresholds</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">SynThresholds</span></span>.<span class="e Identifier"><span class="i">deep_dup</span></span>()</span></span>;</span>
@@ -500,13 +500,13 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CNeuronType</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">name</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="bc">/* Returns null if it isn't duplicate and the name of the containing mechanism if it is */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">IsDuplicateName</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">IsDuplicateName</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">old_mech</span> = <span class="e In"><span class="e Identifier"><span class="i">name</span></span> <span class="k">in</span> <span class="e Identifier"><span class="i">Values</span></span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">old_mech</span></span> !<span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
@@ -519,13 +519,13 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Null"><span class="k">null</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddConnector</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddConnector</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Identifier"><span class="i">conn</span></span>)</span>;</span>
 		<span class="s If"><span class="k">if</span>(<span class="e Not">!<span class="e Identifier"><span class="i">no_dup</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">conn</span></span> = <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span></span></span>
 		
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">c</span></span></span>; <span class="e Identifier"><span class="i">Connectors</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">c</span></span></span>; <span class="e Identifier"><span class="i">Connectors</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">c</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span>)
 				<span class="s Scope"><span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"Connector '"</span></span> ~ <span class="e Identifier"><span class="i">c</span></span>.<span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' already exists in this neuron type."</span></span></span>)</span>;</span></span></span>
@@ -534,12 +534,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">Connectors</span></span> ~= <span class="e Identifier"><span class="i">conn</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddMechanism</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">mech</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">prefix</span> = <span class="e String"><span class="sl">""</span></span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddMechanism</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">mech</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">prefix</span> = <span class="e String"><span class="sl">""</span></span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Identifier"><span class="i">mech</span></span>)</span>;</span>
 		<span class="s If"><span class="k">if</span>(<span class="e Not">!<span class="e Identifier"><span class="i">no_dup</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">mech</span></span> = <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Identifier"><span class="i">prefix</span></span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">mech_name</span> = <span class="e Call"><span class="e Identifier"><span class="i">IsDuplicateName</span></span>(<span class="i">name</span>)</span>;</span></span>
@@ -557,12 +557,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span> ~= <span class="e Identifier"><span class="i">prefix</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddSynapse</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">syn</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">num_slots</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">prefix</span> = <span class="e String"><span class="sl">""</span></span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddSynapse</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CSynapse</span></span> <span class="i">syn</span></span>, <span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">num_slots</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">prefix</span> = <span class="e String"><span class="sl">""</span></span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">no_dup</span> = <span class="e Bool"><span class="k">false</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Not">!<span class="e Identifier"><span class="i">no_dup</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">syn</span></span> = <span class="e Identifier"><span class="i">syn</span></span>.<span class="e Identifier"><span class="i">dup</span></span></span>;</span></span></span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">AddMechanism</span></span>(<span class="i">syn</span>, <span class="i">prefix</span>, <span class="k">true</span>)</span>;</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Identifier"><span class="i">prefix</span></span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">mech_name</span> = <span class="e Call"><span class="e Identifier"><span class="i">IsDuplicateName</span></span>(<span class="i">name</span>)</span>;</span></span>
@@ -577,22 +577,22 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumDestSynapses</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumDestSynapses</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Int"><span class="n">0</span></span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e PlusAssign"><span class="e Identifier"><span class="i">ret</span></span> += <span class="e Identifier"><span class="i">type</span></span>.<span class="e Identifier"><span class="i">NumSynapses</span></span></span>;</span></span></span>
 		
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="bc">/* Double checks that each mechanism has its externals satisfied*/</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">VerifyExternals</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">VerifyExternals</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">error</span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">external</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Externals</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">external</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Externals</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Paren">(<span class="e In"><span class="e Identifier"><span class="i">external</span></span> <span class="k">in</span> <span class="e Identifier"><span class="i">Values</span></span></span>)</span> <span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
 				<span class="s Scope"><span class="s Compound">{
@@ -605,22 +605,22 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="bc">/* Goes through all the states and returns the missing tolerance names */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">MissingTolerances</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">MissingTolerances</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Labeled"><span class="i">outer</span>: <span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllStates</span></span></span>)
+		<span class="s Labeled"><span class="i">outer</span>: <span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllStates</span></span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">tol_name</span> = <span class="e Cat"><span class="e Identifier"><span class="i">name</span></span> ~ <span class="e String"><span class="sl">"_tol"</span></span></span>;</span></span>
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val_name</span></span>, <span class="o Parameter"><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllImmutables</span></span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val_name</span></span>, <span class="o "><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllImmutables</span></span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">tol_name</span></span> == <span class="e Identifier"><span class="i">val_name</span></span></span>)
 					<span class="s Scope"><span class="s Continue"><span class="k">continue</span> <span class="i">outer</span>;</span></span></span>
 			}</span></span></span>
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val_name</span></span>, <span class="o Parameter"><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllConstants</span></span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val_name</span></span>, <span class="o "><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllConstants</span></span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">tol_name</span></span> == <span class="e Identifier"><span class="i">val_name</span></span></span>)
 					<span class="s Scope"><span class="s Continue"><span class="k">continue</span> <span class="i">outer</span>;</span></span></span>
 			}</span></span></span>
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val_name</span></span>, <span class="o Parameter"><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllGlobals</span></span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val_name</span></span>, <span class="o "><span class="i">_</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">AllGlobals</span></span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">tol_name</span></span> == <span class="e Identifier"><span class="i">val_name</span></span></span>)
 					<span class="s Scope"><span class="s Continue"><span class="k">continue</span> <span class="i">outer</span>;</span></span></span>
@@ -632,11 +632,11 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynGlobals</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynGlobals</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">syn_type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">syn_type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn_type</span></span></span>.<span class="e Identifier"><span class="i">Synapse</span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn_type</span></span></span>.<span class="e Identifier"><span class="i">Synapse</span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Identifier"><span class="i">syn_type</span></span>.<span class="e Identifier"><span class="i">Prefix</span></span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Identifier"><span class="i">syn_type</span></span>.<span class="e Identifier"><span class="i">Prefix</span></span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -646,11 +646,11 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllImmutables</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllImmutables</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Immutables</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Immutables</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -660,11 +660,11 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllStates</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllStates</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">States</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">States</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -675,31 +675,17 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="bc">/* Globals and states*/</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllNonLocals</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllNonLocals</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">States</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">States</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
 					<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
 			}</span></span></span>
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Globals</span></span>)
-			<span class="s Scope"><span class="s Compound">{
-				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
-				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
-					<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
-			}</span></span></span>
-		}</span></span></span>
-		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
-	}</span></span></span>
-	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllGlobals</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
-	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
-		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Globals</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Globals</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -709,11 +695,11 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllConstants</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllGlobals</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Globals</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -723,11 +709,25 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllLocals</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllConstants</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Locals</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
+			<span class="s Scope"><span class="s Compound">{
+				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
+				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
+					<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span></span></span>
+			}</span></span></span>
+		}</span></span></span>
+		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
+	}</span></span></span>
+	
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllLocals</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">CValue</span></span> <span class="i">value</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="s FuncBody"><span class="s Compound">{
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Scope"><span class="s Compound">{
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Locals</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Equal"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> == <span class="e String"><span class="sl">""</span></span></span> ? <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> : <span class="e Cat"><span class="e Cat"><span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ret</span> = <span class="e Call"><span class="e Identifier"><span class="i">dg</span></span>(<span class="i">name</span>, <span class="i">val</span>)</span></span></span>)
@@ -738,14 +738,14 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="bc">/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllThresholds</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllThresholds</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">prefix</span> = <span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span>;</span></span>
 			<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">bool</span></span> <span class="i">need_prefix</span> = <span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> != <span class="e String"><span class="sl">""</span></span></span>;</span></span>
 			
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Thresholds</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Thresholds</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">thresh2</span> = <span class="e Identifier"><span class="i">thresh</span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">need_prefix</span></span>)
@@ -756,7 +756,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 					
 					<span class="bc">/* If the state name is one of the states of the mechanism, it gets a prefix...
 					 * otherwise, it's external, and it gets nothing */</span>
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">state</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">State</span></span></span>)
 						<span class="s Scope"><span class="s Compound">{
@@ -765,7 +765,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 						}</span></span></span>
 					}</span></span></span>
 					 
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>;</span></span>
 						<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
@@ -780,15 +780,15 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	}</span></span></span>
 	
 	<span class="bc">/* Note that this returns the thresholds with all the strings modified appropriately with a prefix */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynThresholdsEx</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynType</span></span> <span class="i">type</span></span>, <span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynThresholdsEx</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynType</span></span> <span class="i">type</span></span>, <span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">syn_type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">syn_type</span></span></span>; <span class="e Identifier"><span class="i">SynapseTypes</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">prefix</span> = <span class="e Identifier"><span class="i">syn_type</span></span>.<span class="e Identifier"><span class="i">Prefix</span></span>;</span></span>
 			<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">bool</span></span> <span class="i">need_prefix</span> = <span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> != <span class="e String"><span class="sl">""</span></span></span>;</span></span>
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">syn</span> = <span class="e Identifier"><span class="i">syn_type</span></span>.<span class="e Identifier"><span class="i">Synapse</span></span>;</span></span>
 			
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">syn</span></span>.<span class="e Identifier"><span class="i">SynThresholds</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">syn</span></span>.<span class="e Identifier"><span class="i">SynThresholds</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">thresh2</span> = <span class="e Identifier"><span class="i">thresh</span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">need_prefix</span></span>)
@@ -799,7 +799,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 					
 					<span class="bc">/* If the state name is one of the states of the synapse, it gets a prefix...
 					 * otherwise, it's external, and it gets nothing */</span>
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">state</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">State</span></span></span>)
 						<span class="s Scope"><span class="s Compound">{
@@ -808,14 +808,14 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 						}</span></span></span>
 					}</span></span></span>
 					 
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>;</span></span>
 						<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
 						<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Source</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
 					}</span></span></span>
 					
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">syn</span></span></span>.<span class="e Identifier"><span class="i">AllSynGlobals</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>;</span></span>
 						<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">thresh2</span></span>.<span class="e Identifier"><span class="i">Condition</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
@@ -829,18 +829,18 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynThresholds</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllSynThresholds</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">SSynThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">AllSynThresholdsEx</span></span>((<span class="k">ref</span> <span class="i">SSynType</span> <span class="i">type</span>, <span class="k">ref</span> <span class="i">SSynThreshold</span> <span class="i">thresh</span>) {<span class="k">return</span> <span class="i">dg</span>(<span class="i">thresh</span>);})</span>;</span>
 	}</span></span></span>
 	
 	<span class="bc">/* This one, unlike AllThresholds returns the raw thresholds 
 	 * TODO: Is this okay? */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllEventSources</span><span class="o Parameters">(<span class="o Parameter"><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="k">ref</span> <span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">AllEventSources</span><span class="o ">(<span class="o "><span class="k">scope</span> <span class="t Integral"><span class="k">int</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="k">ref</span> <span class="t Identifier"><span class="i">SThreshold</span></span> <span class="i">thresh</span></span>)</span></span> <span class="i">dg</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Thresholds</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">thresh</span></span></span>; <span class="e Identifier"><span class="i">mech</span></span>.<span class="e Identifier"><span class="i">Thresholds</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">thresh</span></span>.<span class="e Identifier"><span class="i">IsEventSource</span></span>)
 				<span class="s Scope"><span class="s Compound">{
@@ -852,12 +852,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetEvalSource</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetEvalSource</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">ret</span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span></span>; <span class="e Call"><span class="e Identifier"><span class="i">range</span></span>(<span class="n">3</span>)</span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span></span>; <span class="e Call"><span class="e Identifier"><span class="i">range</span></span>(<span class="n">3</span>)</span>)
 		<span class="s Scope"><span class="s Compound">{
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">jj</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">jj</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">prefix</span> = <span class="e Index"><span class="e Identifier"><span class="i">MechanismPrefixes</span></span>[<span class="e Identifier"><span class="i">jj</span></span>]</span>;</span></span>
 				<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">bool</span></span> <span class="i">need_prefix</span> = <span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> != <span class="e String"><span class="sl">""</span></span></span>;</span></span>
@@ -868,7 +868,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 					
 					<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">need_prefix</span></span>)
 					<span class="s Scope"><span class="s Compound">{
-						<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
+						<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
 						<span class="s Scope"><span class="s Compound">{
 							<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>;</span></span>
 							<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">stage_src</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">stage_src</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
@@ -880,7 +880,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 				<span class="k">else</span> <span class="s Scope"><span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">ii</span></span> == <span class="e Int"><span class="n">2</span></span></span>)
 				<span class="s Scope"><span class="s Compound">{
 					<span class="bc">/* Generate a dummy stage that sets all the derivatives to 0 */</span>
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Cond"><span class="e Identifier"><span class="i">need_prefix</span></span> ? <span class="e Cat"><span class="e Cat"><span class="e Identifier"><span class="i">prefix</span></span> ~ <span class="e String"><span class="sl">"_"</span></span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span> : <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span>;</span></span>
 						<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">ret</span></span> ~= <span class="e String"><span class="sl">"{<span class="es">\n</span>"</span></span></span>;</span>
@@ -893,14 +893,14 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Protection"><span class="k">private</span></span> <span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetFixedCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>, <span class="o Parameter"><span class="k">scope</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">mech</span></span>)</span></span> <span class="i">mech_code_extractor</span></span>)</span>
+	<span class="d Protection"><span class="k">private</span></span> <span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetFixedCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>, <span class="o "><span class="k">scope</span> <span class="t Identifier"><span class="i">cstring</span></span> <span class="t Delegate"><span class="k">delegate</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CMechanism</span></span> <span class="i">mech</span></span>)</span></span> <span class="i">mech_code_extractor</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">ret</span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">code</span></span>.<span class="e Identifier"><span class="i">length</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">ret</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"{<span class="es">\n</span>"</span></span> ~ <span class="e Identifier"><span class="i">code</span></span></span> ~ <span class="e String"><span class="sl">"<span class="es">\n</span>}<span class="es">\n</span>"</span></span></span></span>;</span>
 		}</span></span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">ii</span></span>, <span class="o Parameter"><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">ii</span></span>, <span class="o "><span class="i">mech</span></span></span>; <span class="e Identifier"><span class="i">Mechanisms</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">mech_code</span> = <span class="e Call"><span class="e Identifier"><span class="i">mech_code_extractor</span></span>(<span class="i">mech</span>)</span>;</span></span>
 			<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">mech_code</span></span>.<span class="e Identifier"><span class="i">length</span></span>)
@@ -909,7 +909,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 				<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">src</span> = <span class="e Identifier"><span class="i">mech_code</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>
 				<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">prefix</span></span> != <span class="e String"><span class="sl">""</span></span></span>)
 				<span class="s Scope"><span class="s Compound">{
-					<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
+					<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">mech</span></span></span>.<span class="e Identifier"><span class="i">AllValues</span></span>)
 					<span class="s Scope"><span class="s Compound">{
 						<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">name</span> = <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>;</span></span>
 						<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">src</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">src</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="i">prefix</span> ~ <span class="sl">"_"</span> ~ <span class="i">name</span>)</span></span>;</span>
@@ -921,24 +921,24 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPreStepSource</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPreStepSource</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">GetFixedCode</span></span>(<span class="i">PreStepCode</span>, (<span class="i">CMechanism</span> <span class="i">mech</span>) { <span class="k">return</span> <span class="i">mech</span>.<span class="i">PreStepCode</span>; })</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPreStageSource</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPreStageSource</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">GetFixedCode</span></span>(<span class="i">PreStageCode</span>, (<span class="i">CMechanism</span> <span class="i">mech</span>) { <span class="k">return</span> <span class="i">mech</span>.<span class="i">PreStageCode</span>; })</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetInitSource</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetInitSource</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Call"><span class="e Identifier"><span class="i">GetFixedCode</span></span>(<span class="i">InitCode</span>, (<span class="i">CMechanism</span> <span class="i">mech</span>) { <span class="k">return</span> <span class="i">mech</span>.<span class="i">InitCode</span>; })</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"InitCode"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"PreStageCode"</span></span>)</span></span>);</span>
-	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o TemplateArguments">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"PreStepCode"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o ">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"InitCode"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o ">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"PreStageCode"</span></span>)</span></span>);</span>
+	<span class="d Mixin"><span class="k">mixin</span>(<span class="e TmplInstance"><span class="i">Prop</span>!<span class="o ">(<span class="e String"><span class="sl">"cstring"</span></span>, <span class="e String"><span class="sl">"PreStepCode"</span></span>)</span></span>);</span>
 	
 	<span class="d Variables"><span class="t Identifier"><span class="i">CConnector</span></span><span class="t Array">[]</span> <span class="i">Connectors</span>;</span>
 	<span class="d Variables"><span class="t Identifier"><span class="i">CMechanism</span></span><span class="t Array">[<span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span>]</span> <span class="i">Values</span>;</span>
@@ -966,13 +966,13 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Class"><span class="k">class</span> <span class="i">CConnector</span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">name</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">dup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">dup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">ret</span> = <span class="e Null"><span class="k">null</span></span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">ret</span></span> <span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
 			<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ret</span></span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CConnector</span></span>(<span class="e Identifier"><span class="i">Name</span></span>)</span></span>;</span></span></span>
@@ -984,7 +984,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">AddConstant</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">CValue</span></span> <span class="i">AddConstant</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s If"><span class="k">if</span>(<span class="e Call"><span class="e Not">!<span class="e Identifier"><span class="i">IsValidName</span></span></span>(<span class="i">name</span>)</span>)
 			<span class="s Scope"><span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"The name '"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' is reserved."</span></span></span>)</span>;</span></span></span>
@@ -995,9 +995,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">val</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">bool</span></span> <span class="i">IsDuplicateName</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s If"><span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span> == <span class="e Identifier"><span class="i">name</span></span></span>)
 				<span class="s Scope"><span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">true</span></span>;</span></span></span>
@@ -1005,7 +1005,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 		<span class="s Return"><span class="k">return</span> <span class="e Bool"><span class="k">false</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">code</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Code</span></span> = <span class="e Identifier"><span class="i">code</span></span></span>;</span>
 	}</span></span></span>

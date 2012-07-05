@@ -115,14 +115,14 @@ $save_rand_state$
 }
 `</span></span>;</span> 
 
-<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CCLConnector</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CDisposable</span></span></span>
+<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CCLConnector</span><span class="o ">(<span class="o "><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CDisposable</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o "><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Group</span></span> = <span class="e Identifier"><span class="i">group</span></span></span>;</span>
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Name</span></span> = <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span>;</span>
 		
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">ConstantRegistry</span></span>[<span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span>]</span> = <span class="e Identifier"><span class="i">Constants</span></span>.<span class="e Identifier"><span class="i">length</span></span></span>;</span>
 			
@@ -132,12 +132,12 @@ $save_rand_state$
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">CreateKernel</span></span>(<span class="i">conn</span>);</span></span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Initialize</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Initialize</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">ConnectKernel</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Core</span></span>.<span class="e Identifier"><span class="i">CreateKernel</span></span>(<span class="i">Group</span>.<span class="i">Program</span>, <span class="i">Group</span>.<span class="i">Name</span> ~ <span class="sl">"_"</span> ~ <span class="i">Name</span> ~ <span class="sl">"_connect"</span>)</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">CreateKernel</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">CreateKernel</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CConnector</span></span> <span class="i">conn</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">scope</span></span> <span class="d Variables"><span class="i">source</span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CSourceConstructor</span></span></span>;</span></span>
 		
@@ -157,7 +157,7 @@ $save_rand_state$
 		
 		<span class="bc">/* Connector args */</span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Tab</span></span>(<span class="n">2</span>)</span>;</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">val</span></span></span>; <span class="e Identifier"><span class="i">conn</span></span>.<span class="e Identifier"><span class="i">Constants</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"const $num_type$ "</span></span> ~ <span class="e Identifier"><span class="i">val</span></span>.<span class="e Identifier"><span class="i">Name</span></span></span> ~ <span class="e String"><span class="sl">","</span></span></span></span>;</span>
 		}</span></span></span>
@@ -192,7 +192,7 @@ $save_rand_state$
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">KernelCode</span></span> = <span class="e Identifier"><span class="i">kernel_source</span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Connect</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">num_cycles</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">src_nrn_range</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">dest</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">dest_nrn_range</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Connect</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">num_cycles</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">src_nrn_range</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o "><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">dest</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">dest_nrn_range</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Index"><span class="e Identifier"><span class="i">src_nrn_range</span></span>[<span class="e Int"><span class="n">1</span></span>]</span> &gt; <span class="e Index"><span class="e Identifier"><span class="i">src_nrn_range</span></span>[<span class="e Int"><span class="n">0</span></span>]</span></span>)</span>;</span>
 		<span class="s Expression"><span class="e Assert"><span class="k">assert</span>(<span class="e Rel"><span class="e Identifier"><span class="i">num_cycles</span></span> &gt; <span class="e Int"><span class="n">0</span></span></span>)</span>;</span>
@@ -202,7 +202,7 @@ $save_rand_state$
 		<span class="s With"><span class="k">with</span>(<span class="e Identifier"><span class="i">ConnectKernel</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="lc">//$connector_args$</span>
-			<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">cnst</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
+			<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">cnst</span></span></span>; <span class="e Identifier"><span class="i">Constants</span></span>)
 			<span class="s Scope"><span class="s Compound">{
 				<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">float_t</span></span> <span class="i">val</span> = <span class="e Identifier"><span class="i">cnst</span></span>;</span></span>
 				<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">val</span>)</span>;</span>
@@ -248,7 +248,7 @@ $save_rand_state$
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">ConnectKernel</span></span>.<span class="e Identifier"><span class="i">Launch</span></span>([<span class="i">src_nrn_range</span>[<span class="n">1</span>] - <span class="i">src_nrn_range</span>[<span class="n">0</span>]])</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opIndex</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opIndex</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">idx_ptr</span> = <span class="e In"><span class="e Identifier"><span class="i">name</span></span> <span class="k">in</span> <span class="e Identifier"><span class="i">ConstantRegistry</span></span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">idx_ptr</span></span> !<span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
@@ -259,7 +259,7 @@ $save_rand_state$
 		<span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"Connector '"</span></span> ~ <span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' does not have a '"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' variable."</span></span></span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opIndexAssign</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">opIndexAssign</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{	
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">idx_ptr</span> = <span class="e In"><span class="e Identifier"><span class="i">name</span></span> <span class="k">in</span> <span class="e Identifier"><span class="i">ConstantRegistry</span></span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identity"><span class="e Identifier"><span class="i">idx_ptr</span></span> !<span class="k">is</span> <span class="e Null"><span class="k">null</span></span></span>)
@@ -271,7 +271,7 @@ $save_rand_state$
 		<span class="s Throw"><span class="k">throw</span> <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Exception</span></span>(<span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"Connector '"</span></span> ~ <span class="e Identifier"><span class="i">Name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' does not have a '"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span>.<span class="e Identifier"><span class="i">idup</span></span></span> ~ <span class="e String"><span class="sl">"' variable."</span></span></span>)</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">ArgStart</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">ArgStart</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">ret</span> = <span class="e Identifier"><span class="i">Constants</span></span>.<span class="e Identifier"><span class="i">length</span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">RandLen</span></span>)
@@ -280,7 +280,7 @@ $save_rand_state$
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">ConnectKernel</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>

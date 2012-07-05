@@ -45,9 +45,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Import"><span class="k">import</span> <span class="i">dutil</span>.<span class="i">Disposable</span>;</span>
 
-<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CIntegrator</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CDisposable</span></span></span>
+<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CIntegrator</span><span class="o ">(<span class="o "><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CDisposable</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Group</span></span> = <span class="e Identifier"><span class="i">group</span></span></span>;</span>
 	}</span></span></span>
@@ -56,7 +56,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Will set the arguments of the integrator (it assumes the StepKernel is used)
 	 * Returns the updated arg_id.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">arg_id</span></span>;</span>
 	}</span></span></span>
@@ -64,7 +64,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Resets whatever internal buffers are used.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Reset</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Reset</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>
@@ -72,7 +72,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Returns the load code for the kernel.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
@@ -80,7 +80,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Returns the save code for the kernel.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
@@ -88,7 +88,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Returns the args code for the kernel.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
@@ -96,7 +96,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Returns the actual integration code for the kernel.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetIntegrateCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetIntegrateCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
@@ -104,7 +104,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Returns the code that should be called after a threshold is reached.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPostThreshCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPostThreshCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
@@ -112,7 +112,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Sets the dt of the integrator (what this means depends on the integrator).
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetDt</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">dt</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetDt</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">dt</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>
@@ -121,7 +121,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Destroys any buffers associated with this integrator.
 	 */</span>
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 	}</span></span></span>
@@ -129,9 +129,9 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="d Variables"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">Group</span>;</span>
 }</span></span></span></span>
 
-<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CAdaptiveIntegrator</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CIntegrator</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
+<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CAdaptiveIntegrator</span><span class="o ">(<span class="o "><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CIntegrator</span>!<span class="o ">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>(<span class="i">group</span>, <span class="i">type</span>)</span>;</span>
 	}</span></span></span>
@@ -139,7 +139,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	<span class="bc">/*
 	 * Adaptive integrators have tolerances associated with states
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetTolerance</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">tolerance</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetTolerance</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">state</span></span>, <span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">tolerance</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>

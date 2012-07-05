@@ -86,54 +86,54 @@ $num_type$ rand2(uint2* zp)
 
 <span class="d Class"><span class="k">class</span> <span class="i">CCLRand</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CDisposable</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">()</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">Rand</span></span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">Random</span></span></span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">""</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">arg_id</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>, <span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumArgs</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumArgs</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">0</span></span>;</span>
 	}</span></span></span>
@@ -141,7 +141,7 @@ $num_type$ rand2(uint2* zp)
 	<span class="d Compound"><span class="d Variables"><span class="t Identifier"><span class="i">Random</span></span> <span class="i">Rand</span>;</span></span>
 }</span></span>
 
-<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CCLRandImpl</span><span class="o TemplateParameters">(<span class="o TemplateValueParam"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">N</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CCLRand</span></span></span>
+<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CCLRandImpl</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">N</span></span>)</span> : <span class="t BaseClass"><span class="t Identifier"><span class="i">CCLRand</span></span></span>
 <span class="d Compound">{
 	<span class="d StaticIf"><span class="k">static</span> <span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">N</span></span> == <span class="e Int"><span class="n">1</span></span></span>)
 	<span class="d Compound">{
@@ -160,91 +160,91 @@ $num_type$ rand2(uint2* zp)
 		<span class="d StaticAssert"><span class="k">static</span> <span class="k">assert</span>(<span class="e String"><span class="sl">"Unsupported random state length."</span></span>);</span>
 	}</span></span></span></span>
 	
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLCore</span></span> <span class="i">core</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">count</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLCore</span></span> <span class="i">core</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">count</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>()</span>;</span>
-		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">State</span></span> = <span class="e New"><span class="k">new</span> <span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">state_t</span></span>)</span></span>(<span class="e Identifier"><span class="i">core</span></span>, <span class="e Identifier"><span class="i">count</span></span>)</span></span>;</span>
+		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">State</span></span> = <span class="e New"><span class="k">new</span> <span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o ">(<span class="t Identifier"><span class="i">state_t</span></span>)</span></span>(<span class="e Identifier"><span class="i">core</span></span>, <span class="e Identifier"><span class="i">count</span></span>)</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetTypeString</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetTypeString</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">ret</span> = <span class="e String"><span class="sl">"uint"</span></span>;</span></span>
 		<span class="s StaticIf"><span class="k">static</span> <span class="k">if</span> (<span class="e Rel"><span class="e Identifier"><span class="i">N</span></span> &gt; <span class="e Int"><span class="n">1</span></span></span>)
-			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">ret</span></span> ~= <span class="e Call"><span class="e TmplInstance"><span class="i">to</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span>)</span></span>(<span class="i">N</span>)</span></span>;</span></span>
+			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">ret</span></span> ~= <span class="e Call"><span class="e TmplInstance"><span class="i">to</span>!<span class="o ">(<span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span>)</span></span>(<span class="i">N</span>)</span></span>;</span></span>
 		
 		<span class="s Return"><span class="k">return</span> <span class="e Identifier"><span class="i">ret</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span> ~ <span class="e String"><span class="sl">" _rand_state = _rand_state_buf[i];"</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e String"><span class="sl">"_rand_state_buf[i] = _rand_state;"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"__global "</span></span> ~ <span class="e Call"><span class="e Identifier"><span class="i">GetTypeString</span></span>()</span></span> ~ <span class="e String"><span class="sl">"* _rand_state_buf,"</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">kernel</span></span>.<span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>, <span class="i">State</span>.<span class="i">Buffer</span>)</span>;</span>
 		<span class="s Return"><span class="k">return</span> <span class="e Plus"><span class="e Identifier"><span class="i">arg_id</span></span> + <span class="e Int"><span class="n">1</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e Identifier"><span class="i">seed</span></span>({<span class="k">return</span> <span class="k">cast</span>(<span class="k">uint</span>)<span class="i">n</span>;})</span>;</span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Seed</span></span>()</span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">arr</span> = <span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">MapWrite</span></span>()</span>;</span></span>
 		<span class="s ScopeGuard"><span class="k">scope</span>(<span class="i">exit</span>) <span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">UnMap</span></span>()</span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="k">ref</span> <span class="i">el</span></span></span>; <span class="e Identifier"><span class="i">arr</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="k">ref</span> <span class="i">el</span></span></span>; <span class="e Identifier"><span class="i">arr</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s StaticIf"><span class="k">static</span> <span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">N</span></span> == <span class="e Int"><span class="n">1</span></span></span>)
 			<span class="s Compound">{
-				<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">el</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span>
+				<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">el</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o ">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span>
 			}</span>
 			<span class="k">else</span>
 			<span class="s Compound">{
 				<span class="s For"><span class="k">for</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ii</span> = <span class="e Int"><span class="n">0</span></span>;</span></span> <span class="e Rel"><span class="e Identifier"><span class="i">ii</span></span> &lt; <span class="e Identifier"><span class="i">N</span></span></span>; <span class="e PostIncr"><span class="e Identifier"><span class="i">ii</span></span>++</span>)
-					<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">el</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span></span></span>
+					<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">el</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o ">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span></span></span>
 			}</span></span>
 		}</span></span></span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Seed</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">idx</span></span>, <span class="o "><span class="t Integral"><span class="k">int</span></span> <span class="i">n</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e Identifier"><span class="i">seed</span></span>({<span class="k">return</span> <span class="k">cast</span>(<span class="k">uint</span>)<span class="i">n</span>;})</span>;</span>
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">state_t</span></span> <span class="i">el</span>;</span></span>
 		<span class="s StaticIf"><span class="k">static</span> <span class="k">if</span>(<span class="e Equal"><span class="e Identifier"><span class="i">N</span></span> == <span class="e Int"><span class="n">1</span></span></span>)
 		<span class="s Compound">{
-			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">el</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span>
+			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">el</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o ">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span>
 		}</span>
 		<span class="k">else</span>
 		<span class="s Compound">{
 			<span class="s For"><span class="k">for</span>(<span class="s Declaration"><span class="d Variables"><span class="t Integral"><span class="k">int</span></span> <span class="i">ii</span> = <span class="e Int"><span class="n">0</span></span>;</span></span> <span class="e Rel"><span class="e Identifier"><span class="i">ii</span></span> &lt; <span class="e Identifier"><span class="i">N</span></span></span>; <span class="e PostIncr"><span class="e Identifier"><span class="i">ii</span></span>++</span>)
-				<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">el</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o TemplateArguments">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span></span></span>
+				<span class="s Scope"><span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">el</span></span>[<span class="e Identifier"><span class="i">ii</span></span>]</span> = <span class="e Call"><span class="e Identifier"><span class="i">Rand</span></span>.<span class="e TmplInstance"><span class="i">uniform</span>!<span class="o ">(<span class="t Integral"><span class="k">int</span></span>)</span></span>()</span></span>;</span></span></span>
 		}</span></span>
 		<span class="s Expression"><span class="e Assign"><span class="e Index"><span class="e Identifier"><span class="i">State</span></span>[<span class="e Identifier"><span class="i">idx</span></span>]</span> = <span class="e Identifier"><span class="i">el</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">State</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
@@ -252,12 +252,12 @@ $num_type$ rand2(uint2* zp)
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumArgs</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">int</span></span> <span class="i">NumArgs</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> <span class="e Int"><span class="n">1</span></span>;</span>
 	}</span></span></span>
 	
-	<span class="d Variables"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">state_t</span></span>)</span></span> <span class="i">State</span>;</span>
+	<span class="d Variables"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o ">(<span class="t Identifier"><span class="i">state_t</span></span>)</span></span> <span class="i">State</span>;</span>
 }</span></span></span></span></span>
 
 </pre></td>

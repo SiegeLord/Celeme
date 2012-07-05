@@ -48,23 +48,23 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 
 <span class="d Import"><span class="k">import</span> <span class="i">tango</span>.<span class="i">io</span>.<span class="i">Stdout</span>;</span>
 
-<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CAdaptiveHeun</span><span class="o TemplateParameters">(<span class="o TemplateTypeParam"><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CAdaptiveIntegrator</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
+<span class="d Template"><span class="d Compound"><span class="d Class"><span class="k">class</span> <span class="i">CAdaptiveHeun</span><span class="o ">(<span class="o "><span class="i">float_t</span></span>)</span> : <span class="t BaseClass"><span class="t TemplateInstance"><span class="i">CAdaptiveIntegrator</span>!<span class="o ">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span></span>
 <span class="d Compound">{
-	<span class="d Constructor"><span class="k">this</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Constructor"><span class="k">this</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">ICLNeuronGroup</span></span> <span class="i">group</span></span>, <span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>(<span class="i">group</span>, <span class="i">type</span>)</span>;</span>
 		
-		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">DtBuffer</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Core</span></span>.<span class="e TmplInstance"><span class="i">CreateBuffer</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span>(<span class="i">Group</span>.<span class="i">Count</span>)</span></span>;</span>
+		<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">DtBuffer</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">Core</span></span>.<span class="e TmplInstance"><span class="i">CreateBuffer</span>!<span class="o ">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span>(<span class="i">Group</span>.<span class="i">Count</span>)</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Reset</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Reset</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Assign"><span class="e Slice"><span class="e Identifier"><span class="i">DtBuffer</span></span>[]</span> = <span class="e Identifier"><span class="i">Group</span></span>.<span class="e Identifier"><span class="i">MinDt</span></span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetLoadCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> 
 <span class="e String"><span class="sl">"$num_type$ _dt_residual = 0;
@@ -72,7 +72,7 @@ _dt = _dt_buf[i];"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetSaveCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> 
 <span class="e String"><span class="sl">"if(_dt_residual &gt; $min_dt$f)
@@ -84,7 +84,7 @@ _dt_buf[i] = _dt;"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">SetArgs</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CCLKernel</span></span> <span class="i">kernel</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">arg_id</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">kernel</span></span>.<span class="e Identifier"><span class="i">SetGlobalArg</span></span>(<span class="i">arg_id</span>++, <span class="i">DtBuffer</span>)</span>;</span>
 		
@@ -92,7 +92,7 @@ _dt_buf[i] = _dt;"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetArgsCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d Variables"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">ret</span> = <span class="e String"><span class="sl">"__global $num_type$* _dt_buf,<span class="es">\n</span>"</span></span>;</span></span>
 		<span class="s If"><span class="k">if</span>(<span class="e Identifier"><span class="i">ret</span></span>.<span class="e Identifier"><span class="i">length</span></span>)
@@ -101,7 +101,7 @@ _dt_buf[i] = _dt;"</span></span>;</span>
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetIntegrateCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetIntegrateCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">scope</span></span> <span class="d Variables"><span class="i">source</span> = <span class="e New"><span class="k">new</span> <span class="t Identifier"><span class="i">CSourceConstructor</span></span>()</span>;</span></span>
 
@@ -152,21 +152,21 @@ else
 }
 "</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>
 		<span class="bc">/* Declare temp states */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"$num_type$ _"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_0 = "</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">";"</span></span></span></span>;</span>
 		}</span></span></span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$declare_temp_states$"</span>)</span>;</span>
 		
 		<span class="bc">/* Declare derivs 1 */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"$num_type$ _d"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_1;"</span></span></span></span>;</span>
 		}</span></span></span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$declare_derivs_1$"</span>)</span>;</span>
 		
 		<span class="bc">/* Declare derivs 2 */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"$num_type$ _d"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_2;"</span></span></span></span>;</span>
 		}</span></span></span>
@@ -174,7 +174,7 @@ else
 		
 		<span class="bc">/* Compute derivs 1 */</span>
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">first_source</span> = <span class="e Identifier"><span class="i">eval_source</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">first_source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">first_source</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span> ~ <span class="sl">"'"</span>, <span class="sl">"_d"</span> ~ <span class="i">name</span> ~ <span class="sl">"_dt_1"</span>)</span></span>;</span>
 		}</span></span></span>
@@ -182,7 +182,7 @@ else
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$compute_derivs_1$"</span>)</span>;</span>
 		
 		<span class="bc">/* Apply derivs 1 */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"_d"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_1 *= _dt;"</span></span></span></span>;</span>
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"_"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_0 += _d"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_1;"</span></span></span></span>;</span>
@@ -191,7 +191,7 @@ else
 		
 		<span class="bc">/* Compute derivs 2 */</span>
 		<span class="s Declaration"><span class="d StorageClass"><span class="k">auto</span></span> <span class="d Variables"><span class="i">second_source</span> = <span class="e Identifier"><span class="i">eval_source</span></span>.<span class="e Identifier"><span class="i">dup</span></span>;</span></span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">second_source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">second_source</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span> ~ <span class="sl">"'"</span>, <span class="sl">"_d"</span> ~ <span class="i">name</span> ~ <span class="sl">"_dt_2"</span>)</span></span>;</span>
 			<span class="s Expression"><span class="e Assign"><span class="e Identifier"><span class="i">second_source</span></span> = <span class="e Call"><span class="e Identifier"><span class="i">second_source</span></span>.<span class="e Identifier"><span class="i">c_substitute</span></span>(<span class="i">name</span>, <span class="sl">"_"</span> ~ <span class="i">name</span> ~ <span class="sl">"_0"</span>)</span></span>;</span>
@@ -200,21 +200,21 @@ else
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$compute_derivs_2$"</span>)</span>;</span>
 		
 		<span class="bc">/* Apply derivs 2 */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"_d"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_2 = (_d"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_1 + _dt * _d"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_2) / 2;"</span></span></span></span>;</span>
 		}</span></span></span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$apply_derivs_2$"</span>)</span>;</span>
 		
 		<span class="bc">/* Compute error */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e String"><span class="sl">"_error = max(_error, fabs(_d"</span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_1 - _d"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_2) / "</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_tol);"</span></span></span></span>;</span>
 		}</span></span></span>
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">source</span></span>.<span class="e Identifier"><span class="i">Inject</span></span>(<span class="i">kernel_source</span>, <span class="sl">"$compute_error$"</span>)</span>;</span>
 		
 		<span class="bc">/* Update state */</span>
-		<span class="s Foreach"><span class="k">foreach</span>(<span class="o Parameters"><span class="o Parameter"><span class="i">name</span></span>, <span class="o Parameter"><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
+		<span class="s Foreach"><span class="k">foreach</span>(<span class="o "><span class="o "><span class="i">name</span></span>, <span class="o "><span class="i">state</span></span></span>; <span class="e Address">&amp;<span class="e Identifier"><span class="i">type</span></span></span>.<span class="e Identifier"><span class="i">AllStates</span></span>)
 		<span class="s Scope"><span class="s Compound">{
 			<span class="s Expression"><span class="e CatAssign"><span class="e Identifier"><span class="i">source</span></span> ~= <span class="e Cat"><span class="e Cat"><span class="e Cat"><span class="e Identifier"><span class="i">name</span></span> ~ <span class="e String"><span class="sl">" += _d"</span></span></span> ~ <span class="e Identifier"><span class="i">name</span></span></span> ~ <span class="e String"><span class="sl">"_dt_2;"</span></span></span></span>;</span>
 		}</span></span></span>
@@ -224,7 +224,7 @@ else
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPostThreshCode</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
+	<span class="d Function"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">GetPostThreshCode</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>)</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Return"><span class="k">return</span> 
 <span class="e String"><span class="sl">"/* Clamp the _dt not too overshoot the timestep */
@@ -237,14 +237,14 @@ if(_cur_time &lt; timestep &amp;&amp; _cur_time + _dt &gt;= timestep)
 	}</span></span></span>
 	
 	<span class="d StorageClass"><span class="k">override</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span>
 	<span class="s FuncBody"><span class="s Compound">{
 		<span class="s Expression"><span class="e Call"><span class="e Identifier"><span class="i">DtBuffer</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 		
 		<span class="s Expression"><span class="e Call"><span class="e Super"><span class="k">super</span></span>.<span class="e Identifier"><span class="i">Dispose</span></span>()</span>;</span>
 	}</span></span></span>
 	
-	<span class="d Variables"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o TemplateArguments">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">DtBuffer</span>;</span>
+	<span class="d Variables"><span class="t TemplateInstance"><span class="i">CCLBuffer</span>!<span class="o ">(<span class="t Identifier"><span class="i">float_t</span></span>)</span></span> <span class="i">DtBuffer</span>;</span>
 }</span></span></span></span></span>
 
 </pre></td>

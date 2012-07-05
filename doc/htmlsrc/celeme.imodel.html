@@ -51,12 +51,12 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Initializes the model. Normally you do not need to call this, as it is called by the
 	 * Generate method.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Initialize</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Initialize</span><span class="o ">()</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Disposes of the model resources.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Dispose</span><span class="o ">()</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Adds a new neuron group from an internal registry.
@@ -69,8 +69,8 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddNeuronGroup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">type_name</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">number</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span> = <span class="e Null"><span class="k">null</span></span></span>, 
-	                    <span class="o Parameter"><span class="t Identifier"><span class="i">EIntegratorFlags</span></span> <span class="i">integrator_flags</span> = <span class="e Or"><span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Adaptive</span></span> | <span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Heun</span></span></span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddNeuronGroup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">type_name</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">number</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span> = <span class="e Null"><span class="k">null</span></span></span>, 
+	                    <span class="o "><span class="t Identifier"><span class="i">EIntegratorFlags</span></span> <span class="i">integrator_flags</span> = <span class="e Or"><span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Adaptive</span></span> | <span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Heun</span></span></span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Adds a new neuron group.
@@ -83,8 +83,8 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     parallel_delivery = Whether or not to use parallel delivery of events. Parallel delivery
 	 *                         is faster on the GPU, but is slow on the CPU.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddNeuronGroup</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">number</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span> = <span class="e Null"><span class="k">null</span></span></span>,
-	                    <span class="o Parameter"><span class="t Identifier"><span class="i">EIntegratorFlags</span></span> <span class="i">integrator_flags</span> = <span class="e Or"><span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Adaptive</span></span> | <span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Heun</span></span></span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">AddNeuronGroup</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">CNeuronType</span></span> <span class="i">type</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">number</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span> = <span class="e Null"><span class="k">null</span></span></span>,
+	                    <span class="o "><span class="t Identifier"><span class="i">EIntegratorFlags</span></span> <span class="i">integrator_flags</span> = <span class="e Or"><span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Adaptive</span></span> | <span class="e Identifier"><span class="i">EIntegratorFlags</span></span>.<span class="e Identifier"><span class="i">Heun</span></span></span></span>, <span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">parallel_delivery</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Generates the model. You must generate it before you run it, or set any neuron-specific
@@ -94,22 +94,22 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     initialize = Whether or not to call the Initialize method after this method is done. Usually set
 	 *                  to true.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Generate</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">bool</span></span> <span class="i">initialize</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Generate</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">bool</span></span> <span class="i">initialize</span> = <span class="e Bool"><span class="k">true</span></span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Returns a neuron group with the passed name.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">INeuronGroup</span></span> <span class="i">opIndex</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Identifier"><span class="i">INeuronGroup</span></span> <span class="i">opIndex</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">name</span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
-	 * Runs the model for a specified number of timesteps. Equivalent to this code:
+	 * Runs the model until a certain time. Equivalent to this code:
 	 * ---
 	 * model.ResetRun();
 	 * model.InitRun();
-	 * model.RunUntil(num_timesteps);
+	 * model.RunUntil(tstop);
 	 * ---
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Run</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">num_timesteps</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">Run</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">tstop</span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Resets the buffers of the model, setting the internal time to 0. This clears the pending events, and resets all values to their
@@ -117,17 +117,17 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * of recorders are not affected, however. Note that this means that if you want to set any per-neuron
 	 * values, you should do it after this method call (and possibly after InitRun method also).
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">ResetRun</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">ResetRun</span><span class="o ">()</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Calls the init code for each neuron group.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">InitRun</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">InitRun</span><span class="o ">()</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
-	 * Runs the model until the internal clock equals the passed number of timesteps.
+	 * Runs the model until the internal clock is less than or equalt to tstop by an amount smaller than the model timestep size.
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">RunUntil</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">num_timesteps</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">RunUntil</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">tstop</span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Sets a connection between two neurons in this model. This function ignores the used slots,
@@ -143,7 +143,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     dest_syn_type = Index of the synapse to use
 	 *     dest_slot = Destination slot to use
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetConnection</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_nrn_id</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_slot</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_nrn_id</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_slot</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">SetConnection</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_nrn_id</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_slot</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_nrn_id</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_slot</span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Utility structure to hold the slots used by a connection. Returned by the $(SYMLINK Connect, Connect) method.
@@ -170,7 +170,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     A $(SYMLINK SSlots, SSlots) structure. The connection might not be made
 	 *     because the maximum number of slots has been used.
 	 */</span>
-	<span class="d Function"><span class="t Identifier"><span class="i">SSlots</span></span> <span class="i">Connect</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_nrn_id</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_nrn_id</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Identifier"><span class="i">SSlots</span></span> <span class="i">Connect</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_nrn_id</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_nrn_id</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Apply a connector to interconnect two ranges of neurons. This is the fastest method to connect neurons,
@@ -187,7 +187,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 *     dest_syn_type = Index of the synapse to use
 	 *     args = An associative array of arguments to pass to the connector
 	 */</span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">ApplyConnector</span><span class="o Parameters">(<span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">connector_name</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">multiplier</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">src_nrn_range</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">dest_nrn_range</span></span>, <span class="o Parameter"><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>, <span class="o Parameter"><span class="t Integral"><span class="k">double</span></span><span class="t Array">[<span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span>]</span> <span class="i">args</span> = <span class="e Null"><span class="k">null</span></span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">ApplyConnector</span><span class="o ">(<span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">connector_name</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">multiplier</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">src_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">src_nrn_range</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">src_event_source</span></span>, <span class="o "><span class="t Identifier"><span class="i">cstring</span></span> <span class="i">dest_group</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span><span class="t Array">[<span class="e Int"><span class="n">2</span></span>]</span> <span class="i">dest_nrn_range</span></span>, <span class="o "><span class="t Identifier"><span class="i">size_t</span></span> <span class="i">dest_syn_type</span></span>, <span class="o "><span class="t Integral"><span class="k">double</span></span><span class="t Array">[<span class="t Integral"><span class="k">char</span></span><span class="t Array">[]</span>]</span> <span class="i">args</span> = <span class="e Null"><span class="k">null</span></span></span>)</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Returns the timestep size of the model. The model is ran using fixed timesteps, although
@@ -195,7 +195,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * corresponds to the minimum delay in the network.
 	 */</span>
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">TimeStepSize</span><span class="o Parameters">()</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">double</span></span> <span class="i">TimeStepSize</span><span class="o ">()</span><span class="s FuncBody">;</span></span>
 	
 	<span class="bc">/**
 	 * Sets the timestep size of the model.
@@ -206,7 +206,7 @@ along with Celeme. If not, see &lt;http:#www.gnu.org/licenses/&gt;.
 	 * Note that this cannot be set after the model is generated.
 	 */</span>
 	<span class="d StorageClass">@<span class="i">property</span></span>
-	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">TimeStepSize</span><span class="o Parameters">(<span class="o Parameter"><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>)</span><span class="s FuncBody">;</span></span>
+	<span class="d Function"><span class="t Integral"><span class="k">void</span></span> <span class="i">TimeStepSize</span><span class="o ">(<span class="o "><span class="t Integral"><span class="k">double</span></span> <span class="i">val</span></span>)</span><span class="s FuncBody">;</span></span>
 }</span></span></span>
 
 </pre></td>

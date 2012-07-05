@@ -31,6 +31,7 @@ import celeme.platform_flags;
 import opencl.cl;
 import dutil.Disposable;
 
+import tango.math.Math;
 import tango.text.Util;
 import tango.io.Stdout;
 import tango.time.StopWatch;
@@ -206,11 +207,11 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void Run(size_t num_timesteps)
+	void Run(double tstop)
 	{
 		ResetRun();
 		InitRun();
-		RunUntil(num_timesteps);
+		RunUntil(tstop);
 	}
 	
 	override
@@ -238,10 +239,9 @@ class CCLModel(float_t) : CDisposable, ICLModel
 	}
 	
 	override
-	void RunUntil(size_t num_timesteps)
+	void RunUntil(double tstop)
 	{
 		assert(Initialized);
-		assert(num_timesteps > 1);
 		
 		/* Transfer to an array for faster iteration */
 		auto groups = NeuronGroups.values;
@@ -259,6 +259,8 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			cl_event step_event = null;
 			cl_event deliver_event = null;
 		}
+		
+		auto num_timesteps = cast(size_t)(max(tstop / TimeStepSize, 0.0));
 		
 		size_t t = CurStep;
 		/* Run the model */
@@ -320,7 +322,7 @@ class CCLModel(float_t) : CDisposable, ICLModel
 			
 			timer.start();	
 			foreach(group; groups)
-				group.UpdateRecorders(t, t == num_timesteps - 1);
+				group.UpdateRecorders(t, t >= num_timesteps - 1);
 			record_est += timer.stop();
 
 			t++;

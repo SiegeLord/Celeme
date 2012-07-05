@@ -88,14 +88,14 @@ interface IModel
 	INeuronGroup opIndex(cstring name);
 	
 	/**
-	 * Runs the model for a specified number of timesteps. Equivalent to this code:
+	 * Runs the model until a certain time. Equivalent to this code:
 	 * ---
 	 * model.ResetRun();
 	 * model.InitRun();
-	 * model.RunUntil(num_timesteps);
+	 * model.RunUntil(tstop);
 	 * ---
 	 */
-	void Run(size_t num_timesteps);
+	void Run(double tstop);
 	
 	/**
 	 * Resets the buffers of the model, setting the internal time to 0. This clears the pending events, and resets all values to their
@@ -111,9 +111,9 @@ interface IModel
 	void InitRun();
 	
 	/**
-	 * Runs the model until the internal clock equals the passed number of timesteps.
+	 * Runs the model until the internal clock is less than or equalt to tstop by an amount smaller than the model timestep size.
 	 */
-	void RunUntil(size_t num_timesteps);
+	void RunUntil(double tstop);
 	
 	/**
 	 * Sets a connection between two neurons in this model. This function ignores the used slots,

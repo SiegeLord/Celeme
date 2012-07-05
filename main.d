@@ -58,10 +58,8 @@ void main(char[][] arg_list)
 	
 	const N = 1000;
 	
-	model.TimeStepSize = 1.0;
+	model.TimeStepSize = 1;
 	model.AddNeuronGroup("Regular", N, null, EIntegratorFlags.Adaptive | EIntegratorFlags.Heun, gpu);
-	
-	auto t_scale = 1.0 / model.TimeStepSize;
 	
 	//model.AddNeuronGroup(types["Burster"], 5, null, true);
 	
@@ -129,12 +127,12 @@ void main(char[][] arg_list)
 	Stdout.formatln("Init time: {}", timer.stop());
 	timer.start();
 	
-	int tstop = cast(int)(1000 * t_scale);
+	double tstop = 1000;
 	//model.Run(tstop);
 	model.ResetRun();
 	model.InitRun();
-	//model.RunUntil(cast(int)(50 * t_scale));
-	model.RunUntil(tstop + 1);
+	model.RunUntil(50);
+	model.RunUntil(tstop);
 	Stdout.formatln("Run time: {}", timer.stop());
 	
 	Stdout(model["Regular"]["glu_counter", 0, 0]).nl;
@@ -147,7 +145,8 @@ void main(char[][] arg_list)
 	{
 		auto data_arrs = ExtractData(model["Regular"].GetRecordedData());	
 	
-		auto plot = new C2DPlot;
+		auto plot = new C2DPlot();
+		//auto plot = new C2DPlot("plot.gnuplot");
 		with(plot)
 		{
 			if(save_to_file)
@@ -159,7 +158,7 @@ void main(char[][] arg_list)
 			XLabel("Time (ms)");
 			YLabel("Voltage (mV)");
 			YRange([-80, 10]);
-			XRange([0, cast(int)(tstop/t_scale)]);
+			//XRange([0, tstop]);
 			
 			Hold = true;
 			Style("lines");

@@ -78,11 +78,12 @@ protected:
 class CRecorder
 {
 	/**
-	 * Return a map of data sets (keyed by the neuron index) that were recorded with particular flag.
+	 * Return a map of data sets (keyed by the neuron index) that were recorded with particular flag. Returns NULL if there are no recordings for this flag.
 	 */
 	SData[size_t] opIndex(int flags)
 	{
-		return AllData[flags];
+		auto ptr = flags in AllData;
+		return ptr is null ? null : *ptr;
 	}
 	
 	void ParseData(SArray!(SDataPoint) datapoints)

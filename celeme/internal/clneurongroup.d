@@ -23,8 +23,6 @@ import celeme.internal.frontend;
 import celeme.internal.clcore;
 import celeme.internal.clconnector;
 import celeme.internal.iclmodel;
-import celeme.ineurongroup;
-import celeme.integrator_flags;
 import celeme.internal.alignedarray;
 import celeme.internal.sourceconstructor;
 import celeme.internal.util;
@@ -34,6 +32,10 @@ import celeme.internal.heun;
 import celeme.internal.euler;
 import celeme.internal.clrand;
 import celeme.internal.clmiscbuffers;
+
+import celeme.ineurongroup;
+import celeme.integrator_flags;
+import celeme.recorder;
 
 import opencl.cl;
 import dutil.Disposable;
@@ -51,7 +53,7 @@ const RecordSizeArgStep = 6;
 const ArgOffsetStep = 7;
 const StepKernelTemplate = `
 #undef record
-#define record(flags, data, tag) \
+#define record(flags, data) \
 if(_record_flags & (flags)) \
 { \
 	int idx = atomic_inc(&_local_record_idx); \
@@ -63,7 +65,7 @@ if(_record_flags & (flags)) \
 	$num_type$4 record; \
 	record.s0 = t; \
 	record.s1 = (data); \
-	record.s2 = tag; \
+	record.s2 = flags; \
 	record.s3 = i; \
 	_record_buffer[idx + _local_record_idx_start] = record; \
 } \
@@ -356,6 +358,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		RecordBuffer = Core.CreateBuffer!(float_t4)(RecordLength, false, true);
 		RecordIdxBuffer = Core.CreateBuffer!(cl_int)(Count / WorkgroupSize);
 		RecordIdxBufferStart = Core.CreateBuffer!(cl_int)(Count / WorkgroupSize, true, false);
+		
+		Recorder = new CRecorder;
 		
 		if(NeedSrcSynCode)
 		{
@@ -1786,6 +1790,10 @@ for(int ii = 0; ii < num_fired; ii++)
 		
 		if(CommonRecorderIds.length)
 		{
+			/* Do this here in hopes that it'll be done in parallel with the computation on the GPU*/
+			Recorder.ParseData(DataArray);
+			DataArray.Length = 0;
+			
 			if((RecordRate && ((timestep + 1) % RecordRate == 0)) || last)
 			{
 				foreach(ii, workgroup; RecordingWorkgroups)
@@ -1877,12 +1885,6 @@ for(int ii = 0; ii < num_fired; ii++)
 		assert(neuron_id < Count);
 		
 		return RecordFlagsBuffer[neuron_id];
-	}
-	
-	override
-	SArray!(SDataPoint) GetRecordedData()
-	{
-		return DataArray;
 	}
 	
 	override
@@ -2137,8 +2139,10 @@ for(int ii = 0; ii < num_fired; ii++)
 	mixin(Prop!("CCLBuffer!(int)", "ErrorBuffer", "override", "private"));
 	mixin(Prop!("CCLRand", "Rand", "override", "private"));
 	mixin(Prop!("size_t", "RandLen", "override", "private"));
+	mixin(Prop!("CRecorder", "Recorder", "override", "private"));
 
 	SArray!(SDataPoint) DataArray;
+	CRecorder RecorderVal;
 	
 	/* Holds the id's where we are recording events, may have duplicates (we only care if it's empty or not though) */
 	size_t[] CommonRecorderIds;

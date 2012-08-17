@@ -21,29 +21,7 @@ module celeme.ineurongroup;
 import dutil.Array;
 
 import celeme.internal.util;
-
-/**
- * The datapoint recorded by the neuron group.
- */
-struct SDataPoint
-{
-	/**
-	 * The time associated with the datapoint.
-	 */
-	double T;
-	/**
-	 * Actual data of this datapoint.
-	 */
-	double Data;
-	/**
-	 * The tag of this datapoint. It is set by the record() function inside the neuron code.
-	 */
-	int Tag;
-	/**
-	 * Index of the neuron that this datapoint came from.
-	 */
-	size_t NeuronIdx;
-}
+import celeme.recorder;
 
 /**
  * A common interface to multiple types of groups.
@@ -116,7 +94,8 @@ interface INeuronGroup
 	/**
 	 * Get the recorded data array.
 	 */
-	SArray!(SDataPoint) GetRecordedData();
+	@property
+	CRecorder Recorder();
 	
 	/**
 	 * Download data from the GPU. Call this before reading out data for speed.

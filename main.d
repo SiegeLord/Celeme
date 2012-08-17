@@ -143,8 +143,6 @@ void main(char[][] arg_list)
 	if(record)
 	//if(false)
 	{
-		auto data_arrs = ExtractData(model["Regular"].GetRecordedData());	
-	
 		auto plot = new C2DPlot();
 		//auto plot = new C2DPlot("plot.gnuplot");
 		with(plot)
@@ -165,18 +163,15 @@ void main(char[][] arg_list)
 			//Style("linespoints");
 			PointType(6);
 			Thickness(1);
-			foreach(nrn_id, tag_arr; data_arrs)
+			foreach(nrn_idx, data; model["Regular"].Recorder[1])
 			{
-				foreach(tag, data; tag_arr)
+				Plot(data.T, data.Data, Format("{} : {}", nrn_idx, "Voltage"));
+				foreach(idx, t; data.T[1..$])
+					assert(t >= data.T[idx]);
+				
+				foreach(idx; 0..data.Length)
 				{
-					Plot(data.T, data.Data, Format("{} : {}", nrn_id, tag));
-					foreach(idx, t; data.T[1..$])
-						assert(t >= data.T[idx]);
-					
-					foreach(idx; 0..data.Length)
-					{
-						//println("{}	{}", data.T[idx], data.Data[idx]);
-					}
+					//println("{}	{}", data.T[idx], data.Data[idx]);
 				}
 			}
 			/*Color([0,0,0]);

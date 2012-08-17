@@ -72,8 +72,14 @@ protected:
 	double[] DataArray;
 }
 
+/**
+ * Stores data recorded from a single neuron group.
+ */
 class CRecorder
 {
+	/**
+	 * Return a map of data sets (keyed by the neuron index) that were recorded with particular flag.
+	 */
 	SData[size_t] opIndex(int flags)
 	{
 		return AllData[flags];

@@ -31,11 +31,13 @@ import celeme.platform_flags;
 import opencl.cl;
 import dutil.Disposable;
 
+import tango.io.device.File;
+import tango.io.Path;
+import tango.io.Stdout;
 import tango.math.Math;
 import tango.text.Util;
-import tango.io.Stdout;
 import tango.time.StopWatch;
-import tango.io.device.File;
+import tango.util.digest.Crc32;
 
 class CCLModel(float_t) : CDisposable, ICLModel
 {
@@ -157,9 +159,16 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		}
 		Source = Source.substitute("$num_type$", NumStr);
 		
-		auto file = new File("kernel.c", File.WriteCreate);
+		scope crc32 = (new Crc32()).update(Source);
+		auto digest = crc32.hexDigest();
+		
+		auto file = new File("original_" ~ digest ~ ".c", File.WriteCreate);
 		file.write(Source);
 		file.close();
+		
+		auto custom_source_name = "custom_" ~ digest ~ ".c";
+		if(exists(custom_source_name))
+			Source = cast(char[])File.get(custom_source_name);
 		
 		Program = Core.BuildProgram(Source);
 		Generated = true;

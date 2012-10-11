@@ -11,8 +11,10 @@ DUTIL_PATH         = /usr/local/include/d
 DUTIL_FILES        = $(DUTIL_PATH)/dutil/General.d $(DUTIL_PATH)/dutil/Disposable.d $(DUTIL_PATH)/dutil/Array.d
 DGNUPLOT_PATH      = /usr/local/include/d
 DGNUPLOT_FILES     = $(DGNUPLOT_PATH)/gnuplot.d
+SLCONFIG_PATH      = /usr/local/include/d
+SLCONFIG_FILES     = $(DGNUPLOT_PATH)/slconfig.d
 TANGO_LDFLAGS      = -L-ltango-$(DC_NAME)
-LD_FLAGS           = -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) 
+LD_FLAGS           = -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) -L-lslconfig-static
 D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3 -I$(DUTIL_PATH) -I$(DGNUPLOT_PATH)
 
 # Components
@@ -51,10 +53,10 @@ doc :
 	dil d doc/ --kandil -hl $(CELEME_FILES_NO_CL) -version=Doc
 
 $(D_EXAMPLE_NAME) : $(D_EXAMPLE_FILES)
-	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES), $(LD_FLAGS))
+	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES) $(SLCONFIG_FILES), $(LD_FLAGS))
 
 $(LIBRARY_NAME) : $(CELEME_FILES)
-	$(DC) -c $(CELEME_FILES) $(DUTIL_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)
+	$(DC) -c $(CELEME_FILES) $(SLCONFIG_FILES) $(DUTIL_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)
 	ar -r $(LIBRARY_NAME) .objs_celeme/*.o
 
 .PHONY : clean

@@ -44,6 +44,6 @@ After building you can run the examples as follows:
 
 The code I wrote myself is under LGPL3.
 
-OpenCL bindings came from cl4d @ https://github.com/Trass3r/cl4d
+OpenCL bindings came from cl4d @ https://github.com/Trass3r/cl4d , licensed under the Boost license (see opencl/LICENSE.txt).
 
 That's it for now. Again, many features are not yet implemented and there are probably tons of bugs. User friendliness is also rather low right now... if you're interested in helping out, contact me via this: http://slabode.exofire.net/contact_me.shtml

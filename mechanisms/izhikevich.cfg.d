@@ -11,7 +11,7 @@ mechanism Izhikevich
 	{
 		state = V;
 		condition = "> 0";
-		code = 
+		code =
 		"
 			V = c;
 			u += d;

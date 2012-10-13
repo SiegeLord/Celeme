@@ -650,7 +650,8 @@ IModel LoadModel(cstring file, cstring[] include_directories, EPlatformFlags fla
 	scope(exit) root.Destroy();
 	foreach(dir; include_directories)
 		root.AddSearchDirectory(dir);
-	root.LoadNodes(file);
+	if(!root.LoadNodes(file))
+		throw new Exception("Failed to load the model from '" ~ file.idup ~ "'.");
 
 	return LoadModel(root, flags, device_idx, double_precision);
 }

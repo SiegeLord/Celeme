@@ -461,7 +461,7 @@ void ApplyMechVals(CMechanism mech, SNode mech_node)
 				}
 				catch(Exception e)
 				{
-					if(node.Name != "number" && node.Name != "prefix")
+					if(node.Name != "number" && node.Name != "mechanism")
 						throw e;
 				}
 				break;
@@ -510,8 +510,11 @@ void ApplyMechVals(CMechanism mech, SNode mech_node)
  *     // Mechanisms
  *     mechanism MechName
  *     {
- *         // Prefix to use for this mechanism
- *         prefix = "";
+ *         // If this is empty, then MechName (above) is used to find a mechanism
+ *         // to insert and the variables of the mechanism will have no prefix.
+ *         // If this is not empty, then this value will be used to find the mechanism
+ *         // and the MechName above will be the prefix
+ *         mechanism = SomeMechName;
  *         
  *         // Initial value setting
  *         some_value = 0;
@@ -523,12 +526,14 @@ void ApplyMechVals(CMechanism mech, SNode mech_node)
  *         // Can replace and change the initial value
  *         immutable some_other_value_still = 5;
  *     }
+ * 
+ *     // Alternate syntax
+ *     mechanism MechPrefix = MechName;
  *     
  *     // Synapses
  *     synapse SynName
  *     {
- *         // Prefix to use for this synapse
- *         prefix = "";
+ *         synapse = SomeSynName;
  *         
  *         // Number of synapses of this type to insert
  *         number = 0;
@@ -574,40 +579,53 @@ CNeuronType[char[]] LoadNeuronTypes(SNode root, CMechanism[char[]] mechanisms, C
 				{
 					case "mechanism":
 					{
-						auto ptr = node.Name in mechanisms;
-						if(ptr is null)
-							throw new Exception("No mechanism named '" ~ node.Name.idup ~ "' exists.");
-						
-						auto mech = (*ptr).dup;
+						cstring mech_name;
 						cstring prefix = "";
 						if(node.IsAggregate)
-						{
-							prefix = cast(cstring)node.prefix;
-							
+							mech_name = cast(cstring)node.mechanism;
+						else
+							mech_name = node.GetValue();
+						
+						if(mech_name == "")
+							mech_name = node.Name;
+						else
+							prefix = node.Name;
+						
+						auto ptr = mech_name in mechanisms;
+						if(ptr is null)
+							throw new Exception("No mechanism named '" ~ mech_name.idup ~ "' exists.");
+						
+						auto mech = (*ptr).dup;
+						if(node.IsAggregate)
 							ApplyMechVals(mech, node);
-						}
 						
 						nrn_type.AddMechanism(mech, prefix, true);
 						break;
 					}
 					case "synapse":
 					{
-						auto ptr = node.Name in synapses;
+						if(!node.IsAggregate)
+							throw new Exception("synapse instantiation must be an aggregate.");
+						
+						cstring syn_name = cast(cstring)node.synapse;
+						cstring prefix = "";
+						
+						if(syn_name == "")
+							syn_name = node.Name;
+						else
+							prefix = node.Name;
+						
+						auto ptr = syn_name in synapses;
 						if(ptr is null)
-							throw new Exception("No synapse named '" ~ node.Name.idup ~ "' exists.");
+							throw new Exception("No synapse named '" ~ syn_name.idup ~ "' exists.");
 						
 						auto syn = (*ptr).dup;
 
-						if(!node.IsAggregate)
-							throw new Exception("synapse instantiation must be an aggregate.");
-
-						auto prefix = cast(cstring)node.prefix;
 						auto number = cast(int)node.number;
 							
 						ApplyMechVals(syn, node);
 						
 						nrn_type.AddSynapse(syn, number, prefix, true);
-					
 						break;
 					}
 					case "connector":

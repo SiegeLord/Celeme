@@ -1048,7 +1048,7 @@ cl_errcode clReleaseEvent(
 version(CL_VERSION_1_1)
 cl_errcode clSetUserEventStatus(
 	cl_event	event,
-	cl_command_execution_status execution_status);
+	cl_int      execution_status);
 
 /**
  *	callback function type for clSetEventCallback, called asynchronously, must return promptly

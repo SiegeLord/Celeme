@@ -128,7 +128,7 @@ void main(char[][] arg_list)
 	Stdout.formatln("Init time: {}", timer.stop());
 	timer.start();
 	
-	double tstop = 100000;
+	double tstop = 1000;
 	//model.Run(tstop);
 	model.ResetRun();
 	model.InitRun();

@@ -53,7 +53,8 @@ void main(char[][] arg_list)
 	
 	timer.start();
 	
-	auto model = LoadModel("stuff.cfg", ["mechanisms"], (force_device ? EPlatformFlags.Force : cast(EPlatformFlags)0) | (gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU), device_idx);
+	auto flags = (force_device ? EPlatformFlags.Force : cast(EPlatformFlags)0) | (gpu ? EPlatformFlags.GPU : EPlatformFlags.CPU);
+	auto model = LoadModel("stuff.cfg", ["mechanisms"], flags, device_idx);
 	scope(exit) model.Dispose();
 	
 	const N = 1000;
@@ -127,7 +128,7 @@ void main(char[][] arg_list)
 	Stdout.formatln("Init time: {}", timer.stop());
 	timer.start();
 	
-	double tstop = 1000;
+	double tstop = 100000;
 	//model.Run(tstop);
 	model.ResetRun();
 	model.InitRun();

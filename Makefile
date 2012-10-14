@@ -15,7 +15,7 @@ SLCONFIG_PATH      = /usr/local/include/d
 SLCONFIG_FILES     = $(DGNUPLOT_PATH)/slconfig.d
 TANGO_LDFLAGS      = -L-ltango-$(DC_NAME)
 LD_FLAGS           = -L-L$(OPENCL_PATH) -L-lOpenCL -L-lpthread -L-ldl $(TANGO_LDFLAGS) -L-lslconfig-static
-D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3 -I$(DUTIL_PATH) -I$(DGNUPLOT_PATH)
+D_FLAGS            = -unittest -w -wi -property -d-version=Tango -O3 -I$(DUTIL_PATH) -I$(DGNUPLOT_PATH) -d-version=CL_VERSION_1_2
 
 # Components
 CELEME_FILES_NO_CL = $(wildcard celeme/*.d) $(wildcard celeme/internal/*.d)

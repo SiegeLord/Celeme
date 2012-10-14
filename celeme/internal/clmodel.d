@@ -54,9 +54,9 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		static assert(0);
 	}
 	
-	this(EPlatformFlags flags, size_t device_idx, CNeuronType[char[]] registry = null)
+	this(CCLCore core, CNeuronType[char[]] registry = null)
 	{
-		Core = new CCLCore(flags, device_idx);
+		Core = core;
 		RandsUsed[] = false;
 		Registry = registry;
 	}

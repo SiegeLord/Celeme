@@ -27,6 +27,7 @@ import celeme.internal.util;
 import celeme.internal.frontend;
 import celeme.imodel;
 import celeme.internal.clmodel;
+import celeme.internal.clcore;
 import celeme.platform_flags;
 
 import slconfig;
@@ -656,13 +657,14 @@ CNeuronType[char[]] LoadNeuronTypes(SNode root, CMechanism[char[]] mechanisms, C
  *     file = Path to a file to load from.
  *     include_directories = Additional include directories.
  *     flags = Flags specifying which platform and type of device you wish to use. See $(SYMLINK2 celeme.platform_flags, EPlatformFlags, EPlatformFlags).
- *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is uesd.
- *     double_precision = Whether or not to use double precision.
+ *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is used.
+ *     compute_units = If you are forcing a specific platform you can specify how many compute units to use. If you are not forcing, or this is 0, the entire device is used.
+ *     sub_device_idx = If you are using less compute units than there are in the whole device, then you can select a particular sub device to use.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(cstring file, cstring[] include_directories, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, bool double_precision = false)
+IModel LoadModel(TFloat = float)(cstring file, cstring[] include_directories, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, size_t compute_units = 0, size_t sub_device_idx = 0)
 {
 	auto root = SNode();
 	scope(exit) root.Destroy();
@@ -671,7 +673,7 @@ IModel LoadModel(cstring file, cstring[] include_directories, EPlatformFlags fla
 	if(!root.LoadNodes(file))
 		throw new Exception("Failed to load the model from '" ~ file.idup ~ "'.");
 
-	return LoadModel(root, flags, device_idx, double_precision);
+	return LoadModel!(TFloat)(root, flags, device_idx, compute_units, sub_device_idx);
 }
 
 /**
@@ -680,21 +682,19 @@ IModel LoadModel(cstring file, cstring[] include_directories, EPlatformFlags fla
  * Params:
  *     node = The root node to load from.
  *     flags = Flags specifying which platform and type of device you wish to use. See $(SYMLINK2 celeme.platform_flags, EPlatformFlags, EPlatformFlags).
- *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is uesd.
- *     double_precision = Whether or not to use double precision.
+ *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is used.
+ *     compute_units = If you are forcing a specific platform you can specify how many compute units to use. If you are not forcing, or this is 0, the entire device is used.
+ *     sub_device_idx = If you are using less compute units than there are in the whole device, then you can select a particular sub device to use.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(SNode root, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, bool double_precision = false)
+IModel LoadModel(TFloat = float)(SNode root, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, size_t compute_units = 0, size_t sub_device_idx = 0)
 {
 	auto mechanisms = LoadMechanisms(root);
 	auto synapses = LoadSynapses(root);
 	auto connectors = LoadConnectors(root);
 	auto types = LoadNeuronTypes(root, mechanisms, synapses, connectors);
 	
-	if(double_precision)
-		return new CCLModel!(double)(flags, device_idx, types);
-	else
-		return new CCLModel!(float)(flags, device_idx, types);
+	return new CCLModel!(TFloat)(new CCLCore(flags, device_idx, compute_units, sub_device_idx), types);
 }

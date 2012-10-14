@@ -37,7 +37,7 @@ class CCLKernel : CDisposable
 	{
 		Core = core;
 		Name = name;
-		
+
 		int err;
 		Kernel = clCreateKernel(program, Name.c_str(), &err);
 		if(err != CL_SUCCESS)
@@ -45,10 +45,10 @@ class CCLKernel : CDisposable
 			throw new Exception("Failed to create '" ~ Name.idup ~ "' kernel.");
 		}
 	}
-	
+
 	void SetGlobalArg(T)(size_t argnum, T arg)
 	{
-		static if(!is(T == int) 
+		static if(!is(T == int)
 		       && !is(T == uint)
 		       && !is(T == float)
 		       && !is(T == double)
@@ -87,7 +87,7 @@ class CCLKernel : CDisposable
 			throw new Exception("Failed to set a local argument " ~ to!(char[])(argnum).idup ~ " of kernel '" ~ Name.idup ~ "'.");
 		}
 	}
-	
+
 	void Launch(size_t[] num_work_items, size_t[] workgroup_size = null, cl_event* event = null)
 	{
 		Core.LaunchKernel(this, num_work_items, workgroup_size, event);
@@ -99,7 +99,7 @@ class CCLKernel : CDisposable
 		clReleaseKernel(Kernel);
 		super.Dispose();
 	}
-	
+
 	CCLCore Core;
 	cl_kernel Kernel;
 	cstring Name;
@@ -112,7 +112,7 @@ class CCLBufferBase : CDisposable
 	{
 		return BufferVal;
 	}
-	
+
 	@property
 	size_t Length()
 	{
@@ -121,9 +121,9 @@ class CCLBufferBase : CDisposable
 protected:
 	cl_mem BufferVal;
 	size_t LengthVal;
-	
+
 	cl_mem HostBuffer;
-	
+
 	bool UseTwoBuffers = false;
 	CCLCore Core;
 	bool UseCache = false;
@@ -142,7 +142,7 @@ class CCLBuffer(T) : CCLBufferBase
 		UseCache = cache_size > 0;
 		CacheSize = max(cache_size, 1UL);
 		UseTwoBuffers = use_two_buffers;
-		
+
 		int err;
 		if(UseTwoBuffers)
 		{
@@ -161,7 +161,7 @@ class CCLBuffer(T) : CCLBufferBase
 				else
 					throw new Exception("Invalid combination of read/write parameters.");
 			}
-			
+
 			BufferVal = clCreateBuffer(Core.Context, flags, LengthVal * T.sizeof, null, &err);
 			assert(err == 0, GetCLErrorString(err));
 			HostBuffer = clCreateBuffer(Core.Context, CL_MEM_ALLOC_HOST_PTR, LengthVal * T.sizeof, null, &err);
@@ -174,30 +174,30 @@ class CCLBuffer(T) : CCLBufferBase
 			assert(err == 0, GetCLErrorString(err));
 		}
 	}
-	
+
 	T[] MapWrite(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
 		return Map(CL_MAP_WRITE, start, end, preserve_mapped_buffer);
 	}
-	
+
 	T[] MapReadWrite(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
 		return Map(CL_MAP_WRITE | CL_MAP_READ, start, end, preserve_mapped_buffer);
 	}
-	
+
 	T[] MapRead(size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
 		return Map(CL_MAP_READ, start, end, preserve_mapped_buffer);
 	}
-	
+
 	T[] Map(cl_map_flags mode, size_t start = 0, size_t end = 0, bool preserve_mapped_buffer = true)
 	{
 		assert(end <= Length);
 		assert(end >= start);
-		
+
 		if(end <= 0)
 			end = Length;
-			
+
 		if(((mode & MappedMode) == mode) && start >= MappedOffset && end <= MappedOffset + Mapped.length)
 		{
 			PreserveMappedBuffer = preserve_mapped_buffer;
@@ -206,7 +206,7 @@ class CCLBuffer(T) : CCLBufferBase
 		else
 		{
 			UnMap();
-			
+
 			if(UseTwoBuffers && (mode & CL_MAP_READ))
 			{
 				auto err = clEnqueueCopyBuffer(Core.Commands, Buffer, HostBuffer, start * T.sizeof, start * T.sizeof, (end - start) * T.sizeof, 0, null, null);
@@ -216,7 +216,7 @@ class CCLBuffer(T) : CCLBufferBase
 			int err;
 			T* ret = cast(T*)clEnqueueMapBuffer(Core.Commands, HostBuffer, CL_TRUE, mode, start * T.sizeof, (end - start) * T.sizeof, 0, null, null, &err);
 			assert(err == 0, GetCLErrorString(err));
-			
+
 			PreserveMappedBuffer = preserve_mapped_buffer;
 			MappedMode = mode;
 			MappedOffset = start;
@@ -224,7 +224,7 @@ class CCLBuffer(T) : CCLBufferBase
 			return Mapped;
 		}
 	}
-	
+
 	override
 	void Dispose()
 	{
@@ -232,29 +232,29 @@ class CCLBuffer(T) : CCLBufferBase
 		clReleaseMemObject(Buffer);
 		if(UseTwoBuffers)
 			clReleaseMemObject(HostBuffer);
-		
+
 		super.Dispose();
 	}
-	
+
 	void UnMap()
 	{
 		if(Mapped.length)
 		{
 			clEnqueueUnmapMemObject(Core.Commands, HostBuffer, Mapped.ptr, 0, null, null);
-			
+
 			if(UseTwoBuffers && (MappedMode & CL_MAP_WRITE))
 			{
 				auto err = clEnqueueCopyBuffer(Core.Commands, HostBuffer, Buffer, MappedOffset * T.sizeof, MappedOffset * T.sizeof, Mapped.length * T.sizeof, 0, null, null);
 				assert(err == 0, GetCLErrorString(err));
 			}
-			
+
 			Mapped.length = 0;
 			MappedOffset = 0;
 			MappedMode = 0;
 			PreserveMappedBuffer = false;
 		}
 	}
-	
+
 	/*
 	 * Read one
 	 *    If mapped readable, just read it
@@ -264,9 +264,9 @@ class CCLBuffer(T) : CCLBufferBase
 	T opIndex(size_t idx)
 	{
 		assert(idx < Length);
-		
+
 		bool new_map = false;
-		
+
 		//CacheTotal++;
 		if(!(CL_MAP_READ & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 		{
@@ -279,15 +279,15 @@ class CCLBuffer(T) : CCLBufferBase
 		{
 			//CacheHit++;
 		}
-		
+
 		auto ret = Mapped[idx - MappedOffset];
-		
+
 		if(!UseCache && new_map)
 			UnMap();
 
 		return ret;
 	}
-	
+
 	/*
 	 * Write one
 	 *    If mapped writable, write it
@@ -297,9 +297,9 @@ class CCLBuffer(T) : CCLBufferBase
 	T opIndexAssign(T val, size_t idx)
 	{
 		assert(idx < Length);
-		
+
 		bool new_map = false;
-		
+
 		if(!(CL_MAP_WRITE & MappedMode) || idx < MappedOffset || idx >= MappedOffset + Mapped.length)
 		{
 			if(PreserveMappedBuffer)
@@ -311,15 +311,15 @@ class CCLBuffer(T) : CCLBufferBase
 				MapWrite(idx, idx + 1, false);
 			new_map = true;
 		}
-		
+
 		Mapped[idx - MappedOffset] = val;
-		
+
 		if(!UseCache && new_map)
 			UnMap();
 
 		return val;
 	}
-	
+
 	/*
 	 * See opIndex for rationale
 	 */
@@ -327,16 +327,16 @@ class CCLBuffer(T) : CCLBufferBase
 	{
 		return this[0..Length] = val;
 	}
-	
+
 	/*
 	 * See opIndex for rationale
 	 */
 	T opSliceAssign(T val, size_t start, size_t end)
 	{
 		assert(end >= start);
-		
+
 		bool new_map = false;
-		
+
 		if(!(CL_MAP_WRITE & MappedMode) || start < MappedOffset || end > MappedOffset + Mapped.length)
 		{
 			if(PreserveMappedBuffer)
@@ -347,9 +347,9 @@ class CCLBuffer(T) : CCLBufferBase
 				MapWrite(start, end, false);
 			new_map = true;
 		}
-		
+
 		Mapped[start - MappedOffset..end - MappedOffset] = val;
-		
+
 		if(!UseCache && new_map)
 			UnMap();
 
@@ -364,25 +364,44 @@ __gshared size_t CacheHit = 0;
 
 class CCLCore : CDisposable
 {
-	this(EPlatformFlags platform_flags, size_t device_idx)
+	this(EPlatformFlags platform_flags, size_t device_idx, size_t compute_units, size_t sub_device_idx)
 	{
 		int err;
 		PlatformFlags = platform_flags;
-		
+
 		bool force = (PlatformFlags & EPlatformFlags.Force) != 0;
-		
+
 		/* PlatformFlags are adjusted here to reflect what we actually have */
 		auto devices = GetDevices(PlatformFlagsVal, Platform);
-		
+
 		if(devices is null)
 			throw new Exception("Couldn't find suitable OpenCL devices." ~ (force ? " Try a different platform." : ""));
-		
+
 		if(force)
 		{
 			assert(device_idx < devices.length, "Invalid device index");
 			Device = devices[device_idx];
 			if(GetDeviceParam!(int)(Device, CL_DEVICE_AVAILABLE) != 1)
 				throw new Exception("Device " ~ Format("{}", device_idx).idup ~ " is not available.");
+
+			version(CL_VERSION_1_2)
+			if(compute_units)
+			{
+				cl_device_partition_property[3] props = [CL_DEVICE_PARTITION_EQUALLY, compute_units, 0];
+				cl_uint num_sub_devices;
+
+				err = clCreateSubDevices(Device, props.ptr, 0, null, &num_sub_devices);
+				assert(err == 0, "Failed to create sub-devices:" ~ GetCLErrorString(err));
+				if(sub_device_idx >= num_sub_devices)
+					throw new Exception("Invalid sub-device index " ~ Format("{}", sub_device_idx).idup ~ ".");
+
+				scope sub_devices = new cl_device_id[](num_sub_devices);
+
+				err = clCreateSubDevices(Device, props.ptr, num_sub_devices, sub_devices.ptr, null);
+				assert(err == 0, "Failed to create sub-devices:" ~ GetCLErrorString(err));
+
+				Device = sub_devices[sub_device_idx];
+			}
 		}
 		else
 		{
@@ -397,7 +416,7 @@ class CCLCore : CDisposable
 			if(Device is null)
 				throw new Exception("No available devices.");
 		}
-		
+
 		/* Create a compute context */
 		Context = clCreateContext(null, 1, &Device, null, null, &err);
 		assert(err == 0, "Failed to create a compute context: " ~ GetCLErrorString(err));
@@ -407,18 +426,18 @@ class CCLCore : CDisposable
 		version(Perf) flags = CL_QUEUE_PROFILING_ENABLE;
 		Commands = clCreateCommandQueue(Context, Device, flags, &err);
 		assert(err == 0, "Failed to create a command queue:" ~ GetCLErrorString(err));
-		
+
 		/* Get the multiplier, for GPU we get it by building a dummy kernel and for CPU we get it from
 		 * the number of cores the device has */
 		if(GPU)
 		{
 			auto dummy_program = BuildProgram("__kernel void dummy() {}");
 			scope(exit) clReleaseProgram(dummy_program);
-			
+
 			auto dummy_kernel = clCreateKernel(dummy_program, "dummy", &err);
 			scope(exit) clReleaseKernel(dummy_kernel);
 			assert(err == 0, "Failed to create the dummy kernel." ~ GetCLErrorString(err));
-			
+
 			err = clGetKernelWorkGroupInfo(dummy_kernel, Device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, size_t.sizeof, &SizeMultiplier, null);
 			assert(err == 0, "Failed to get the preferred workgroup size.");
 		}
@@ -428,11 +447,11 @@ class CCLCore : CDisposable
 			SizeMultiplier = cast(size_t)(GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS) * 1.9);
 		}
 	}
-	
+
 	cl_device_id[] GetDevices(ref EPlatformFlags flags, out cl_platform_id chosen_platform)
 	{
 		int err;
-		
+
 		enum : size_t
 		{
 			AMD,
@@ -440,23 +459,23 @@ class CCLCore : CDisposable
 			Intel,
 			NumPlatforms
 		}
-		
+
 		struct SPlatformDesc
 		{
 			cstring Vendor;
 			EPlatformFlags Flags;
 		}
-		
+
 		SPlatformDesc[NumPlatforms] platform_descs;
 		platform_descs[AMD] = SPlatformDesc("Advanced Micro Devices, Inc.", EPlatformFlags.AMD);
 		platform_descs[NVidia] = SPlatformDesc("NVIDIA Corporation", EPlatformFlags.NVidia);
 		platform_descs[Intel] = SPlatformDesc("Intel(R) Corporation", EPlatformFlags.Intel);
-		
+
 		size_t get_platform_idx(cstring vendor_string)
 		{
 			return platform_descs.findIf((SPlatformDesc e) { return vendor_string == e.Vendor; });
 		}
-		
+
 		/* Choose the default platform */
 		size_t preferred_platform = AMD;
 		bool platform_pref = true;
@@ -468,35 +487,35 @@ class CCLCore : CDisposable
 			preferred_platform = NVidia;
 		else
 			platform_pref = false; /* We choose AMD, but make note that the user picked nothing */
-		
+
 		/* Get all the available platforms */
 		uint num_platforms;
 		err = clGetPlatformIDs(0, null, &num_platforms);
 		assert(err == 0, GetCLErrorString(err));
 		assert(num_platforms);
-		
+
 		cl_platform_id[] platforms;
 		platforms.length = num_platforms;
 		err = clGetPlatformIDs(num_platforms, platforms.ptr, null);
 		assert(err == 0, GetCLErrorString(err));
-		
+
 		cstring get_platform_param(cl_platform_id platform, cl_platform_info param)
 		{
 			char[] ret;
 			size_t ret_len;
 			auto err2 = clGetPlatformInfo(platform, param, 0, null, &ret_len);
-			assert(err2 == 0, GetCLErrorString(err2)); 
+			assert(err2 == 0, GetCLErrorString(err2));
 			ret.length = ret_len;
 			err2 = clGetPlatformInfo(platform, param, ret_len, ret.ptr, null);
 			assert(err2 == 0, GetCLErrorString(err2));
 			return ret[0..$-1];
 		}
-		
+
 		bool platform_sorter(cl_platform_id p1, cl_platform_id p2)
 		{
 			auto idx1 = get_platform_idx(get_platform_param(p1, CL_PLATFORM_VENDOR));
 			auto idx2 = get_platform_idx(get_platform_param(p2, CL_PLATFORM_VENDOR));
-			
+
 			if(idx1 == preferred_platform)
 				return true;
 			else if(idx2 == preferred_platform)
@@ -504,9 +523,9 @@ class CCLCore : CDisposable
 			else
 				return idx1 < idx2;
 		}
-		
+
 		platforms.sort(&platform_sorter);
-		
+
 		cl_device_id[] test_platform(cl_platform_id platform, bool gpu)
 		{
 			/* Get devices, check at least one is available */
@@ -515,30 +534,30 @@ class CCLCore : CDisposable
 			err = clGetDeviceIDs(platform, device_type, 0, null, &num_devices);
 			if(err != 0)
 				return null;
-			
+
 			cl_device_id[] devices;
 			devices.length = num_devices;
 			err = clGetDeviceIDs(platform, device_type, num_devices, devices.ptr, null);
 			assert(err == 0, GetCLErrorString(err));
-			
+
 			foreach(device; devices)
 			{
 				if(GetDeviceParam!(int)(device, CL_DEVICE_AVAILABLE) == 1)
 					return devices;
 			}
-			
+
 			return null;
 		}
-		
+
 		cl_device_id[] test_platforms(bool gpu)
 		{
 			foreach(platform; platforms)
 			{
 				auto platform_idx = get_platform_idx(get_platform_param(platform, CL_PLATFORM_VENDOR));
-				
+
 				if(platform_pref && flags & EPlatformFlags.Force && platform_idx != preferred_platform)
 					continue;
-				
+
 				auto ret = test_platform(platform, gpu);
 				if(ret !is null)
 				{
@@ -549,27 +568,27 @@ class CCLCore : CDisposable
 					return ret;
 				}
 			}
-			
+
 			return null;
 		}
-		
+
 		/* If the flags don't ask for the CPU devices explicitly, try the GPU devices first */
 		if(!(flags & EPlatformFlags.CPU))
 		{
 			auto ret = test_platforms(true);
 			if(ret !is null)
 				return ret;
-			
+
 			if(flags & EPlatformFlags.GPU && flags & EPlatformFlags.Force)
 				return null;
 		}
-		
+
 		/* Try the CPU devices */
 		auto ret = test_platforms(false);
-		
+
 		return ret;
 	}
-	
+
 	private T GetDeviceParam(T)(cl_device_id device, cl_device_info param)
 	{
 		static if(is(T : cstring))
@@ -577,17 +596,17 @@ class CCLCore : CDisposable
 			char[] ret;
 			size_t ret_len;
 			auto err2 = clGetDeviceInfo(device, param, 0, null, &ret_len);
-			assert(err2 == 0, GetCLErrorString(err2)); 
+			assert(err2 == 0, GetCLErrorString(err2));
 			ret.length = ret_len;
 			err2 = clGetDeviceInfo(device, param, ret_len, ret.ptr, null);
-			assert(err2 == 0, GetCLErrorString(err2)); 
+			assert(err2 == 0, GetCLErrorString(err2));
 			return ret[0..$-1];
 		}
 		else
 		{
 			T ret;
 			auto err2 = clGetDeviceInfo(device, param, T.sizeof, &ret, null);
-			assert(err2 == 0, GetCLErrorString(err2)); 
+			assert(err2 == 0, GetCLErrorString(err2));
 			return ret;
 		}
 	}
@@ -599,34 +618,34 @@ class CCLCore : CDisposable
 		clReleaseContext(Context);
 		super.Dispose();
 	}
-	
+
 	CCLBuffer!(T) CreateBuffer(T)(size_t length, bool read = true, bool write = true, size_t cache_size = 0)
 	{
 		/* Only AMD GPU's like the double buffer trick */
 		return new CCLBuffer!(T)(this, length, cache_size, read, write, (PlatformFlags & (EPlatformFlags.GPU | EPlatformFlags.AMD)) == (EPlatformFlags.GPU | EPlatformFlags.AMD));
 	}
-	
+
 	CCLKernel CreateKernel(cl_program program, cstring name)
 	{
 		return new CCLKernel(this, program, name);
 	}
-	
+
 	void LaunchKernel(CCLKernel kernel, size_t[] num_work_items, size_t[] workgroup_size = null, cl_event* event = null)
 	{
 		if(workgroup_size != null)
 			assert(num_work_items.length == workgroup_size.length, "Mismatched dimensions.");
 		auto err = clEnqueueNDRangeKernel(Commands, kernel.Kernel, cast(uint)num_work_items.length, null, num_work_items.ptr, workgroup_size.ptr, 0, null, event);
-		assert(err == 0, GetCLErrorString(err)); 
+		assert(err == 0, GetCLErrorString(err));
 	}
-	
+
 	cl_program BuildProgram(cstring source)
 	{
 		int err;
 		auto program = clCreateProgramWithSource(Context, 1, cast(char**)[source.ptr], cast(size_t*)[source.length], &err);
-		assert(err == 0, "Failed to create program: " ~ GetCLErrorString(err)); 
+		assert(err == 0, "Failed to create program: " ~ GetCLErrorString(err));
 
 		err = clBuildProgram(program, 0, null, null, null, null);
-		
+
 		if(err != CL_SUCCESS)
 		{
 			size_t ret_len;
@@ -636,18 +655,18 @@ class CCLCore : CDisposable
 			clGetProgramBuildInfo(program, Device, CL_PROGRAM_BUILD_LOG, buffer.length, buffer.ptr, null);
 			if(buffer.length > 1)
 				Stdout(buffer[0..$-1]).nl;
-			
-			assert(err == 0, "Failed to build program: " ~ GetCLErrorString(err)); 
+
+			assert(err == 0, "Failed to build program: " ~ GetCLErrorString(err));
 		}
-		
+
 		return program;
 	}
-	
+
 	void Finish()
 	{
 		clFinish(Commands);
 	}
-	
+
 	/* Given the current number of workitems it returns a better number (greater than or equal to
 	 * the passed one) as well as the workgroup size that corresponds to it */
 	size_t GetGoodNumWorkitems(size_t cur_num, out size_t workgroup_size)
@@ -656,7 +675,7 @@ class CCLCore : CDisposable
 		{
 			return num % mult ? (num / mult) * mult + mult : num;
 		}
-		
+
 		auto ret = get_next_multiple(cur_num, SizeMultiplier);
 		if(GPU)
 		{
@@ -665,7 +684,7 @@ class CCLCore : CDisposable
 		else
 		{
 			workgroup_size = ret / SizeMultiplier;
-			
+
 			/* Check to see that we can actually make a workgroup size for this */
 			auto max_size = GetDeviceParam!(size_t)(Device, CL_DEVICE_MAX_WORK_GROUP_SIZE);
 			if(workgroup_size > max_size)
@@ -675,18 +694,18 @@ class CCLCore : CDisposable
 				workgroup_size = ret / new_mult;
 			}
 		}
-		
+
 		return ret;
 	}
 
 	mixin(Prop!("EPlatformFlags", "PlatformFlags", "", "private"));
-	
+
 	@property
 	bool GPU()
 	{
 		return (PlatformFlags & EPlatformFlags.GPU) != 0;
 	}
-	
+
 protected:
 	EPlatformFlags PlatformFlagsVal;
 	cl_context Context;

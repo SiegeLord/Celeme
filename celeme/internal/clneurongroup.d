@@ -291,11 +291,9 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 				break;
 			case 3:
 				assert(0, "Unsupported rand length");
-				break;
 			case 4:
 				assert(0, "Unsupported rand length");
 				//Rand = new CCLRandImpl!(4)(Core, Count);
-				break;
 			default:
 		}
 		
@@ -619,7 +617,7 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		
 		if(NeedUnMap)
 			UnMapBuffers();
-		
+
 		InitKernel.Launch([Count], [WorkgroupSize], ret_event);
 	}
 	

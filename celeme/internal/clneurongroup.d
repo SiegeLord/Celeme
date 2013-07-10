@@ -1105,30 +1105,37 @@ $event_src_code$
 			if(NeedSrcSynCode && thresh.IsEventSource)
 			{
 				scope src_code = new CCode(
-`int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
-int _buff_start = _circ_buffer_start[_idx_idx];
+`const int _idx_idx = $num_event_sources$ * i + $event_source_idx$;
+const int _buff_start = _circ_buffer_start[_idx_idx];
+const int _buff_end = _circ_buffer_end[_idx_idx];
 
-if(_buff_start != _circ_buffer_end[_idx_idx])
+if(_buff_start != _buff_end)
 {
 	const int _circ_buffer_size = $circ_buffer_size$;
 	
+	int _cur_idx;
 	int _end_idx;
 	if(_buff_start < 0) //It is empty
 	{
 		_circ_buffer_start[_idx_idx] = 0;
-		_circ_buffer_end[_idx_idx] = 1;
 		_end_idx = 1;
+		_cur_idx = 0;
 	}
 	else
 	{
-		_end_idx = _circ_buffer_end[_idx_idx] = (_circ_buffer_end[_idx_idx] + 1) % _circ_buffer_size;
+		_end_idx = (_buff_end + 1) % _circ_buffer_size;
+		_cur_idx = _buff_end;
 	}
-	int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _end_idx - 1;
+	const int _buff_idx = (i * $num_event_sources$ + $event_source_idx$) * _circ_buffer_size + _cur_idx;
 	_circ_buffer[_buff_idx] = t + delay;
+	_circ_buffer_end[_idx_idx] = _end_idx;
 }
 else //It is full, error
 {
 	_error_buffer[i + 1] = $circ_buffer_error$ + $event_source_idx$;
+	//Prevent the deliver code from delivering
+	_circ_buffer_start[_idx_idx] = -1;
+	_circ_buffer_end[_idx_idx] = -1;
 }`);
 				src_code["$circ_buffer_size$"] = CircBufferSize;
 				src_code["$num_event_sources$"] = NumEventSources;

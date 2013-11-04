@@ -57,7 +57,7 @@ $(D_EXAMPLE_NAME) : $(D_EXAMPLE_FILES)
 	$(call d_build,$(D_EXAMPLE_NAME),$(D_EXAMPLE_FILES) $(DUTIL_FILES) $(DGNUPLOT_FILES) $(SLCONFIG_FILES), $(LD_FLAGS))
 
 $(LIBRARY_NAME) : $(CELEME_FILES)
-	$(DC) -c $(CELEME_FILES) $(SLCONFIG_FILES) $(DUTIL_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)
+	$(DC) -c $(CELEME_FILES) -od=".objs_celeme" $(D_FLAGS) $(PERF_STR)
 	ar -r $(LIBRARY_NAME) .objs_celeme/*.o
 
 .PHONY : clean

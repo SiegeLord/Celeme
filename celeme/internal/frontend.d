@@ -937,9 +937,10 @@ class CNeuronType
 	cstring PreStepCodeVal;
 	cstring PreStageCodeVal;
 	
-	/* Length of the random state: 0-4
-	 * 0 is no rand required */
-	int RandLen = 0;
+	/* Number of RNGs */
+	int NumRand = 0;
+	/* Length of the random state: 0-4 */
+	int RandStateSize = 0;
 	int RecordLength = 1000;
 	int RecordRate = 0;
 	int CircBufferSize = 20;

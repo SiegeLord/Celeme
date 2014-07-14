@@ -23,6 +23,7 @@ import celeme.internal.util;
 
 import tango.math.random.Random;
 import tango.util.Convert;
+import tango.text.convert.Format;
 
 import opencl.cl;
 import dutil.Disposable;
@@ -48,13 +49,13 @@ uint LCGStep(uint* z, uint A, uint C)
 const cstring[4] RandCode = 
 [
 `
-$num_type$ rand1(uint* z)
+$num_type$ _rand_impl1(uint* z)
 {
 	return 2.3283064365387e-10 * LCGStep(z, 1664525, 1013904223UL);
 }
 `,
 `
-$num_type$ rand2(uint2* zp)
+$num_type$ _rand_impl2(uint2* zp)
 {
 	uint z0 = (*zp).s0;
 	uint z1 = (*zp).s1;
@@ -72,9 +73,10 @@ $num_type$ rand2(uint2* zp)
 
 class CCLRand : CDisposable
 {
-	this()
+	this(size_t idx)
 	{
 		Rand = new Random;
+		Idx = idx;
 	}
 	
 	cstring GetLoadCode()
@@ -125,6 +127,7 @@ class CCLRand : CDisposable
 	}
 protected:
 	Random Rand;
+	size_t Idx;
 }
 
 class CCLRandImpl(size_t N) : CCLRand
@@ -146,9 +149,9 @@ class CCLRandImpl(size_t N) : CCLRand
 		static assert("Unsupported random state length.");
 	}
 	
-	this(CCLCore core, size_t count)
+	this(CCLCore core, size_t idx, size_t count)
 	{
-		super();
+		super(idx);
 		State = new CCLBuffer!(state_t)(core, count);
 	}
 	
@@ -164,19 +167,19 @@ class CCLRandImpl(size_t N) : CCLRand
 	override
 	cstring GetLoadCode()
 	{
-		return GetTypeString() ~ " _rand_state = _rand_state_buf[i];";
+		return GetTypeString() ~ Format(" _rand_state_{0} = _rand_state_buf_{0}[i];", Idx);
 	}
 	
 	override
 	cstring GetSaveCode()
 	{
-		return "_rand_state_buf[i] = _rand_state;";
+		return Format("_rand_state_buf_{0}[i] = _rand_state_{0};", Idx);
 	}
 	
 	override
 	cstring GetArgsCode()
 	{
-		return "__global " ~ GetTypeString() ~ "* _rand_state_buf,";
+		return "__global " ~ GetTypeString() ~ Format("* _rand_state_buf_{0},", Idx);
 	}
 	
 	override

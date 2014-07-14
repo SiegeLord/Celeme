@@ -568,7 +568,8 @@ CNeuronType[char[]] LoadNeuronTypes(SNode root, CMechanism[char[]] mechanisms, C
 			nrn_type.RecordRate = cast(int)nrn_node.record_rate;
 			nrn_type.CircBufferSize = cast(int)nrn_node.circ_buffer_size;
 			nrn_type.NumSrcSynapses = cast(int)nrn_node.num_src_synapses;
-			nrn_type.RandLen = cast(int)nrn_node.rand_state_len;
+			nrn_type.NumRand = cast(int)nrn_node.num_rand;
+			nrn_type.RandStateSize = cast(int)nrn_node.rand_state_len;
 			nrn_type.MinDt = nrn_node.min_dt.GetValue(0.01);
 			nrn_type.PreStageCode = cast(cstring)nrn_node.pre_stage;
 			nrn_type.PreStepCode = cast(cstring)nrn_node.pre_step;

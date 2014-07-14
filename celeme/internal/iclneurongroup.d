@@ -31,12 +31,12 @@ interface ICLNeuronGroup : INeuronGroup
 {
 	@property cstring Name();
 	
-	@property size_t RandLen();
+	@property size_t RandStateSize();
 	@property size_t NumEventSources();
 	@property size_t NumSrcSynapses();
 	@property size_t NumSynThresholds();
 	
-	@property CCLRand Rand();
+	@property CCLRand[] Rand();
 	@property CEventSourceBuffer[] EventSourceBuffers();
 	@property CSynapseBuffer[] SynapseBuffers();
 	@property CCLBuffer!(cl_int2) DestSynBuffer();

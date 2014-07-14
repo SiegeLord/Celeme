@@ -138,18 +138,20 @@ interface INeuronGroup
 	 * value based on this seed.
 	 * 
 	 * Params:
+	 *     rand_idx = Index of the PRNG.
 	 *     seed = New PRNG seed.
 	 */
-	void Seed(int seed);
+	void Seed(size_t rand_idx, int seed);
 	
 	/**
 	 * Seeds the random number generator of a single neuron.
 	 * 
 	 * Params:
-	 *     nrn_id = Index of the neuron.
+	 *     rand_idx = Index of the PRNG.
+	 *     nrn_idx = Index of the neuron.
 	 *     seed = New PRNG seed.
 	 */
-	void Seed(size_t nrn_id, int seed);
+	void Seed(size_t rand_idx, size_t nrn_idx, int seed);
 	
 	/**
 	 * Returns the target global neuron id that an event source is connected to at a specified source slot.

@@ -28,6 +28,7 @@ import opencl.cl;
 import dutil.Disposable;
 
 import tango.text.Util;
+import tango.text.convert.Format;
 import tango.util.Convert;
 import tango.io.Stdout;
 
@@ -132,13 +133,19 @@ class CCLConnector(float_t) : CDisposable
 		auto code = conn.Code.dup;
 		code = code.substitute("connect(", "$connector_name$_connect_impl(_src_event_source, &src_slot, _src_slot_max, _dest_slot_max, _dest_syn_idxs, _dest_syn_buffer, _error_buffer, _dest_nrn_offset, _dest_slot_offset, ");
 		
-		if(code.containsPattern("rand()"))
+		code = code.substitute("rand()", "rand0()");
+		code = code.substitute("randn()", "randn0()");
+		
+		foreach(idx; 0..Group.Rand.length)
 		{
-			if(!Group.RandLen)
-				throw new Exception("Found rand() but neuron group '" ~ Group.Name.idup ~ "' does not have random_state_len > 0.");
-			code = code.substitute("rand()", "rand" ~ to!(char[])(Group.RandLen) ~ "(&_rand_state)");
+			auto rand_name = Format("rand{}()", idx);
+			auto randn_name = Format("randn{}()", idx);
 			
-			NeedRand = true;
+			code = code.substitute(randn_name, "(sqrt(-2 * log(" ~ rand_name ~ " + 0.000001)) * cospi(2 * " ~ rand_name ~ "))");
+			
+			NeedRand |= code.containsPattern(rand_name);
+			
+			code = code.substitute(rand_name, Format("_rand_impl{}(&_rand_state_{})", Group.RandStateSize, idx));
 		}
 		
 		/* Connector args */
@@ -152,13 +159,19 @@ class CCLConnector(float_t) : CDisposable
 		/* Random state arguments */
 		source.Tab(2);
 		if(NeedRand)
-			source.AddBlock(Group.Rand.GetArgsCode());
+		{
+			foreach(rand; Group.Rand)
+				source.AddBlock(rand.GetArgsCode());
+		}
 		source.Inject(kernel_source, "$random_state_args$");
 		
 		/* Load rand state */
 		source.Tab(1);
 		if(NeedRand)
-			source ~= Group.Rand.GetLoadCode();
+		{
+			foreach(rand; Group.Rand)
+				source.AddBlock(rand.GetLoadCode());
+		}
 		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Connector code */
@@ -169,7 +182,10 @@ class CCLConnector(float_t) : CDisposable
 		/* Save rand state */
 		source.Tab(1);
 		if(NeedRand)
-			source ~= Group.Rand.GetSaveCode();
+		{
+			foreach(rand; Group.Rand)
+				source.AddBlock(rand.GetSaveCode());
+		}
 		source.Inject(kernel_source, "$save_rand_state$");
 		
 		kernel_source = kernel_source.substitute("$connector_name$", Group.Name ~ "_" ~ Name);
@@ -197,7 +213,8 @@ class CCLConnector(float_t) : CDisposable
 			//$random_state_args$
 			if(NeedRand)
 			{
-				arg_id = Group.Rand.SetArgs(ConnectKernel, arg_id);
+				foreach(rand; Group.Rand)
+					arg_id = rand.SetArgs(ConnectKernel, arg_id);
 			}
 			//const int num_cycles,
 			SetGlobalArg(arg_id++, cast(int)num_cycles);
@@ -260,8 +277,8 @@ class CCLConnector(float_t) : CDisposable
 	size_t ArgStart()
 	{
 		auto ret = Constants.length;
-		if(Group.RandLen)
-			ret += Group.Rand.NumArgs;
+		foreach(rand; Group.Rand)
+			ret += rand.NumArgs;
 		return ret;
 	}
 	

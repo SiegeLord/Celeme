@@ -280,21 +280,29 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		Parallel = parallel_delivery;
 		NeedUnMap = true;
 		
-		RandLen = type.RandLen;
-		switch(RandLen)
+		RandStateSize = type.RandStateSize;
+		foreach(idx; 0..type.NumRand)
 		{
-			case 1:
-				Rand = new CCLRandImpl!(1)(Core, Count);
-				break;
-			case 2:
-				Rand = new CCLRandImpl!(2)(Core, Count);
-				break;
-			case 3:
-				assert(0, "Unsupported rand length");
-			case 4:
-				assert(0, "Unsupported rand length");
-				//Rand = new CCLRandImpl!(4)(Core, Count);
-			default:
+			CCLRand rand;
+			switch(RandStateSize)
+			{
+				case 1:
+					rand = new CCLRandImpl!(1)(Core, idx, Count);
+					break;
+				case 2:
+					rand = new CCLRandImpl!(2)(Core, idx, Count);
+					break;
+				case 3:
+					assert(0, "Unsupported rand length");
+				case 4:
+					assert(0, "Unsupported rand length");
+					//Rand = new CCLRandImpl!(4)(Core, Count);
+				default:
+					assert(0, "Unsupported rand length");
+			}
+			
+			if(rand !is null)
+				RandVal ~= rand;
 		}
 		
 		foreach(conn; type.Connectors)
@@ -472,7 +480,10 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 			arg_id = ROValues.SetArgs(StepKernel, arg_id);
 			arg_id += Constants.length;
 			if(NeedRandArgs)
-				arg_id = Rand.SetArgs(StepKernel, arg_id);
+			{
+				foreach(rand; Rand)
+					arg_id = rand.SetArgs(StepKernel, arg_id);
+			}
 			arg_id = Integrator.SetArgs(StepKernel, arg_id);
 			if(NeedSrcSynCode)
 			{
@@ -575,8 +586,8 @@ class CNeuronGroup(float_t) : CDisposable, ICLNeuronGroup
 		}
 		
 		Integrator.Reset();
-		if(RandLen)
-			Rand.Seed();
+		foreach(rand; Rand)
+			rand.Seed();
 		
 		/* Initialize the buffers */
 		ErrorBuffer()[] = 0;
@@ -1304,32 +1315,46 @@ $save_syn_globals$
 		source.Inject(kernel_source, "$save_vals$");
 		
 		/* Random stuff */
-		kernel_source["randn()"] = "(sqrt(-2 * log(rand() + 0.000001)) * cospi(2 * rand()))";
-		NeedRandArgs = kernel_source[].containsPattern("rand()");
-		if(NeedRandArgs)
+		kernel_source["rand()"] = "rand0()";
+		kernel_source["randn()"] = "randn0()";
+		NeedRandArgs = false;
+		foreach(idx; 0..Rand.length)
 		{
-			if(!RandLen)
-				throw new Exception("Found rand()/randn() but neuron type '" ~ type.Name.idup ~ "' does not have random_state_len > 0.");
-				
-			kernel_source["rand()"] = Format("rand{}(&_rand_state)", RandLen);
+			auto rand_name = Format("rand{}()", idx);
+			auto randn_name = Format("randn{}()", idx);
+			
+			kernel_source[randn_name] = "(sqrt(-2 * log(" ~ rand_name ~ " + 0.000001)) * cospi(2 * " ~ rand_name ~ "))";
+			
+			NeedRandArgs |= kernel_source[].containsPattern(rand_name);
+			
+			kernel_source[rand_name] = Format("_rand_impl{}(&_rand_state_{})", RandStateSize, idx);
 		}
-		
+
 		/* Load rand state */
 		source.Tab;
 		if(NeedRandArgs)
-			source.AddBlock(Rand.GetLoadCode());
+		{
+			foreach(rand; Rand)
+				source.AddBlock(rand.GetLoadCode());
+		}
 		source.Inject(kernel_source, "$load_rand_state$");
 		
 		/* Random state arguments */
 		source.Tab;
 		if(NeedRandArgs)
-			source.AddBlock(Rand.GetArgsCode());
+		{
+			foreach(rand; Rand)
+				source.AddBlock(rand.GetArgsCode());
+		}
 		source.Inject(kernel_source, "$random_state_args$");
 		
 		/* Save rand state */
 		source.Tab;
 		if(NeedRandArgs)
-			source ~= Rand.GetSaveCode();
+		{
+			foreach(rand; Rand)
+				source.AddBlock(rand.GetSaveCode());
+		}
 		source.Inject(kernel_source, "$save_rand_state$");
 		
 		/* Record save */
@@ -1766,8 +1791,8 @@ for(int ii = 0; ii < num_fired; ii++)
 		foreach(conn; Connectors)
 			conn.Dispose();
 		
-		if(RandLen)
-			Rand.Dispose();
+		foreach(rand; Rand)
+			rand.Dispose();
 
 		super.Dispose();
 	}
@@ -2074,23 +2099,22 @@ for(int ii = 0; ii < num_fired; ii++)
 		int rand_offset = 0;
 		if(NeedRandArgs)
 		{
-			rand_offset = Rand.NumArgs;
+			foreach(rand; Rand)
+				rand_offset += rand.NumArgs;
 		}
 		return cast(int)(ValArgsOffset + Constants.length + ArgOffsetStep + rand_offset);
 	}
 	
 	override
-	void Seed(int seed)
+	void Seed(size_t rand_idx, int seed)
 	{
-		if(RandLen)
-			Rand.Seed(seed);
+		Rand[rand_idx].Seed(seed);
 	}
 	
 	override
-	void Seed(size_t idx, int seed)
+	void Seed(size_t rand_idx, size_t nrn_idx, int seed)
 	{
-		if(RandLen)
-			Rand.Seed(idx, seed);
+		Rand[rand_idx].Seed(nrn_idx, seed);
 	}
 	
 	@property
@@ -2142,8 +2166,8 @@ for(int ii = 0; ii < num_fired; ii++)
 	mixin(Prop!("CCLBuffer!(cl_int2)", "DestSynBuffer", "override", "private"));
 	mixin(Prop!("size_t", "NrnOffset", "override", "private"));
 	mixin(Prop!("CCLBuffer!(int)", "ErrorBuffer", "override", "private"));
-	mixin(Prop!("CCLRand", "Rand", "override", "private"));
-	mixin(Prop!("size_t", "RandLen", "override", "private"));
+	mixin(Prop!("CCLRand[]", "Rand", "override", "private"));
+	mixin(Prop!("size_t", "RandStateSize", "override", "private"));
 	mixin(Prop!("CRecorder", "Recorder", "override", "private"));
 
 	SArray!(SDataPoint) DataArray;
@@ -2223,8 +2247,8 @@ for(int ii = 0; ii < num_fired; ii++)
 	CSynapseBuffer[] SynapseBuffersVal;
 	CEventSourceBuffer[] EventSourceBuffersVal;
 	
-	size_t RandLenVal = 0;
-	CCLRand RandVal;
+	size_t RandStateSizeVal = 0;
+	CCLRand[] RandVal;
 	bool NeedRandArgs = false;
 	
 	/* If true, need to unmap the cached buffers */

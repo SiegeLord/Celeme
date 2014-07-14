@@ -96,7 +96,8 @@ class CCLModel(float_t) : CDisposable, ICLModel
 		auto sink_offset = NumDestSynapses;
 		NumDestSynapses += number * type.NumDestSynapses;
 		
-		RandsUsed[type.RandLen] = true;
+		if(type.NumRand > 0)
+			RandsUsed[type.RandStateSize] = true;
 		
 		auto group = new CNeuronGroup!(float_t)(this, type, number, workgroup_size, name, sink_offset, nrn_offset, integrator_type, parallel_delivery);
 		

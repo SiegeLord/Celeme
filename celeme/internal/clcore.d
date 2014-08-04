@@ -364,10 +364,11 @@ __gshared size_t CacheHit = 0;
 
 class CCLCore : CDisposable
 {
-	this(EPlatformFlags platform_flags, size_t device_idx, size_t compute_units, size_t sub_device_idx)
+	this(EPlatformFlags platform_flags, size_t device_idx, size_t compute_units, size_t sub_device_idx, size_t cpu_size_multiplier = 0)
 	{
 		int err;
 		PlatformFlags = platform_flags;
+		SizeMultiplier = cpu_size_multiplier;
 
 		bool force = (PlatformFlags & EPlatformFlags.Force) != 0;
 
@@ -441,10 +442,9 @@ class CCLCore : CDisposable
 			err = clGetKernelWorkGroupInfo(dummy_kernel, Device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, size_t.sizeof, &SizeMultiplier, null);
 			assert(err == 0, "Failed to get the preferred workgroup size.");
 		}
-		else
+		else if(SizeMultiplier == 0)
 		{
-			/* Overloading the CPU seems to do better than doing 1 workgroup per core */
-			SizeMultiplier = cast(size_t)(GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS) * 1.9);
+			SizeMultiplier = cast(size_t)(GetDeviceParam!(uint)(Device, CL_DEVICE_MAX_COMPUTE_UNITS));
 		}
 	}
 

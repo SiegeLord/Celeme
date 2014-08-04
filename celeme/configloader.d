@@ -661,11 +661,13 @@ CNeuronType[char[]] LoadNeuronTypes(SNode root, CMechanism[char[]] mechanisms, C
  *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is used.
  *     compute_units = If you are forcing a specific platform you can specify how many compute units to use. If you are not forcing, or this is 0, the entire device is used.
  *     sub_device_idx = If you are using less compute units than there are in the whole device, then you can select a particular sub device to use.
+ *     cpu_size_multiplier = Essentially the number of CPU cores. Set to 0 to auto-detect.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(TFloat = float)(cstring file, cstring[] include_directories, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, size_t compute_units = 0, size_t sub_device_idx = 0)
+IModel LoadModel(TFloat = float)(cstring file, cstring[] include_directories, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0,
+	size_t compute_units = 0, size_t sub_device_idx = 0, size_t cpu_size_multiplier = 0)
 {
 	auto root = SNode();
 	scope(exit) root.Destroy();
@@ -674,7 +676,7 @@ IModel LoadModel(TFloat = float)(cstring file, cstring[] include_directories, EP
 	if(!root.LoadNodes(file))
 		throw new Exception("Failed to load the model from '" ~ file.idup ~ "'.");
 
-	return LoadModel!(TFloat)(root, flags, device_idx, compute_units, sub_device_idx);
+	return LoadModel!(TFloat)(root, flags, device_idx, compute_units, sub_device_idx, cpu_size_multiplier);
 }
 
 /**
@@ -686,16 +688,18 @@ IModel LoadModel(TFloat = float)(cstring file, cstring[] include_directories, EP
  *     device_idx = If you are forcing a specific platform you can specify what device index to use. Otherwise, first available device is used.
  *     compute_units = If you are forcing a specific platform you can specify how many compute units to use. If you are not forcing, or this is 0, the entire device is used.
  *     sub_device_idx = If you are using less compute units than there are in the whole device, then you can select a particular sub device to use.
+ *     cpu_size_multiplier = Essentially the number of CPU cores. Set to 0 to auto-detect.
  * 
  * Returns:
  *     The loaded model.
  */
-IModel LoadModel(TFloat = float)(SNode root, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, size_t compute_units = 0, size_t sub_device_idx = 0)
+IModel LoadModel(TFloat = float)(SNode root, EPlatformFlags flags = EPlatformFlags.GPU, size_t device_idx = 0, size_t compute_units = 0,
+		size_t sub_device_idx = 0, size_t cpu_size_multiplier = 0)
 {
 	auto mechanisms = LoadMechanisms(root);
 	auto synapses = LoadSynapses(root);
 	auto connectors = LoadConnectors(root);
 	auto types = LoadNeuronTypes(root, mechanisms, synapses, connectors);
 	
-	return new CCLModel!(TFloat)(new CCLCore(flags, device_idx, compute_units, sub_device_idx), types);
+	return new CCLModel!(TFloat)(new CCLCore(flags, device_idx, compute_units, sub_device_idx, cpu_size_multiplier), types);
 }
